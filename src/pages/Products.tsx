@@ -14,7 +14,7 @@ const Products = () => {
   const [filteredProducts, setFilteredProducts] = useState(allProducts);
 
   const categories = [
-    { value: 'all', label: 'All' },
+    { value: 'all', label: 'All Products' },
     { value: 'fashion', label: 'Fashion' },
     { value: 'electronics', label: 'Electronics' }
   ] as const;
@@ -29,7 +29,7 @@ const Products = () => {
     // Animate grid items when filter changes
     if (gridRef.current) {
       const gridItems = gridRef.current.children;
-      AnimationController.staggerFadeIn(Array.from(gridItems) as HTMLElement[], 0.05);
+      AnimationController.staggerFadeIn(Array.from(gridItems) as HTMLElement[], 0.03);
     }
   }, [category, allProducts]);
 
@@ -44,38 +44,50 @@ const Products = () => {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-24 pb-16 bg-white">
       <div className="container mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-playfair font-light mb-4">
+          <h1 className="text-5xl md:text-6xl font-light mb-4 text-neutral-900">
             Collection
           </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore our carefully curated selection of minimal luxury pieces designed for the modern aesthetic.
+          <p className="text-neutral-600 max-w-2xl mx-auto leading-relaxed">
+            Discover our carefully curated selection of minimal luxury pieces designed for the modern aesthetic.
           </p>
         </div>
 
         {/* Filters */}
         <div 
           ref={filtersRef}
-          className="flex justify-center mb-12"
+          className="flex justify-center mb-16"
         >
-          <div className="flex gap-1 p-1 bg-muted rounded-lg">
+          <div className="flex gap-1 p-1 bg-neutral-100 rounded">
             {categories.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => handleCategoryChange(cat.value)}
                 className={`px-6 py-2 rounded text-sm font-medium transition-all duration-300 ${
                   category === cat.value
-                    ? 'bg-background text-foreground elegant-shadow'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-white text-neutral-900 shadow-sm'
+                    : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
                 {cat.label}
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Section Headings */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-light text-neutral-900 mb-2">
+            {category === 'all' ? 'All Products' : 
+             category === 'fashion' ? 'Fashion Collection' : 
+             'Electronics & Tech'}
+          </h2>
+          <p className="text-sm text-neutral-500">
+            {filteredProducts.length} items
+          </p>
         </div>
 
         {/* Products Grid */}
@@ -94,7 +106,7 @@ const Products = () => {
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-muted-foreground">No products found in this category.</p>
+            <p className="text-neutral-500">No products found in this category.</p>
           </div>
         )}
       </div>

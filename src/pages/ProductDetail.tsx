@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
@@ -7,6 +7,8 @@ import { setSelectedProduct } from '../store/slices/productsSlice';
 import { addToCart } from '../store/slices/cartSlice';
 import { AnimationController } from '../utils/animations';
 import { ArrowLeft } from 'lucide-react';
+import VariantSelector from '../components/VariantSelector';
+import { Variant, CartItem } from '../types/product';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -14,119 +16,190 @@ const ProductDetail = () => {
   const { items: products, selectedProduct } = useSelector((state: RootState) => state.products);
   const imageRef = useRef<HTMLImageElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const product = selectedProduct || products.find(p => p.id === id);
 
   useEffect(() => {
     if (product) {
       dispatch(setSelectedProduct(product));
+      // Auto-select first available variant
+      if (product.variants && product.variants.length > 0) {
+        const firstAvailable = product.variants.find(v => v.inStock);
+        if (firstAvailable) {
+          setSelectedVariant(firstAvailable);
+        }
+      }
     }
   }, [product, dispatch]);
 
   useEffect(() => {
     if (imageRef.current && contentRef.current) {
-      const tl = AnimationController.tl;
-      
-      tl.fromTo([imageRef.current, contentRef.current],
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: "power2.out",
-          delay: 0.3
-        }
-      );
+      AnimationController.staggerFadeIn([imageRef.current, contentRef.current], 0.2);
     }
   }, [product]);
 
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Product not found</p>
+        <p className="text-neutral-500">Product not found</p>
       </div>
     );
   }
 
   const handleAddToCart = () => {
-    dispatch(addToCart(product));
+    if (product.variants && product.variants.length > 0) {
+      if (!selectedVariant) {
+        alert('Please select product options');
+        return;
+      }
+      
+      const cartItem: CartItem = {
+        id: selectedVariant.id,
+        productId: product.id,
+        name: product.name,
+        attributes: selectedVariant.attributes,
+        image: selectedVariant.image,
+        price: selectedVariant.price,
+        quantity: 1
+      };
+      dispatch(addToCart(cartItem));
+    } else {
+      const cartItem: CartItem = {
+        id: product.id,
+        productId: product.id,
+        name: product.name,
+        image: product.images[0],
+        price: product.price,
+        quantity: 1
+      };
+      dispatch(addToCart(cartItem));
+    }
   };
 
+  const canAddToCart = product.variants 
+    ? selectedVariant?.inStock 
+    : true;
+
+  const displayPrice = selectedVariant 
+    ? `$${selectedVariant.price}` 
+    : `$${product.price}`;
+
+  const displayImage = selectedVariant 
+    ? selectedVariant.image 
+    : product.images[selectedImageIndex];
+
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-24 pb-16 bg-white">
       <div className="container mx-auto px-6">
         {/* Back Button */}
         <Link
           to="/products"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors mb-8"
         >
           <ArrowLeft size={16} />
           Back to Products
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 max-w-6xl mx-auto">
-          {/* Product Image */}
-          <div className="relative">
-            <img
-              ref={imageRef}
-              src={product.image}
-              alt={product.name}
-              className="w-full aspect-[4/5] object-cover rounded-lg"
-            />
+          {/* Product Images */}
+          <div className="space-y-4">
+            <div className="relative">
+              <img
+                ref={imageRef}
+                src={displayImage}
+                alt={product.name}
+                className="w-full aspect-[4/5] object-cover rounded"
+              />
+            </div>
+            
+            {/* Image thumbnails */}
+            {product.images.length > 1 && (
+              <div className="flex gap-2">
+                {product.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${
+                      selectedImageIndex === index 
+                        ? 'border-neutral-900' 
+                        : 'border-neutral-200 hover:border-neutral-400'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${product.name} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
           <div 
             ref={contentRef}
-            className="flex flex-col justify-center"
+            className="space-y-8"
           >
-            <div className="mb-4">
-              <span className="text-sm text-muted-foreground uppercase tracking-wider">
+            <div>
+              <span className="text-sm text-neutral-500 uppercase tracking-wider">
                 {product.category}
               </span>
+              <h1 className="text-4xl md:text-5xl font-light mt-2 mb-4 text-neutral-900">
+                {product.name}
+              </h1>
+              <p className="text-3xl font-light text-neutral-900">
+                {displayPrice}
+              </p>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-playfair font-light mb-6">
-              {product.name}
-            </h1>
-
-            <p className="text-3xl font-light mb-8">
-              ${product.price}
-            </p>
-
-            <p className="text-muted-foreground leading-relaxed mb-12">
+            <p className="text-neutral-600 leading-relaxed">
               {product.description}
             </p>
 
+            {/* Variant Selector */}
+            {product.variants && product.variants.length > 0 && (
+              <VariantSelector
+                variants={product.variants}
+                selectedVariant={selectedVariant}
+                onVariantChange={setSelectedVariant}
+              />
+            )}
+
+            {/* Add to Cart */}
             <div className="space-y-4">
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-foreground text-background py-4 rounded font-medium hover:opacity-90 transition-opacity"
+                disabled={!canAddToCart}
+                className={`w-full py-4 rounded font-medium transition-all duration-200 ${
+                  canAddToCart
+                    ? 'bg-neutral-900 text-white hover:bg-neutral-800'
+                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+                }`}
               >
-                Add to Cart
+                {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
               </button>
 
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Free shipping on orders over $200
-                </p>
-              </div>
+              <p className="text-sm text-neutral-500 text-center">
+                Free shipping on orders over $200
+              </p>
             </div>
 
             {/* Product Details */}
-            <div className="mt-16 space-y-6">
+            <div className="space-y-6 pt-8 border-t border-neutral-200">
               <div>
-                <h3 className="font-medium mb-2">Details</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-medium mb-2 text-neutral-900">Details</h3>
+                <p className="text-sm text-neutral-600">
                   Crafted with attention to detail and sustainable materials. 
                   Each piece is designed to last and age beautifully with time.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-medium mb-2">Care Instructions</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-medium mb-2 text-neutral-900">Care Instructions</h3>
+                <p className="text-sm text-neutral-600">
                   Handle with care. Store in a clean, dry place away from direct sunlight.
                 </p>
               </div>

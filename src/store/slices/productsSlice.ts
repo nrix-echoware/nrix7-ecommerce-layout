@@ -1,40 +1,7 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  category: 'fashion' | 'electronics';
-  image: string;
-  description: string;
-  featured: boolean;
-}
-
-interface ProductsState {
-  items: Product[];
-  selectedProduct: Product | null;
-  loading: boolean;
-  category: 'all' | 'fashion' | 'electronics';
-}
-
-// Mock products data
-const mockProducts: Product[] = Array.from({ length: 100 }, (_, i) => {
-  const categories = ['fashion', 'electronics'] as const;
-  const category = categories[i % 2];
-  
-  return {
-    id: `product-${i + 1}`,
-    name: category === 'fashion' 
-      ? `Minimal ${['Shirt', 'Dress', 'Jacket', 'Pants', 'Sweater'][i % 5]}` 
-      : `Tech ${['Phone', 'Laptop', 'Watch', 'Headphones', 'Speaker'][i % 5]}`,
-    price: Math.floor(Math.random() * 500) + 50,
-    category,
-    image: `https://picsum.photos/400/500?random=${i + 1}`,
-    description: `Beautifully crafted ${category} item with attention to detail and minimal aesthetic.`,
-    featured: i < 6,
-  };
-});
+import { Product, ProductsState } from '../../types/product';
+import { mockProducts } from '../../data/mockProducts';
 
 const initialState: ProductsState = {
   items: mockProducts,

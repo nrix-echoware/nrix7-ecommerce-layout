@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { closeCart, removeFromCart, updateQuantity } from '../store/slices/cartSlice';
 import { gsap } from 'gsap';
+import { X } from 'lucide-react';
 
 const CartOverlay = () => {
   const dispatch = useDispatch();
@@ -42,6 +43,13 @@ const CartOverlay = () => {
 
   if (!isOpen) return null;
 
+  const formatAttributeText = (attributes?: Record<string, string>) => {
+    if (!attributes) return '';
+    return Object.entries(attributes)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(', ');
+  };
+
   return (
     <div 
       ref={overlayRef}
@@ -50,25 +58,25 @@ const CartOverlay = () => {
     >
       <div 
         ref={panelRef}
-        className="bg-background w-full max-w-md h-full p-6 elegant-shadow overflow-y-auto"
+        className="bg-white w-full max-w-md h-full p-6 shadow-2xl overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl font-playfair">Shopping Cart</h2>
+          <h2 className="text-xl font-light text-neutral-900">Shopping Cart</h2>
           <button
             onClick={() => dispatch(closeCart())}
-            className="text-2xl hover:opacity-70 transition-opacity"
+            className="p-2 hover:bg-neutral-100 rounded transition-colors"
           >
-            ×
+            <X size={20} className="text-neutral-600" />
           </button>
         </div>
 
         {items.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">Your cart is empty</p>
+          <div className="text-center py-16">
+            <p className="text-neutral-500 mb-4">Your cart is empty</p>
             <button
               onClick={() => dispatch(closeCart())}
-              className="text-sm underline hover:no-underline"
+              className="text-sm text-neutral-900 underline hover:no-underline"
             >
               Continue Shopping
             </button>
@@ -77,53 +85,62 @@ const CartOverlay = () => {
           <>
             <div className="space-y-6 mb-8">
               {items.map((item) => (
-                <div key={item.product.id} className="flex gap-4">
+                <div key={item.id} className="flex gap-4">
                   <img
-                    src={item.product.image}
-                    alt={item.product.name}
-                    className="w-16 h-16 object-cover rounded"
+                    src={item.image}
+                    alt={item.name}
+                    className="w-16 h-16 object-cover rounded bg-neutral-50"
                   />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-sm">{item.product.name}</h3>
-                    <p className="text-xs text-muted-foreground">${item.product.price}</p>
-                    <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 space-y-1">
+                    <h3 className="font-medium text-sm text-neutral-900">{item.name}</h3>
+                    {item.attributes && (
+                      <p className="text-xs text-neutral-500">
+                        {formatAttributeText(item.attributes)}
+                      </p>
+                    )}
+                    <p className="text-sm text-neutral-700">${item.price}</p>
+                    
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => dispatch(updateQuantity({ 
+                            id: item.id, 
+                            quantity: item.quantity - 1 
+                          }))}
+                          className="w-6 h-6 border border-neutral-300 rounded text-xs hover:bg-neutral-100 transition-colors flex items-center justify-center"
+                        >
+                          −
+                        </button>
+                        <span className="text-sm w-8 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => dispatch(updateQuantity({ 
+                            id: item.id, 
+                            quantity: item.quantity + 1 
+                          }))}
+                          className="w-6 h-6 border border-neutral-300 rounded text-xs hover:bg-neutral-100 transition-colors flex items-center justify-center"
+                        >
+                          +
+                        </button>
+                      </div>
+                      
                       <button
-                        onClick={() => dispatch(updateQuantity({ 
-                          id: item.product.id, 
-                          quantity: item.quantity - 1 
-                        }))}
-                        className="w-6 h-6 border border-border rounded text-xs hover:bg-muted transition-colors"
+                        onClick={() => dispatch(removeFromCart(item.id))}
+                        className="text-neutral-500 hover:text-neutral-700 transition-colors text-xs"
                       >
-                        −
-                      </button>
-                      <span className="text-xs w-8 text-center">{item.quantity}</span>
-                      <button
-                        onClick={() => dispatch(updateQuantity({ 
-                          id: item.product.id, 
-                          quantity: item.quantity + 1 
-                        }))}
-                        className="w-6 h-6 border border-border rounded text-xs hover:bg-muted transition-colors"
-                      >
-                        +
+                        Remove
                       </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => dispatch(removeFromCart(item.product.id))}
-                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                  >
-                    Remove
-                  </button>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-border pt-6">
+            <div className="border-t border-neutral-200 pt-6">
               <div className="flex justify-between items-center mb-6">
-                <span className="font-medium">Total</span>
-                <span className="font-medium">${total.toFixed(2)}</span>
+                <span className="font-medium text-neutral-900">Total</span>
+                <span className="font-medium text-lg text-neutral-900">${total.toFixed(2)}</span>
               </div>
-              <button className="w-full bg-foreground text-background py-3 rounded font-medium hover:opacity-90 transition-opacity">
+              <button className="w-full bg-neutral-900 text-white py-3 rounded font-medium hover:bg-neutral-800 transition-colors">
                 Checkout
               </button>
             </div>

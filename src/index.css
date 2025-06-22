@@ -6,57 +6,57 @@
 @layer base {
   :root {
     --background: 255 255 255;
-    --foreground: 15 15 15;
+    --foreground: 23 23 23;
 
     --card: 255 255 255;
-    --card-foreground: 15 15 15;
+    --card-foreground: 23 23 23;
 
     --popover: 255 255 255;
-    --popover-foreground: 15 15 15;
+    --popover-foreground: 23 23 23;
 
-    --primary: 15 15 15;
+    --primary: 23 23 23;
     --primary-foreground: 255 255 255;
 
     --secondary: 245 245 245;
-    --secondary-foreground: 15 15 15;
+    --secondary-foreground: 23 23 23;
 
     --muted: 245 245 245;
     --muted-foreground: 115 115 115;
 
     --accent: 245 245 245;
-    --accent-foreground: 15 15 15;
+    --accent-foreground: 23 23 23;
 
     --destructive: 220 38 38;
     --destructive-foreground: 255 255 255;
 
     --border: 229 229 229;
     --input: 229 229 229;
-    --ring: 15 15 15;
+    --ring: 23 23 23;
 
     --radius: 0.375rem;
 
     --sidebar-background: 255 255 255;
-    --sidebar-foreground: 15 15 15;
-    --sidebar-primary: 15 15 15;
+    --sidebar-foreground: 23 23 23;
+    --sidebar-primary: 23 23 23;
     --sidebar-primary-foreground: 255 255 255;
     --sidebar-accent: 245 245 245;
-    --sidebar-accent-foreground: 15 15 15;
+    --sidebar-accent-foreground: 23 23 23;
     --sidebar-border: 229 229 229;
-    --sidebar-ring: 15 15 15;
+    --sidebar-ring: 23 23 23;
   }
 
   .dark {
-    --background: 15 15 15;
+    --background: 23 23 23;
     --foreground: 255 255 255;
 
-    --card: 15 15 15;
+    --card: 23 23 23;
     --card-foreground: 255 255 255;
 
-    --popover: 15 15 15;
+    --popover: 23 23 23;
     --popover-foreground: 255 255 255;
 
     --primary: 255 255 255;
-    --primary-foreground: 15 15 15;
+    --primary-foreground: 23 23 23;
 
     --secondary: 30 30 30;
     --secondary-foreground: 255 255 255;
@@ -73,14 +73,6 @@
     --border: 45 45 45;
     --input: 45 45 45;
     --ring: 255 255 255;
-    --sidebar-background: 15 15 15;
-    --sidebar-foreground: 255 255 255;
-    --sidebar-primary: 255 255 255;
-    --sidebar-primary-foreground: 15 15 15;
-    --sidebar-accent: 30 30 30;
-    --sidebar-accent-foreground: 255 255 255;
-    --sidebar-border: 45 45 45;
-    --sidebar-ring: 255 255 255;
   }
 }
 
@@ -90,7 +82,8 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
@@ -101,7 +94,7 @@
 
 @layer components {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-muted-foreground to-primary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-neutral-900 via-neutral-600 to-neutral-900 bg-clip-text text-transparent;
   }
 
   .glass-morphism {
@@ -137,4 +130,14 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
+}
+
+/* Animations */
+@keyframes morph {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
 }
