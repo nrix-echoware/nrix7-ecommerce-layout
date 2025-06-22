@@ -1,4 +1,3 @@
-
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -14,8 +13,8 @@ export class AnimationController {
       ease: "power2.out"
     });
 
-    // Refresh ScrollTrigger on resize
-    ScrollTrigger.addEventListener('refresh', () => ScrollTrigger.refresh());
+    // Remove the problematic refresh listener that was causing infinite loop
+    // ScrollTrigger will handle its own refresh events properly
   }
 
   static pageTransition(element: HTMLElement, direction: 'in' | 'out') {

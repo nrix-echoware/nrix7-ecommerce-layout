@@ -1,6 +1,6 @@
+
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import * as anime from 'animejs';
 
 interface LoadingScreenProps {
   onComplete: () => void;
@@ -18,16 +18,20 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
       }
     });
 
-    // Animate the logo with anime.js
+    // Use GSAP for all animations instead of mixing with anime.js
     if (logoRef.current) {
-      (anime as any).default({
-        targets: logoRef.current.querySelectorAll('path'),
-        strokeDashoffset: [(anime as any).default.setDashoffset, 0],
-        easing: 'easeInOutSine',
-        duration: 1500,
-        delay: (el: any, i: number) => i * 250,
-        complete: () => {
-          // Start GSAP timeline after SVG animation
+      const paths = logoRef.current.querySelectorAll('path');
+      
+      // Animate stroke-dashoffset with GSAP
+      gsap.set(paths, { strokeDashoffset: 320 });
+      
+      gsap.to(paths, {
+        strokeDashoffset: 0,
+        duration: 1.5,
+        ease: "power2.inOut",
+        stagger: 0.25,
+        onComplete: () => {
+          // Start the rest of the timeline after SVG animation
           tl.fromTo(textRef.current, 
             { opacity: 0, y: 20 },
             { opacity: 1, y: 0, duration: 0.8 }
