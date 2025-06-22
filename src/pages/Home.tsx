@@ -65,7 +65,7 @@ const Home: React.FC = () => {
         <p className="text-black text-neutral-600 max-w-xl mx-auto mb-4">
           Discover our curated selection of timeless, minimal pieces.
         </p>
-        <CTAButton href="#products">Shop Now</CTAButton>
+        <CTAButton href="/products">Shop Now</CTAButton>
       </ParallaxSection>
       <ParallaxSection
         title="Sculpted Accessories"
@@ -78,44 +78,44 @@ const Home: React.FC = () => {
       </ParallaxSection>
 
       {/* Luxury Magazine-Style Featured Products Section */}
-      <section id="featured-magazine" className="py-32 px-4 md:px-0 bg-white">
-        <div className="container mx-auto max-w-5xl">
-          <h2 className="text-5xl md:text-6xl font-light text-neutral-900 mb-20 text-center tracking-tight luxury-title">
+      <section id="featured-magazine" className="py-20 px-2 sm:px-4 md:px-0 bg-white">
+        <div className="container mx-auto max-w-5xl px-0 sm:px-4">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-light text-neutral-900 mb-12 sm:mb-20 text-center tracking-tight luxury-title">
             Featured <span className="italic font-serif">Edit</span>
           </h2>
-          <div className="flex flex-col gap-32">
+          <div className="flex flex-col gap-16 sm:gap-24 md:gap-32">
             {featured.slice(0, 3).map((product, idx) => (
               <div
                 key={product.id}
-                className={`relative flex flex-col md:flex-row items-center md:items-stretch gap-12 md:gap-0 group magazine-featured-product ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
-                style={{ minHeight: '480px' }}
+                className={`relative flex flex-col md:flex-row items-center md:items-stretch gap-8 md:gap-0 group magazine-featured-product ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
+                style={{ minHeight: '420px' }}
               >
                 {/* Accent SVG shape with GSAP morphing */}
                 <svg
-                  className={`absolute z-0 ${idx % 2 === 0 ? 'left-[-80px] md:left-[-120px]' : 'right-[-80px] md:right-[-120px]'} top-1/2 -translate-y-1/2 opacity-20 pointer-events-none magazine-svg-accent`}
-                  width="340" height="420" viewBox="0 0 340 420" fill="none"
+                  className={`absolute z-0 ${idx % 2 === 0 ? 'left-[-40px] sm:left-[-80px] md:left-[-120px]' : 'right-[-40px] sm:right-[-80px] md:right-[-120px]'} top-1/2 -translate-y-1/2 opacity-20 pointer-events-none magazine-svg-accent`}
+                  width="240" height="320" viewBox="0 0 340 420" fill="none"
                 >
                   <path id={`magazine-shape-${idx}`} d="M60,60 Q170,0 280,60 Q340,210 170,420 Q0,210 60,60 Z" fill="#222" />
                 </svg>
                 {/* Product Image */}
-                <div className="relative z-10 w-full md:w-1/2 flex justify-center items-center">
+                <div className="relative z-10 w-full md:w-1/2 flex justify-center items-center px-2 sm:px-4 md:px-0">
                   <img
                     src={product.images[0]}
                     alt={product.name}
-                    className="rounded-3xl shadow-2xl object-cover w-full max-w-[420px] aspect-[4/5] grayscale-[0.1] hover:grayscale-0 transition-all duration-700 magazine-img"
+                    className="rounded-2xl sm:rounded-3xl shadow-2xl object-cover w-full max-w-[320px] sm:max-w-[420px] aspect-[4/5] grayscale-[0.1] hover:grayscale-0 transition-all duration-700 magazine-img"
                     loading="lazy"
                   />
                 </div>
                 {/* Product Details */}
-                <div className="relative z-10 w-full md:w-1/2 flex flex-col justify-center px-2 md:px-12 py-8 md:py-0">
-                  <h3 className="text-3xl md:text-4xl font-serif font-light mb-6 text-neutral-900 tracking-tight luxury-product-title">
+                <div className="relative z-10 w-full md:w-1/2 flex flex-col justify-center px-2 sm:px-6 md:px-12 py-8 md:py-0">
+                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif font-light mb-4 sm:mb-6 text-neutral-900 tracking-tight luxury-product-title">
                     {product.name}
                   </h3>
-                  <p className="text-lg md:text-xl text-neutral-600 mb-8 max-w-lg luxury-product-desc">
+                  <p className="text-base sm:text-lg md:text-xl text-neutral-600 mb-6 sm:mb-8 max-w-lg luxury-product-desc">
                     {product.description}
                   </p>
-                  <div className="flex items-center gap-8 mb-8">
-                    <span className="text-2xl font-medium text-neutral-900 luxury-product-price">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 mb-6 sm:mb-8">
+                    <span className="text-xl sm:text-2xl font-medium text-neutral-900 luxury-product-price">
                       {product.variants && product.variants.length > 0
                         ? `From ₹${Math.min(...product.variants.map(v => v.price))}`
                         : `₹${product.price}`}

@@ -106,7 +106,7 @@ const Navigation = () => {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden mt-4 py-4 border-t border-border bg-neutral-50/95 text-black rounded-lg shadow-lg">
+            <div className="p-2 md:hidden mt-4 py-4 border-t border-border bg-neutral-50/95 text-black rounded-lg shadow-lg">
               {navItems.map((item) => (
                 <Link
                   key={item.path}

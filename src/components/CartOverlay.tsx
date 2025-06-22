@@ -98,7 +98,7 @@ const CartOverlay = () => {
                         {formatAttributeText(item.attributes)}
                       </p>
                     )}
-                    <p className="text-sm text-neutral-700">${item.price}</p>
+                    <p className="text-sm text-neutral-700">₹{item.price}</p>
                     
                     <div className="flex items-center gap-3 mt-2">
                       <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ const CartOverlay = () => {
             <div className="border-t border-neutral-200 pt-6">
               <div className="flex justify-between items-center mb-6">
                 <span className="font-medium text-neutral-900">Total</span>
-                <span className="font-medium text-lg text-neutral-900">${total.toFixed(2)}</span>
+                <span className="font-medium text-lg text-neutral-900">₹{total.toFixed(2)}</span>
               </div>
               <button className="w-full bg-neutral-900 text-white py-3 rounded font-medium hover:bg-neutral-800 transition-colors">
                 Checkout

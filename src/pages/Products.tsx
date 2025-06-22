@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
@@ -93,7 +92,7 @@ const Products = () => {
         {/* Products Grid */}
         <div 
           ref={gridRef}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 max-w-full w-full px-1 sm:px-0 mx-auto"
         >
           {filteredProducts.map((product, index) => (
             <ProductCard 

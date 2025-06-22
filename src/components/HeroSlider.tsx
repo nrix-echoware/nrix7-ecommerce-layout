@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Link } from 'react-router-dom';
 gsap.registerPlugin(ScrollTrigger);
 
 interface Slide {
@@ -82,17 +83,17 @@ export const HeroSlider: React.FC = () => {
         <div ref={el => textRefs.current[0] = el} className="text-5xl md:text-7xl font-light tracking-tight text-neutral-900 drop-shadow-xl">
           {slides[active].heading}
         </div>
-        <div ref={el => textRefs.current[1] = el} className="text-black text-xl md:text-2xl font-normal text-neutral-500 max-w-xl">
+        <div ref={el => textRefs.current[1] = el} className="text-neutral-900 text-xl md:text-2xl font-normal max-w-xl">
           {slides[active].subtext}
         </div>
         <div ref={el => textRefs.current[2] = el}>
-          <a
-            href="#products"
+          <Link
+            to="/products"
             className="mt-8 inline-block px-8 py-3 rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg relative group"
           >
             <span className="relative z-10">Shop the Collection</span>
             <span className="absolute left-0 bottom-0 w-0 h-1 bg-white group-hover:w-full transition-all duration-300" />
-          </a>
+          </Link>
         </div>
         {/* {slides[active].tag && (
           <div className="absolute top-8 left-8 bg-white/80 text-neutral-900 px-4 py-1 rounded-full text-xs font-semibold shadow minimal-shadow animate-pulse">
@@ -101,20 +102,20 @@ export const HeroSlider: React.FC = () => {
         )} */}
       </div>
       {/* Navigation arrows */}
-      <button
+      {/* <button
         className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow hover:bg-neutral-200 transition-all"
         onClick={() => handleNav(-1)}
         aria-label="Previous slide"
       >
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
-      </button>
-      <button
+      </button> */}
+      {/* <button
         className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow hover:bg-neutral-200 transition-all"
         onClick={() => handleNav(1)}
         aria-label="Next slide"
       >
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-      </button>
+      </button> */}
       {/* Slide indicators */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
         {slides.map((_, i) => (

@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -100,21 +99,21 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
   };
 
   const displayPrice = product.variants && product.variants.length > 0
-    ? `From $${Math.min(...product.variants.map(v => v.price))}`
+    ? `From ₹${Math.min(...product.variants.map(v => v.price))}`
     : `₹${product.price}`;
 
   return (
     <div 
       ref={cardRef}
-      className="group cursor-pointer"
+      className="group cursor-pointer w-full max-w-xs mx-auto flex flex-col h-full"
     >
-      <Link to={`/products/${product.id}`} className="block">
-        <div className="relative overflow-hidden bg-neutral-50 rounded mb-4">
+      <Link to={`/products/${product.id}`} className="block h-full">
+        <div className="relative overflow-hidden bg-neutral-50 rounded mb-4 aspect-[4/5] w-full">
           <img
             ref={imageRef}
             src={product.images[currentImageIndex]}
             alt={product.name}
-            className="w-full aspect-[4/5] object-cover transition-opacity duration-300"
+            className="w-full h-full object-cover transition-opacity duration-300"
             loading="lazy"
           />
           
@@ -144,7 +143,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
         </div>
 
         <div className="space-y-1">
-          <h3 className="font-medium text-sm text-neutral-900">{product.name}</h3>
+          <h3 className="font-medium text-sm text-neutral-900 line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
           <p className="text-sm text-neutral-600">{displayPrice}</p>
         </div>
       </Link>
