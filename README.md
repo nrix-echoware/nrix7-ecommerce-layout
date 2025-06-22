@@ -1,73 +1,168 @@
-# Welcome to your Lovable project
 
-## Project info
+# Ethereal - Minimal Luxury eCommerce
 
-**URL**: https://lovable.dev/projects/e9c7d3d9-a8b3-4dc4-be66-03d85725f75e
+A beautifully animated eCommerce frontend application built with React, GSAP, and anime.js, featuring minimal design and delightful motion effects inspired by modern luxury brands.
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+- **Smooth Animations**: GSAP and anime.js powered transitions and micro-interactions
+- **Minimal Design**: Clean, elegant UI inspired by luxury design principles
+- **Responsive**: Mobile-first design that works on all devices
+- **State Management**: Redux Toolkit for centralized state management
+- **Mock Products**: 100 curated products across fashion and electronics
+- **Shopping Cart**: Animated cart overlay with real-time updates
+- **Loading Experience**: Morphing SVG loading screen
+- **Scroll Animations**: ScrollTrigger-powered reveal animations
+- **Page Transitions**: Smooth route transitions with GSAP
+- **Product Filtering**: Animated category filtering
+- **Hover Effects**: Subtle hover animations throughout
 
-**Use Lovable**
+## 🛠 Technologies
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e9c7d3d9-a8b3-4dc4-be66-03d85725f75e) and start prompting.
+- **Frontend**: React 18, TypeScript
+- **Animations**: GSAP, anime.js, ScrollTrigger
+- **State Management**: Redux Toolkit
+- **Styling**: Tailwind CSS with custom design system
+- **Routing**: React Router v6
+- **Build Tool**: Vite
+- **UI Components**: shadcn/ui
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🚀 Getting Started
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js 16+ and npm
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd ethereal-ecommerce
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Install dependencies
+```bash
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open your browser and visit `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📱 Pages
 
-**Use GitHub Codespaces**
+- **Home**: Hero section with floating elements and featured products
+- **Products**: Filterable product grid with staggered animations
+- **Product Detail**: Animated product showcase with morphing transitions
+- **Cart**: Slide-out cart overlay with smooth animations
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🎨 Design System
 
-## What technologies are used for this project?
+### Colors
+- **Background**: Pure white (#FFFFFF)
+- **Foreground**: Deep black (#0F0F0F)
+- **Muted**: Light gray variations for subtle elements
+- **Accent**: Minimal use of color for emphasis
 
-This project is built with:
+### Typography
+- **Primary**: Inter (body text, clean and readable)
+- **Display**: Playfair Display (headings, elegant serif)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Animations
+- **Page Transitions**: Fade + slide effects
+- **Product Cards**: Staggered reveal with hover scaling
+- **Cart**: Slide-in from right with backdrop blur
+- **Loading**: SVG path morphing with GSAP timeline
+- **Scroll**: Parallax and reveal animations
 
-## How can I deploy this project?
+## 🔧 Animation Controller
 
-Simply open [Lovable](https://lovable.dev/projects/e9c7d3d9-a8b3-4dc4-be66-03d85725f75e) and click on Share -> Publish.
+The `AnimationController` class provides centralized animation management:
 
-## Can I connect a custom domain to my Lovable project?
+```typescript
+// Page transitions
+AnimationController.pageTransition(element, 'in');
 
-Yes, you can!
+// Staggered reveals
+AnimationController.staggerFadeIn(elements, 0.1);
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+// Scroll-triggered animations
+AnimationController.scrollReveal(element);
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+// Hover effects
+AnimationController.hoverScale(element);
+```
+
+## 📦 State Management
+
+### Products Slice
+- Product catalog management
+- Category filtering
+- Selected product state
+
+### Cart Slice
+- Add/remove items
+- Quantity management
+- Cart overlay state
+- Total calculation
+
+### UI Slice
+- Loading states
+- Navigation state
+- Animation triggers
+
+## 🎭 Key Animations
+
+1. **Loading Screen**: SVG stroke animations with anime.js
+2. **Hero Section**: Staggered text reveals and floating elements
+3. **Product Grid**: ScrollTrigger reveals with stagger
+4. **Navigation**: Scroll-based background morphing
+5. **Cart**: Slide transitions with backdrop effects
+6. **Product Cards**: Hover scaling and image overlays
+
+## 📱 Responsive Design
+
+- Mobile-first approach
+- Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px)
+- Touch-friendly interactions
+- Optimized animations for mobile performance
+
+## 🔮 Future Enhancements
+
+- User authentication
+- Payment integration
+- Product reviews
+- Wishlist functionality
+- Advanced filtering
+- Search functionality
+- Product recommendations
+- Dark mode toggle
+
+## 💡 Performance Considerations
+
+- Lazy loading for images
+- Animation cleanup on unmount
+- Optimized bundle splitting
+- Reduced motion for accessibility
+- Efficient Redux state updates
+
+## 🎨 Inspiration
+
+Design inspired by minimal luxury brands and modern eCommerce experiences, focusing on:
+- Negative space utilization
+- Subtle motion design
+- Typography hierarchy
+- Clean product photography
+- Intuitive user flows
+
+## 📄 License
+
+This project is for demonstration purposes. All product images are sourced from Picsum for placeholder use.
+
+---
+
+Built with ❤️ using React, GSAP, and modern web technologies.
