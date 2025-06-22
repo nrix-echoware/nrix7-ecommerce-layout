@@ -23,29 +23,29 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
         delay: index * 0.1
       });
 
-      return () => animation.kill();
+      return () => {
+        animation.kill();
+      };
     }
   }, [index]);
 
   useEffect(() => {
     let hoverAnimation: any;
 
-    if (imageRef.current) {
+    if (imageRef.current && cardRef.current) {
       hoverAnimation = AnimationController.hoverScale(imageRef.current);
 
       const handleMouseEnter = () => hoverAnimation.play();
       const handleMouseLeave = () => hoverAnimation.reverse();
 
       const element = cardRef.current;
-      if (element) {
-        element.addEventListener('mouseenter', handleMouseEnter);
-        element.addEventListener('mouseleave', handleMouseLeave);
+      element.addEventListener('mouseenter', handleMouseEnter);
+      element.addEventListener('mouseleave', handleMouseLeave);
 
-        return () => {
-          element.removeEventListener('mouseenter', handleMouseEnter);
-          element.removeEventListener('mouseleave', handleMouseLeave);
-        };
-      }
+      return () => {
+        element.removeEventListener('mouseenter', handleMouseEnter);
+        element.removeEventListener('mouseleave', handleMouseLeave);
+      };
     }
   }, []);
 

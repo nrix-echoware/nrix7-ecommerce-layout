@@ -10,8 +10,9 @@ export const useGSAP = (
 
   useEffect(() => {
     const context = gsap.context(() => {
-      const selector = (selector: string) => {
-        return gsap.utils.toArray(selector, containerRef.current);
+      const selector = (selector: string): Element[] => {
+        const elements = gsap.utils.toArray(selector, containerRef.current);
+        return elements.filter((el): el is Element => el instanceof Element);
       };
       
       callback({ selector });
