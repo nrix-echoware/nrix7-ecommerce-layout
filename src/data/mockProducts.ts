@@ -2,139 +2,158 @@
 import { Product } from '../types/product';
 
 export const mockProducts: Product[] = [
-  // Fashion products with variants
+  // Product with no variants - Simple fashion item
   {
-    id: 'fashion-1',
-    name: 'Minimal Cotton Shirt',
+    id: 'minimal-tee',
+    name: 'Essential Cotton Tee',
     category: 'fashion',
-    description: 'Premium cotton shirt with clean lines and minimal design.',
-    images: ['https://picsum.photos/400/500?random=1', 'https://picsum.photos/400/500?random=2'],
-    price: 0, // Not used for variant products
-    featured: true,
-    variants: [
-      {
-        id: 'fashion-1-white-s',
-        sku: 'MCS-WHT-S',
-        attributes: { color: 'White', size: 'S' },
-        image: 'https://picsum.photos/400/500?random=1',
-        price: 89,
-        inStock: true
-      },
-      {
-        id: 'fashion-1-white-m',
-        sku: 'MCS-WHT-M',
-        attributes: { color: 'White', size: 'M' },
-        image: 'https://picsum.photos/400/500?random=1',
-        price: 89,
-        inStock: true
-      },
-      {
-        id: 'fashion-1-black-s',
-        sku: 'MCS-BLK-S',
-        attributes: { color: 'Black', size: 'S' },
-        image: 'https://picsum.photos/400/500?random=2',
-        price: 89,
-        inStock: false
-      },
-      {
-        id: 'fashion-1-black-m',
-        sku: 'MCS-BLK-M',
-        attributes: { color: 'Black', size: 'M' },
-        image: 'https://picsum.photos/400/500?random=2',
-        price: 89,
-        inStock: true
-      }
-    ]
+    description: 'Premium organic cotton t-shirt with a relaxed fit. Perfect for everyday wear with its soft texture and timeless design.',
+    images: [
+      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop',
+      'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop'
+    ],
+    price: 49,
+    featured: true
   },
-  // Electronics with variants
+
+  // Product with color variants
   {
-    id: 'electronics-1',
-    name: 'Redmi Case',
-    category: 'electronics',
-    description: 'Premium protective case for Redmi phones.',
-    images: ['https://picsum.photos/400/500?random=3', 'https://picsum.photos/400/500?random=4'],
+    id: 'classic-hoodie',
+    name: 'Classic Pullover Hoodie',
+    category: 'fashion',
+    description: 'Comfortable cotton blend hoodie with adjustable drawstring and kangaroo pocket. Available in multiple colors.',
+    images: [
+      'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop',
+      'https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?w=400&h=500&fit=crop'
+    ],
     price: 0,
     featured: true,
     variants: [
       {
-        id: 'electronics-1-note14-clear',
-        sku: 'RC-N14-CLR',
-        attributes: { model: 'Note 14', color: 'Clear' },
-        image: 'https://picsum.photos/400/500?random=3',
-        price: 25,
+        id: 'classic-hoodie-black',
+        sku: 'CHD-BLK',
+        attributes: { color: 'Black' },
+        image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop',
+        price: 89,
         inStock: true
       },
       {
-        id: 'electronics-1-note14plus-clear',
-        sku: 'RC-N14P-CLR',
-        attributes: { model: 'Note 14+', color: 'Clear' },
-        image: 'https://picsum.photos/400/500?random=3',
-        price: 30,
+        id: 'classic-hoodie-gray',
+        sku: 'CHD-GRY',
+        attributes: { color: 'Gray' },
+        image: 'https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?w=400&h=500&fit=crop',
+        price: 89,
         inStock: true
       },
       {
-        id: 'electronics-1-note14-black',
-        sku: 'RC-N14-BLK',
-        attributes: { model: 'Note 14', color: 'Black' },
-        image: 'https://picsum.photos/400/500?random=4',
-        price: 25,
+        id: 'classic-hoodie-white',
+        sku: 'CHD-WHT',
+        attributes: { color: 'White' },
+        image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop',
+        price: 89,
         inStock: false
       }
     ]
   },
-  // Simple products without variants
+
+  // Product with model variants - Phone case
   {
-    id: 'fashion-2',
-    name: 'Minimal Wool Sweater',
-    category: 'fashion',
-    description: 'Luxurious merino wool sweater with timeless design.',
-    images: ['https://picsum.photos/400/500?random=5'],
-    price: 149,
-    featured: true
+    id: 'redmi-case',
+    name: 'Redmi Clear Case',
+    category: 'electronics',
+    description: 'Premium transparent case with reinforced corners. Perfect protection while showcasing your phone design.',
+    images: [
+      'https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=500&fit=crop',
+      'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=500&fit=crop'
+    ],
+    price: 0,
+    featured: true,
+    variants: [
+      {
+        id: 'redmi-case-note14',
+        sku: 'RC-N14',
+        attributes: { model: 'Note 14' },
+        image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=500&fit=crop',
+        price: 25,
+        inStock: true
+      },
+      {
+        id: 'redmi-case-note14plus',
+        sku: 'RC-N14P',
+        attributes: { model: 'Note 14 Plus' },
+        image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=500&fit=crop',
+        price: 30,
+        inStock: true
+      },
+      {
+        id: 'redmi-case-note13',
+        sku: 'RC-N13',
+        attributes: { model: 'Note 13' },
+        image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=500&fit=crop',
+        price: 22,
+        inStock: false
+      }
+    ]
   },
-  // Generate more mock products programmatically
-  ...Array.from({ length: 97 }, (_, i) => {
-    const categories = ['fashion', 'electronics'] as const;
-    const category = categories[i % 2];
-    const hasVariants = i % 3 === 0; // Every 3rd product has variants
-    
-    const baseProduct: Product = {
-      id: `product-${i + 4}`,
-      name: category === 'fashion' 
-        ? `${['Minimal', 'Clean', 'Simple', 'Modern'][i % 4]} ${['Shirt', 'Dress', 'Jacket', 'Pants'][i % 4]}` 
-        : `${['Tech', 'Pro', 'Smart', 'Digital'][i % 4]} ${['Phone', 'Laptop', 'Watch', 'Case'][i % 4]}`,
-      category,
-      description: `Premium ${category} item with attention to detail and minimal aesthetic.`,
-      images: [`https://picsum.photos/400/500?random=${i + 10}`],
-      price: hasVariants ? 0 : Math.floor(Math.random() * 400) + 50,
-      featured: i < 3,
-    };
 
-    if (hasVariants) {
-      baseProduct.variants = [
-        {
-          id: `${baseProduct.id}-var1`,
-          sku: `${baseProduct.id.toUpperCase()}-V1`,
-          attributes: category === 'fashion' 
-            ? { color: 'Black', size: 'M' }
-            : { model: 'Standard', color: 'Black' },
-          image: `https://picsum.photos/400/500?random=${i + 10}`,
-          price: Math.floor(Math.random() * 400) + 50,
-          inStock: true
-        },
-        {
-          id: `${baseProduct.id}-var2`,
-          sku: `${baseProduct.id.toUpperCase()}-V2`,
-          attributes: category === 'fashion' 
-            ? { color: 'White', size: 'M' }
-            : { model: 'Pro', color: 'White' },
-          image: `https://picsum.photos/400/500?random=${i + 100}`,
-          price: Math.floor(Math.random() * 400) + 70,
-          inStock: Math.random() > 0.3
-        }
-      ];
-    }
+  // Product with size and color variants
+  {
+    id: 'leather-jacket',
+    name: 'Minimal Leather Jacket',
+    category: 'fashion',
+    description: 'Genuine leather jacket with clean lines and modern cut. Crafted from premium materials for lasting quality.',
+    images: [
+      'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop',
+      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&h=500&fit=crop'
+    ],
+    price: 0,
+    featured: false,
+    variants: [
+      {
+        id: 'leather-jacket-black-m',
+        sku: 'LJ-BLK-M',
+        attributes: { color: 'Black', size: 'M' },
+        image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop',
+        price: 299,
+        inStock: true
+      },
+      {
+        id: 'leather-jacket-black-l',
+        sku: 'LJ-BLK-L',
+        attributes: { color: 'Black', size: 'L' },
+        image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop',
+        price: 299,
+        inStock: true
+      },
+      {
+        id: 'leather-jacket-brown-m',
+        sku: 'LJ-BRN-M',
+        attributes: { color: 'Brown', size: 'M' },
+        image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&h=500&fit=crop',
+        price: 319,
+        inStock: false
+      },
+      {
+        id: 'leather-jacket-brown-l',
+        sku: 'LJ-BRN-L',
+        attributes: { color: 'Brown', size: 'L' },
+        image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&h=500&fit=crop',
+        price: 319,
+        inStock: true
+      }
+    ]
+  },
 
-    return baseProduct;
-  })
+  // Simple electronics product
+  {
+    id: 'wireless-charger',
+    name: 'Qi Wireless Charger',
+    category: 'electronics',
+    description: 'Fast wireless charging pad with LED indicator. Compatible with all Qi-enabled devices.',
+    images: [
+      'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=500&fit=crop'
+    ],
+    price: 45,
+    featured: false
+  }
 ];

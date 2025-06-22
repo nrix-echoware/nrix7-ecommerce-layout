@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { toggleCart } from '../store/slices/cartSlice';
 import { AnimationController } from '../utils/animations';
-import { Menu } from 'lucide-react';
+import { Menu, ShoppingCart } from 'lucide-react';
 
 const Navigation = () => {
   const location = useLocation();
@@ -17,6 +17,8 @@ const Navigation = () => {
   const navItems = [
     { path: '/', label: 'Home' },
     { path: '/products', label: 'Products' },
+    { path: '/about', label: 'About' },
+    { path: '/policies', label: 'Policies' },
   ];
 
   useEffect(() => {
@@ -38,7 +40,7 @@ const Navigation = () => {
             {/* Logo */}
             <Link 
               to="/" 
-              className="text-2xl font-playfair font-light tracking-wider hover:opacity-70 transition-opacity"
+              className="text-2xl font-light tracking-wider hover:opacity-70 transition-opacity"
             >
               Ethereal
             </Link>
@@ -65,11 +67,13 @@ const Navigation = () => {
 
             {/* Cart & Mobile Menu */}
             <div className="flex items-center space-x-4">
+              {/* Cart Button */}
               <button
                 onClick={() => dispatch(toggleCart())}
-                className="relative text-sm font-light tracking-wide hover:opacity-70 transition-opacity"
+                className="relative flex items-center gap-2 text-sm font-light tracking-wide hover:opacity-70 transition-opacity"
               >
-                Cart
+                <ShoppingCart size={20} />
+                <span className="hidden sm:inline">Cart</span>
                 {cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartItemCount}
