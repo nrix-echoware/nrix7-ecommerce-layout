@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -80,7 +79,7 @@ const Cart = () => {
                         {formatAttributeText(item.attributes)}
                       </p>
                     )}
-                    <p className="text-lg font-medium text-neutral-900">${item.price}</p>
+                    <p className="text-lg font-medium text-neutral-900">₹{item.price}</p>
                     
                     <div className="flex items-center gap-4 mt-4">
                       <div className="flex items-center gap-2">
@@ -117,7 +116,7 @@ const Cart = () => {
                   
                   <div className="text-right">
                     <p className="text-lg font-medium text-neutral-900">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ₹{item.price}
                     </p>
                   </div>
                 </div>
@@ -133,25 +132,25 @@ const Cart = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
                   <span className="text-neutral-600">Subtotal ({items.length} items)</span>
-                  <span className="font-medium text-neutral-900">${total.toFixed(2)}</span>
+                  <span className="font-medium text-neutral-900">₹{total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-600">Shipping</span>
                   <span className="font-medium text-neutral-900">
-                    {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                    {shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="border-t border-neutral-200 pt-4">
                   <div className="flex justify-between text-xl font-medium">
                     <span className="text-neutral-900">Total</span>
-                    <span className="text-neutral-900">${(total + shipping).toFixed(2)}</span>
+                    <span className="text-neutral-900">₹{(total + shipping).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
               {total < 200 && (
                 <p className="text-sm text-neutral-600 mb-6 p-3 bg-blue-50 rounded">
-                  Add ${(200 - total).toFixed(2)} more for free shipping!
+                  Add ₹{(200 - total).toFixed(2)} more for free shipping!
                 </p>
               )}
 

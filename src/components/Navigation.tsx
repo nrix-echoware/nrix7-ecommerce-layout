@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -13,6 +12,7 @@ const Navigation = () => {
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const navRef = useRef<HTMLElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Home' },
@@ -25,22 +25,35 @@ const Navigation = () => {
     if (navRef.current) {
       AnimationController.navbarScrollEffect(navRef.current);
     }
+    // Custom scroll effect for background
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 8);
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <>
-      <nav 
+      <nav
         ref={navRef}
-        className="fixed top-0 left-0 right-0 z-40 transition-all duration-300"
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300
+          ${scrolled ? 'bg-neutral-50/95 shadow-lg backdrop-blur text-black' : 'bg-transparent text-black'}
+        `}
+        style={{
+          WebkitBackdropFilter: scrolled ? 'blur(8px)' : undefined,
+          backdropFilter: scrolled ? 'blur(8px)' : undefined,
+        }}
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link 
-              to="/" 
-              className="text-2xl font-light tracking-wider hover:opacity-70 transition-opacity"
+            <Link
+              to="/"
+              className="text-black text-2xl font-light tracking-wider hover:opacity-70 transition-opacity"
             >
               Ethereal
             </Link>
@@ -51,9 +64,9 @@ const Navigation = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`relative text-sm font-light tracking-wide transition-colors hover:text-foreground/70 ${
-                    location.pathname === item.path 
-                      ? 'text-foreground' 
+                  className={`text-black relative text-sm font-light tracking-wide transition-colors hover:text-foreground/70 ${
+                    location.pathname === item.path
+                      ? 'text-foreground'
                       : 'text-foreground/60'
                   }`}
                 >
@@ -73,7 +86,7 @@ const Navigation = () => {
                 className="relative flex items-center gap-2 text-sm font-light tracking-wide hover:opacity-70 transition-opacity"
               >
                 <ShoppingCart size={20} />
-                <span className="hidden sm:inline">Cart</span>
+                <span className="hidden sm:inline text-black">Cart</span>
                 {cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartItemCount}
@@ -93,7 +106,7 @@ const Navigation = () => {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden mt-4 py-4 border-t border-border">
+            <div className="md:hidden mt-4 py-4 border-t border-border bg-neutral-50/95 text-black rounded-lg shadow-lg">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
@@ -108,12 +121,6 @@ const Navigation = () => {
           )}
         </div>
       </nav>
-
-      <style>{`
-        nav.scrolled {
-          @apply glass-morphism elegant-shadow;
-        }
-      `}</style>
     </>
   );
 };

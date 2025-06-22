@@ -1,9 +1,8 @@
-
 import { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
-import { setSelectedProduct } from '../store/slices/productsSlice';
+import { setSelectedProduct, clearSelectedProduct } from '../store/slices/productsSlice';
 import { addToCart } from '../store/slices/cartSlice';
 import { AnimationController } from '../utils/animations';
 import { ArrowLeft } from 'lucide-react';
@@ -18,8 +17,10 @@ const ProductDetail = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const navigate = useNavigate();
 
-  const product = selectedProduct || products.find(p => p.id === id);
+  // Always get product by id from products, not from selectedProduct
+  const product = products.find(p => p.id === id);
 
   useEffect(() => {
     if (product) {
@@ -32,7 +33,10 @@ const ProductDetail = () => {
         }
       }
     }
-  }, [product, dispatch]);
+    return () => {
+      dispatch(clearSelectedProduct());
+    };
+  }, [id, dispatch]);
 
   useEffect(() => {
     if (imageRef.current && contentRef.current) {
@@ -54,7 +58,6 @@ const ProductDetail = () => {
         alert('Please select product options');
         return;
       }
-      
       const cartItem: CartItem = {
         id: selectedVariant.id,
         productId: product.id,
@@ -83,8 +86,8 @@ const ProductDetail = () => {
     : true;
 
   const displayPrice = selectedVariant 
-    ? `$${selectedVariant.price}` 
-    : `$${product.price}`;
+    ? `₹${selectedVariant.price}` 
+    : `₹${product.price}`;
 
   const displayImage = selectedVariant 
     ? selectedVariant.image 
@@ -113,7 +116,6 @@ const ProductDetail = () => {
                 className="w-full aspect-[4/5] object-cover rounded"
               />
             </div>
-            
             {/* Image thumbnails */}
             {product.images.length > 1 && (
               <div className="flex gap-2">
@@ -183,7 +185,7 @@ const ProductDetail = () => {
               </button>
 
               <p className="text-sm text-neutral-500 text-center">
-                Free shipping on orders over $200
+                Free shipping on orders over ₹500
               </p>
             </div>
 

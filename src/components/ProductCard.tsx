@@ -101,7 +101,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
 
   const displayPrice = product.variants && product.variants.length > 0
     ? `From $${Math.min(...product.variants.map(v => v.price))}`
-    : `$${product.price}`;
+    : `₹${product.price}`;
 
   return (
     <div 

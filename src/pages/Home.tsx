@@ -1,262 +1,156 @@
-
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
-import { useScrollAnimation } from '../hooks/useScrollAnimation';
-import { AnimationController } from '../utils/animations';
-import ProductCard from '../components/ProductCard';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import HeroSlider from '../components/HeroSlider';
+import ParallaxSection from '../components/ParallaxSection';
+import ProductCarousel from '../components/ProductCarousel';
+import CTAButton from '../components/CTAButton';
+import PageLoader from '../components/PageLoader';
 import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { mockProducts } from '../data/mockProducts';
 
-const Home = () => {
-  const { items: products } = useSelector((state: RootState) => state.products);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const featuredRef = useScrollAnimation();
-  const textRef = useRef<HTMLDivElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const featuredProducts = products.filter(p => p.featured);
-  const heroProducts = featuredProducts.slice(0, 3);
+gsap.registerPlugin(ScrollTrigger);
+
+const Home: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+
+  // Show only featured products on homepage carousel
+  const featured = mockProducts.filter(p => p.featured);
 
   useEffect(() => {
-    if (heroRef.current && textRef.current) {
-      const tl = AnimationController.tl;
-      
-      tl.fromTo(textRef.current.children,
-        { opacity: 0, y: 50 },
+    const ctx = gsap.context(() => {
+      // GSAP animations can be added here if needed
+    });
+
+    return () => ctx.revert(); // cleanup
+  }, []);
+
+  useEffect(() => {
+    // GSAP entrance for magazine featured products
+    gsap.utils.toArray('.magazine-featured-product').forEach((el, i) => {
+      gsap.fromTo(
+        el as Element,
+        { opacity: 0, y: 80 },
         {
           opacity: 1,
           y: 0,
-          duration: 1,
-          stagger: 0.2,
-          ease: "power2.out",
-          delay: 0.5
+          duration: 1.2,
+          delay: 0.2 + i * 0.18,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el as Element,
+            start: 'top 80%',
+            toggleActions: 'play none none reverse',
+          },
         }
       );
+    });
+  }, [featured]);
 
-      // Auto-advance carousel
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % heroProducts.length);
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [heroProducts.length]);
-
-  useEffect(() => {
-    if (carouselRef.current) {
-      gsap.to(carouselRef.current, {
-        x: -currentSlide * 100 + '%',
-        duration: 0.8,
-        ease: "power2.inOut"
-      });
-    }
-  }, [currentSlide]);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroProducts.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroProducts.length) % heroProducts.length);
-  };
+  if (loading) {
+    return <PageLoader onComplete={() => setLoading(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with Carousel */}
-      <section 
-        ref={heroRef}
-        className="relative h-screen flex items-center justify-center overflow-hidden bg-neutral-50"
+      {/* Hero Section with scroll hijack and GSAP timeline */}
+      <HeroSlider />
+
+      <div style={{marginTop: '7rem'}}></div>
+      {/* Parallax Panels for categories */}
+      <ParallaxSection
+        title="Modern Essentials"
+        bgImage="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&q=80&fit=crop"
+        fgImage="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80&fit=crop"
       >
-        {/* Hero Carousel */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div 
-            ref={carouselRef}
-            className="flex h-full"
-            style={{ width: `${heroProducts.length * 100}%` }}
-          >
-            {heroProducts.map((product, index) => (
+        <p className="text-black text-neutral-600 max-w-xl mx-auto mb-4">
+          Discover our curated selection of timeless, minimal pieces.
+        </p>
+        <CTAButton href="#products">Shop Now</CTAButton>
+      </ParallaxSection>
+      <ParallaxSection
+        title="Sculpted Accessories"
+        bgImage="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1200&q=80&fit=crop"
+        fgImage="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&q=80&fit=crop"
+      >
+        <p className="text-black text-neutral-600 max-w-xl mx-auto mb-4">
+          Elevate your look with sculpted bags and refined details.
+        </p>
+      </ParallaxSection>
+
+      {/* Luxury Magazine-Style Featured Products Section */}
+      <section id="featured-magazine" className="py-32 px-4 md:px-0 bg-white">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-5xl md:text-6xl font-light text-neutral-900 mb-20 text-center tracking-tight luxury-title">
+            Featured <span className="italic font-serif">Edit</span>
+          </h2>
+          <div className="flex flex-col gap-32">
+            {featured.slice(0, 3).map((product, idx) => (
               <div
                 key={product.id}
-                className="w-full h-full flex items-center justify-center relative"
-                style={{ width: `${100 / heroProducts.length}%` }}
+                className={`relative flex flex-col md:flex-row items-center md:items-stretch gap-12 md:gap-0 group magazine-featured-product ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
+                style={{ minHeight: '480px' }}
               >
-                <div className="absolute inset-0 bg-black/20" />
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white max-w-2xl mx-auto px-6">
-                    <h2 className="text-4xl md:text-6xl font-light mb-4">
-                      {product.name}
-                    </h2>
-                    <p className="text-lg md:text-xl mb-8 opacity-90">
-                      {product.description}
-                    </p>
-                    <Link
-                      to={`/products/${product.id}`}
-                      className="inline-block bg-white text-neutral-900 px-8 py-3 rounded font-medium hover:bg-neutral-100 transition-colors"
-                    >
-                      Shop Now
-                    </Link>
+                {/* Accent SVG shape with GSAP morphing */}
+                <svg
+                  className={`absolute z-0 ${idx % 2 === 0 ? 'left-[-80px] md:left-[-120px]' : 'right-[-80px] md:right-[-120px]'} top-1/2 -translate-y-1/2 opacity-20 pointer-events-none magazine-svg-accent`}
+                  width="340" height="420" viewBox="0 0 340 420" fill="none"
+                >
+                  <path id={`magazine-shape-${idx}`} d="M60,60 Q170,0 280,60 Q340,210 170,420 Q0,210 60,60 Z" fill="#222" />
+                </svg>
+                {/* Product Image */}
+                <div className="relative z-10 w-full md:w-1/2 flex justify-center items-center">
+                  <img
+                    src={product.images[0]}
+                    alt={product.name}
+                    className="rounded-3xl shadow-2xl object-cover w-full max-w-[420px] aspect-[4/5] grayscale-[0.1] hover:grayscale-0 transition-all duration-700 magazine-img"
+                    loading="lazy"
+                  />
+                </div>
+                {/* Product Details */}
+                <div className="relative z-10 w-full md:w-1/2 flex flex-col justify-center px-2 md:px-12 py-8 md:py-0">
+                  <h3 className="text-3xl md:text-4xl font-serif font-light mb-6 text-neutral-900 tracking-tight luxury-product-title">
+                    {product.name}
+                  </h3>
+                  <p className="text-lg md:text-xl text-neutral-600 mb-8 max-w-lg luxury-product-desc">
+                    {product.description}
+                  </p>
+                  <div className="flex items-center gap-8 mb-8">
+                    <span className="text-2xl font-medium text-neutral-900 luxury-product-price">
+                      {product.variants && product.variants.length > 0
+                        ? `From ₹${Math.min(...product.variants.map(v => v.price))}`
+                        : `₹${product.price}`}
+                    </span>
+                    <CTAButton href={`/products/${product.id}`}>View Product</CTAButton>
                   </div>
+                  {/* {product.featured && (
+                    <span className="inline-block bg-neutral-900 text-white px-4 py-1 rounded-full text-xs font-semibold tracking-widest shadow magazine-featured-tag animate-pulse">
+                      Featured
+                    </span>
+                  )} */}
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Carousel Controls */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors z-10"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors z-10"
-        >
-          <ChevronRight size={24} />
-        </button>
-
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {heroProducts.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                index === currentSlide ? 'bg-white' : 'bg-white/50'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Hero Text Overlay */}
-        <div 
-          ref={textRef}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center max-w-4xl mx-auto px-6 z-10 pointer-events-none"
-        >
-          <h1 className="text-6xl md:text-8xl font-light mb-6 tracking-tight text-white mix-blend-difference">
-            Minimal
-          </h1>
-          <h2 className="text-6xl md:text-8xl font-light mb-8 tracking-tight text-white mix-blend-difference">
-            Luxury
-          </h2>
-        </div>
       </section>
 
-      {/* Featured Products */}
-      <section 
-        ref={featuredRef}
-        className="py-24 px-6"
-      >
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light mb-4 text-neutral-900">
-              Featured Products
-            </h2>
-            <p className="text-neutral-600 max-w-2xl mx-auto">
-              Handpicked pieces that represent the essence of minimal luxury and timeless design.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {featuredProducts.map((product, index) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                index={index}
-              />
-            ))}
-          </div>
-
-          <div className="text-center mt-16">
-            <Link
-              to="/products"
-              className="inline-block border border-neutral-900 text-neutral-900 px-8 py-3 rounded text-sm font-medium hover:bg-neutral-900 hover:text-white transition-colors"
-            >
-              View All Products
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
+      {/* Newsletter/CTA Section */}
       <section className="py-24 px-6 bg-neutral-50">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl md:text-5xl font-light mb-8 text-neutral-900">
-            Philosophy
-          </h2>
-          <p className="text-lg text-neutral-600 leading-relaxed mb-8">
-            We believe in the power of simplicity. Every piece in our collection is carefully selected 
-            to embody the principles of minimal design while maintaining the highest standards of quality and functionality.
-          </p>
-          <p className="text-lg text-neutral-600 leading-relaxed mb-12">
-            Less is more. Beauty lies in restraint. Elegance is found in the essential.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-neutral-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">✨</span>
-              </div>
-              <h3 className="text-xl font-medium mb-2 text-neutral-900">Quality</h3>
-              <p className="text-neutral-600">Premium materials and craftsmanship in every piece.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-neutral-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🎯</span>
-              </div>
-              <h3 className="text-xl font-medium mb-2 text-neutral-900">Minimal</h3>
-              <p className="text-neutral-600">Clean lines and essential forms that stand the test of time.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-neutral-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🌱</span>
-              </div>
-              <h3 className="text-xl font-medium mb-2 text-neutral-900">Sustainable</h3>
-              <p className="text-neutral-600">Responsible sourcing and eco-friendly practices.</p>
-            </div>
-          </div>
-
-          <div className="mt-16">
-            <Link
-              to="/about"
-              className="inline-block bg-neutral-900 text-white px-8 py-3 rounded font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Learn More About Us
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      <section className="py-24 px-6">
         <div className="container mx-auto max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl font-light mb-4 text-neutral-900">
             Stay Updated
           </h2>
           <p className="text-neutral-600 mb-8">
-            Subscribe to our newsletter for early access to new collections and exclusive offers.
+            Subscribe for early access to new collections and exclusive offers.
           </p>
-          
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <input
               type="email"
               placeholder="Enter your email"
               className="flex-1 px-4 py-3 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
             />
-            <button className="bg-neutral-900 text-white px-6 py-3 rounded font-medium hover:bg-neutral-800 transition-colors">
-              Subscribe
-            </button>
+            <CTAButton>Subscribe</CTAButton>
           </div>
-          
           <p className="text-xs text-neutral-500 mt-4">
             No spam, unsubscribe at any time.
           </p>

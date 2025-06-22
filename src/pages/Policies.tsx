@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { AnimationController } from '../utils/animations';
 import { ChevronDown } from 'lucide-react';
@@ -24,7 +23,7 @@ const policies: PolicyItem[] = [
   {
     id: 'cod-available',
     question: 'Is Cash on Delivery (COD) available?',
-    answer: 'Yes, Cash on Delivery is available for orders within the country. COD orders require a minimum order value of $25. Please note that COD orders cannot be cancelled once shipped.'
+    answer: 'Yes, Cash on Delivery is available for orders within the country. COD orders require a minimum order value of ₹25. Please note that COD orders cannot be cancelled once shipped.'
   },
   {
     id: 'data-handling',

@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 
@@ -21,33 +20,33 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
     // Use GSAP for all animations instead of mixing with anime.js
     if (logoRef.current) {
       const paths = logoRef.current.querySelectorAll('path');
-      
-      // Animate stroke-dashoffset with GSAP
-      gsap.set(paths, { strokeDashoffset: 320 });
-      
-      gsap.to(paths, {
-        strokeDashoffset: 0,
-        duration: 1.5,
-        ease: "power2.inOut",
-        stagger: 0.25,
-        onComplete: () => {
-          // Start the rest of the timeline after SVG animation
-          tl.fromTo(textRef.current, 
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.8 }
-          )
-          .to([logoRef.current, textRef.current], {
-            opacity: 0,
-            y: -20,
-            duration: 0.6,
-            delay: 0.5
-          })
-          .to(containerRef.current, {
-            opacity: 0,
-            duration: 0.4
-          });
-        }
-      });
+      if (paths && paths.length > 0) {
+        gsap.set(paths, { strokeDashoffset: 320 });
+        
+        gsap.to(paths, {
+          strokeDashoffset: 0,
+          duration: 1.5,
+          ease: "power2.inOut",
+          stagger: 0.25,
+          onComplete: () => {
+            // Start the rest of the timeline after SVG animation
+            tl.fromTo(textRef.current, 
+              { opacity: 0, y: 20 },
+              { opacity: 1, y: 0, duration: 0.8 }
+            )
+            .to([logoRef.current, textRef.current], {
+              opacity: 0,
+              y: -20,
+              duration: 0.6,
+              delay: 0.5
+            })
+            .to(containerRef.current, {
+              opacity: 0,
+              duration: 0.4
+            });
+          }
+        });
+      }
     }
 
     return () => {

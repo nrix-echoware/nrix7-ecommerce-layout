@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -327,7 +326,7 @@ const Checkout = () => {
                       <p className="text-sm text-neutral-600">Qty: {item.quantity}</p>
                     </div>
                     <p className="text-sm font-medium text-neutral-900">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}
@@ -336,23 +335,23 @@ const Checkout = () => {
               <div className="space-y-2 border-t border-neutral-200 pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Subtotal</span>
-                  <span className="text-neutral-900">${total.toFixed(2)}</span>
+                  <span className="text-neutral-900">₹{total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Shipping</span>
                   <span className="text-neutral-900">
-                    {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                    {shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-medium pt-2 border-t border-neutral-200">
                   <span className="text-neutral-900">Total</span>
-                  <span className="text-neutral-900">${finalTotal.toFixed(2)}</span>
+                  <span className="text-neutral-900">₹{finalTotal.toFixed(2)}</span>
                 </div>
               </div>
 
               {total < 200 && (
                 <p className="text-xs text-neutral-500 mt-4">
-                  Add ${(200 - total).toFixed(2)} more for free shipping!
+                  Add ₹{(200 - total).toFixed(2)} more for free shipping!
                 </p>
               )}
             </div>

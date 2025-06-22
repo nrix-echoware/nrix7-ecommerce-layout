@@ -57,7 +57,7 @@ const Products = () => {
         </div>
 
         {/* Filters */}
-        <div 
+        {/* <div 
           ref={filtersRef}
           className="flex justify-center mb-16"
         >
@@ -76,7 +76,7 @@ const Products = () => {
               </button>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Section Headings */}
         <div className="mb-8">
