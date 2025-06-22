@@ -1,7 +1,7 @@
 
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import anime from 'animejs';
+import * as anime from 'animejs';
 
 interface LoadingScreenProps {
   onComplete: () => void;
@@ -21,9 +21,9 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
 
     // Animate the logo with anime.js
     if (logoRef.current) {
-      anime({
+      (anime as any)({
         targets: logoRef.current.querySelectorAll('path'),
-        strokeDashoffset: [anime.setDashoffset, 0],
+        strokeDashoffset: [(anime as any).setDashoffset, 0],
         easing: 'easeInOutSine',
         duration: 1500,
         delay: (el: any, i: number) => i * 250,
