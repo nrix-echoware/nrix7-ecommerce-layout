@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -15,14 +14,13 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
   const [selectedReel, setSelectedReel] = useState<PromotionalReel | null>(null);
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const pausedTimeRef = useRef<number>(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const STORY_DURATION = 4000; // 4 seconds per image
 
@@ -51,37 +49,30 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
     );
   }, []);
 
-  const startTimer = () => {
-    if (!selectedReel || !isPlaying) return;
-    
-    startTimeRef.current = Date.now() - pausedTimeRef.current;
-    
-    const updateProgress = () => {
-      if (!isPlaying) return;
-      
-      const elapsed = Date.now() - startTimeRef.current;
-      const newProgress = (elapsed / STORY_DURATION) * 100;
-      
-      setProgress(newProgress);
-      
-      if (newProgress >= 100) {
-        nextContent();
-      } else {
-        requestAnimationFrame(updateProgress);
-      }
-    };
-    
-    requestAnimationFrame(updateProgress);
-  };
+  const startProgress = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
 
-  const stopTimer = () => {
-    pausedTimeRef.current = Date.now() - startTimeRef.current;
-  };
-
-  const resetTimer = () => {
     setProgress(0);
-    pausedTimeRef.current = 0;
-    startTimeRef.current = Date.now();
+    const startTime = Date.now();
+
+    progressIntervalRef.current = setInterval(() => {
+      const elapsedTime = Date.now() - startTime;
+      const newProgress = Math.min((elapsedTime / STORY_DURATION) * 100, 100);
+      setProgress(newProgress);
+
+      if (newProgress >= 100) {
+        clearInterval(progressIntervalRef.current!);
+        nextContent();
+      }
+    }, 50);
+  };
+
+  const stopProgress = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
   };
 
   const nextContent = () => {
@@ -101,8 +92,6 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
       closeReel();
       return;
     }
-    
-    resetTimer();
     
     // Animate image change
     if (imageRef.current) {
@@ -128,8 +117,6 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
       setCurrentImageIndex(prevReel.images.length - 1);
     }
     
-    resetTimer();
-    
     // Animate image change
     if (imageRef.current) {
       gsap.fromTo(
@@ -144,20 +131,25 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
     setIsPlaying(!isPlaying);
   };
 
+  // Handle play/pause and progress
   useEffect(() => {
     if (selectedReel && isPlaying) {
-      startTimer();
+      startProgress();
     } else {
-      stopTimer();
+      stopProgress();
     }
-  }, [selectedReel, isPlaying, currentImageIndex]);
+
+    return () => {
+      stopProgress();
+    };
+  }, [selectedReel, isPlaying, currentImageIndex, currentReelIndex]);
 
   const openReel = (reel: PromotionalReel, index: number) => {
     setSelectedReel(reel);
     setCurrentReelIndex(index);
     setCurrentImageIndex(0);
     setIsPlaying(true);
-    resetTimer();
+    setProgress(0);
     
     // Prevent body scroll
     document.body.style.overflow = 'hidden';
@@ -174,6 +166,7 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
 
   const closeReel = () => {
     setIsPlaying(false);
+    stopProgress();
     
     // Restore body scroll
     document.body.style.overflow = 'unset';
@@ -188,7 +181,6 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
         onComplete: () => {
           setSelectedReel(null);
           setProgress(0);
-          pausedTimeRef.current = 0;
         }
       });
     }
@@ -234,6 +226,18 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedReel, currentImageIndex, currentReelIndex, isPlaying]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
