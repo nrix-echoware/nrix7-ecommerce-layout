@@ -4,9 +4,11 @@ import ParallaxSection from '../components/ParallaxSection';
 import ProductCarousel from '../components/ProductCarousel';
 import CTAButton from '../components/CTAButton';
 import PageLoader from '../components/PageLoader';
+import PromotionalReels from '../components/PromotionalReels';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { fetchProductsPaginated } from '../api/productsApi';
+import { promotionalReels } from '../data/promotionalReels';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -137,6 +139,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Promotional Reels Section */}
+      <PromotionalReels reels={promotionalReels} />
 
       {/* Newsletter/CTA Section */}
       <section className="py-24 px-6 bg-neutral-50">
