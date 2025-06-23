@@ -1,53 +1,64 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
-import { setSelectedProduct, clearSelectedProduct } from '../store/slices/productsSlice';
-import { addToCart } from '../store/slices/cartSlice';
+import { fetchProductById } from '../api/productsApi';
 import { AnimationController } from '../utils/animations';
 import { ArrowLeft } from 'lucide-react';
 import VariantSelector from '../components/VariantSelector';
-import { Variant, CartItem } from '../types/product';
+import { Variant, Product, CartItem } from '../types/product';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../store/slices/cartSlice';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { items: products, selectedProduct } = useSelector((state: RootState) => state.products);
   const imageRef = useRef<HTMLImageElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Always get product by id from products, not from selectedProduct
-  const product = products.find(p => p.id === id);
-
   useEffect(() => {
-    if (product) {
-      dispatch(setSelectedProduct(product));
-      // Auto-select first available variant
-      if (product.variants && product.variants.length > 0) {
-        const firstAvailable = product.variants.find(v => v.inStock);
-        if (firstAvailable) {
-          setSelectedVariant(firstAvailable);
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    fetchProductById(id)
+      .then((data) => {
+        setProduct(data);
+        // Auto-select first available variant
+        if (data.variants && data.variants.length > 0) {
+          const firstAvailable = data.variants.find(v => v.inStock);
+          if (firstAvailable) {
+            setSelectedVariant(firstAvailable);
+          }
         }
-      }
-    }
-    return () => {
-      dispatch(clearSelectedProduct());
-    };
-  }, [id, dispatch]);
+      })
+      .catch(() => {
+        setError('Product not found');
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
 
   useEffect(() => {
-    if (imageRef.current && contentRef.current) {
+    if (imageRef.current && contentRef.current && product) {
       AnimationController.staggerFadeIn([imageRef.current, contentRef.current], 0.2);
     }
   }, [product]);
 
-  if (!product) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-neutral-500">Product not found</p>
+        <p className="text-neutral-500">Loading product...</p>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-neutral-500">{error || 'Product not found'}</p>
       </div>
     );
   }

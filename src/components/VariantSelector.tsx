@@ -90,7 +90,7 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
         <div className="text-sm text-neutral-600">
           <p>SKU: {selectedVariant.sku}</p>
           <p className="text-lg font-medium text-neutral-900 mt-1">
-            ${selectedVariant.price}
+            ₹{selectedVariant.price}
           </p>
         </div>
       )}
