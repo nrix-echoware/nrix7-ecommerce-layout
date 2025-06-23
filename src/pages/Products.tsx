@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
+import { RootState, AppDispatch } from '../store/store';
 import { setCategory } from '../store/slices/productsSlice';
+import { getProducts } from '../store/slices/productsSlice';
 import { AnimationController } from '../utils/animations';
 import ProductCard from '../components/ProductCard';
 
 const Products = () => {
-  const dispatch = useDispatch();
-  const { items: allProducts, category } = useSelector((state: RootState) => state.products);
+  const dispatch = useDispatch<AppDispatch>();
+  const { items: allProducts, category, loading } = useSelector((state: RootState) => state.products);
   const gridRef = useRef<HTMLDivElement>(null);
   const filtersRef = useRef<HTMLDivElement>(null);
   const [filteredProducts, setFilteredProducts] = useState(allProducts);
@@ -17,6 +18,10 @@ const Products = () => {
     { value: 'fashion', label: 'Fashion' },
     { value: 'electronics', label: 'Electronics' }
   ] as const;
+
+  useEffect(() => {
+    dispatch(getProducts());
+  }, [dispatch]);
 
   useEffect(() => {
     const products = category === 'all' 
@@ -89,21 +94,27 @@ const Products = () => {
           </p>
         </div>
 
-        {/* Products Grid */}
-        <div 
-          ref={gridRef}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 max-w-full w-full px-1 sm:px-0 mx-auto"
-        >
-          {filteredProducts.map((product, index) => (
-            <ProductCard 
-              key={`${product.id}-${category}`} 
-              product={product} 
-              index={index}
-            />
-          ))}
-        </div>
+        {/* Loading State */}
+        {loading ? (
+          <div className="text-center py-16">
+            <p className="text-neutral-500">Loading products...</p>
+          </div>
+        ) : (
+          <div 
+            ref={gridRef}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 max-w-full w-full px-1 sm:px-0 mx-auto"
+          >
+            {filteredProducts.map((product, index) => (
+              <ProductCard 
+                key={`${product.id}-${category}`} 
+                product={product} 
+                index={index}
+              />
+            ))}
+          </div>
+        )}
 
-        {filteredProducts.length === 0 && (
+        {!loading && filteredProducts.length === 0 && (
           <div className="text-center py-16">
             <p className="text-neutral-500">No products found in this category.</p>
           </div>

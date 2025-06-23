@@ -1,10 +1,16 @@
-
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Product, ProductsState } from '../../types/product';
-import { mockProducts } from '../../data/mockProducts';
+import { fetchProducts } from '../../api/productsApi';
+
+export const getProducts = createAsyncThunk<Product[]>(
+  'products/getProducts',
+  async () => {
+    return await fetchProducts();
+  }
+);
 
 const initialState: ProductsState = {
-  items: mockProducts,
+  items: [],
   selectedProduct: null,
   loading: false,
   category: 'all',
@@ -26,6 +32,19 @@ const productsSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(getProducts.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getProducts.fulfilled, (state, action) => {
+        state.items = action.payload ?? []
+        state.loading = false;
+      })
+      .addCase(getProducts.rejected, (state) => {
+        state.loading = false;
+      });
   },
 });
 

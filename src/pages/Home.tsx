@@ -6,15 +6,19 @@ import CTAButton from '../components/CTAButton';
 import PageLoader from '../components/PageLoader';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { mockProducts } from '../data/mockProducts';
+import { fetchProductsPaginated } from '../api/productsApi';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const [featured, setFeatured] = useState([]);
 
-  // Show only featured products on homepage carousel
-  const featured = mockProducts.filter(p => p.featured);
+  useEffect(() => {
+    fetchProductsPaginated(0, 3)
+      .then((products) => setFeatured(products))
+      .catch(() => setFeatured([]));
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -84,7 +88,7 @@ const Home: React.FC = () => {
             Featured <span className="italic font-serif">Edit</span>
           </h2>
           <div className="flex flex-col gap-16 sm:gap-24 md:gap-32">
-            {featured.slice(0, 3).map((product, idx) => (
+            {featured.map((product, idx) => (
               <div
                 key={product.id}
                 className={`relative flex flex-col md:flex-row items-center md:items-stretch gap-8 md:gap-0 group magazine-featured-product ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
