@@ -20,7 +20,6 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const pausedTimeRef = useRef<number>(0);
@@ -106,11 +105,13 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
     resetTimer();
     
     // Animate image change
-    gsap.fromTo(
-      imageRef.current,
-      { opacity: 0, scale: 1.1 },
-      { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
-    );
+    if (imageRef.current) {
+      gsap.fromTo(
+        imageRef.current,
+        { opacity: 0, scale: 1.1 },
+        { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
+      );
+    }
   };
 
   const prevContent = () => {
@@ -130,11 +131,13 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
     resetTimer();
     
     // Animate image change
-    gsap.fromTo(
-      imageRef.current,
-      { opacity: 0, scale: 1.1 },
-      { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
-    );
+    if (imageRef.current) {
+      gsap.fromTo(
+        imageRef.current,
+        { opacity: 0, scale: 1.1 },
+        { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
+      );
+    }
   };
 
   const togglePlayPause = () => {
@@ -160,11 +163,13 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
     document.body.style.overflow = 'hidden';
     
     // Modal entrance animation
-    gsap.fromTo(
-      modalRef.current,
-      { opacity: 0, scale: 0.9 },
-      { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' }
-    );
+    if (modalRef.current) {
+      gsap.fromTo(
+        modalRef.current,
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' }
+      );
+    }
   };
 
   const closeReel = () => {
@@ -174,30 +179,34 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
     document.body.style.overflow = 'unset';
     
     // Modal exit animation
-    gsap.to(modalRef.current, {
-      opacity: 0,
-      scale: 0.9,
-      duration: 0.3,
-      ease: 'power2.in',
-      onComplete: () => {
-        setSelectedReel(null);
-        setProgress(0);
-        pausedTimeRef.current = 0;
-      }
-    });
+    if (modalRef.current) {
+      gsap.to(modalRef.current, {
+        opacity: 0,
+        scale: 0.9,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: () => {
+          setSelectedReel(null);
+          setProgress(0);
+          pausedTimeRef.current = 0;
+        }
+      });
+    }
   };
 
   const handleReelClick = (reel: PromotionalReel, index: number) => {
     // Click animation
     const target = document.querySelector(`[data-reel-index="${index}"]`);
-    gsap.to(target, {
-      scale: 0.95,
-      duration: 0.1,
-      yoyo: true,
-      repeat: 1,
-      ease: 'power2.inOut',
-      onComplete: () => openReel(reel, index)
-    });
+    if (target) {
+      gsap.to(target, {
+        scale: 0.95,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power2.inOut',
+        onComplete: () => openReel(reel, index)
+      });
+    }
   };
 
   // Keyboard navigation
@@ -268,10 +277,11 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
 
       {/* Full Screen Modal */}
       {selectedReel && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}>
           <div
             ref={modalRef}
             className="relative w-full h-full max-w-md mx-auto bg-black flex flex-col"
+            style={{ maxWidth: '100vw', maxHeight: '100vh' }}
           >
             {/* Progress Bars */}
             <div className="absolute top-4 left-4 right-4 z-20 flex gap-1">
@@ -319,13 +329,12 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
             </div>
 
             {/* Image Container */}
-            <div className="flex-1 relative flex items-center justify-center">
+            <div className="flex-1 relative flex items-center justify-center overflow-hidden">
               <img
                 ref={imageRef}
                 src={selectedReel.images[currentImageIndex]?.url}
                 alt={selectedReel.images[currentImageIndex]?.title}
-                className="w-full h-full object-contain"
-                style={{ maxHeight: '100vh' }}
+                className="w-full h-full object-contain max-w-full max-h-full"
               />
 
               {/* Touch Areas for Navigation */}
@@ -338,44 +347,46 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
                 onClick={nextContent}
               />
               <div
-                className="absolute center top-0 w-1/3 h-full z-10 cursor-pointer"
+                className="absolute left-1/3 top-0 w-1/3 h-full z-10 cursor-pointer"
                 onClick={togglePlayPause}
               />
             </div>
 
             {/* Bottom Info */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 z-20">
-              <div className="text-white">
-                <h4 className="text-lg font-semibold mb-2">
-                  {selectedReel.images[currentImageIndex]?.title}
-                </h4>
-                <p className="text-gray-200 mb-4 text-sm">
-                  {selectedReel.images[currentImageIndex]?.description}
-                </p>
-                {selectedReel.images[currentImageIndex]?.link && (
-                  <a
-                    href={selectedReel.images[currentImageIndex].link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors duration-200 text-sm"
-                  >
-                    <span>Learn More</span>
-                    <ExternalLink size={14} />
-                  </a>
-                )}
+            {selectedReel.images[currentImageIndex] && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6 z-20">
+                <div className="text-white">
+                  <h4 className="text-lg font-semibold mb-2">
+                    {selectedReel.images[currentImageIndex]?.title}
+                  </h4>
+                  <p className="text-gray-200 mb-4 text-sm">
+                    {selectedReel.images[currentImageIndex]?.description}
+                  </p>
+                  {selectedReel.images[currentImageIndex]?.link && (
+                    <a
+                      href={selectedReel.images[currentImageIndex].link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors duration-200 text-sm"
+                    >
+                      <span>Learn More</span>
+                      <ExternalLink size={14} />
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Navigation Hints (Desktop) */}
             <div className="hidden md:block">
-              {currentImageIndex > 0 || currentReelIndex > 0 ? (
+              {(currentImageIndex > 0 || currentReelIndex > 0) && (
                 <button
                   onClick={prevContent}
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200 hover:scale-110 z-20"
                 >
                   <ChevronLeft size={20} />
                 </button>
-              ) : null}
+              )}
               
               {(currentImageIndex < selectedReel.images.length - 1) || (currentReelIndex < reels.length - 1) ? (
                 <button
