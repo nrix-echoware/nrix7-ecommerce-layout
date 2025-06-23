@@ -252,44 +252,64 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
-            {reels.map((reel, index) => (
-              <div
-                key={index}
-                data-reel-index={index}
-                className="reel-item cursor-pointer group"
-                onClick={() => handleReelClick(reel, index)}
-              >
-                <div className="relative">
-                  <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 p-1 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                    <img
-                      src={reel.media}
-                      alt={reel.name}
-                      className="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
-                    />
+          {/* Horizontal Scrollable Carousel */}
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-6 pb-4" style={{ width: 'max-content' }}>
+              {reels.map((reel, index) => (
+                <div
+                  key={index}
+                  data-reel-index={index}
+                  className="reel-item cursor-pointer group flex-shrink-0"
+                  onClick={() => handleReelClick(reel, index)}
+                  style={{ width: '120px' }}
+                >
+                  <div className="relative">
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 p-1 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                      <img
+                        src={reel.media}
+                        alt={reel.name}
+                        className="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl bg-black/5 group-hover:bg-black/10 transition-colors duration-300" />
                   </div>
-                  <div className="absolute inset-0 rounded-2xl bg-black/5 group-hover:bg-black/10 transition-colors duration-300" />
+                  <p className="text-center mt-3 text-sm font-medium text-gray-800 group-hover:text-gray-900 transition-colors duration-300 line-clamp-2">
+                    {reel.name}
+                  </p>
                 </div>
-                <p className="text-center mt-3 text-sm font-medium text-gray-800 group-hover:text-gray-900 transition-colors duration-300">
-                  {reel.name}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Full Screen Modal */}
       {selectedReel && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}>
+        <div 
+          className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100vw', 
+            height: '100vh',
+            margin: 0,
+            padding: 0
+          }}
+        >
           <div
             ref={modalRef}
-            className="relative w-full h-full max-w-md mx-auto bg-black flex flex-col"
-            style={{ maxWidth: '100vw', maxHeight: '100vh' }}
+            className="relative w-full h-full bg-black flex flex-col"
+            style={{ 
+              width: '100vw', 
+              height: '100vh',
+              maxWidth: 'none',
+              maxHeight: 'none'
+            }}
           >
             {/* Progress Bars */}
             <div className="absolute top-4 left-4 right-4 z-20 flex gap-1">
-              {selectedReel.images.map((_, index) => (
+              {Array.from({ length: selectedReel.images.length }, (_, index) => (
                 <div key={index} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-white transition-all duration-100 ease-linear"
@@ -338,7 +358,13 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
                 ref={imageRef}
                 src={selectedReel.images[currentImageIndex]?.url}
                 alt={selectedReel.images[currentImageIndex]?.title}
-                className="w-full h-full object-contain max-w-full max-h-full"
+                className="max-w-full max-h-full object-contain"
+                style={{ 
+                  width: 'auto', 
+                  height: 'auto',
+                  maxWidth: '100%',
+                  maxHeight: '100%'
+                }}
               />
 
               {/* Touch Areas for Navigation */}
@@ -404,6 +430,22 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </>
   );
 };
