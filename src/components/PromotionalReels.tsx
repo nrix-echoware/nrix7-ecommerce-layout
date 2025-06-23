@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ExternalLink, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { PromotionalReel, PromotionalImage } from '../types/promotional';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -13,10 +13,19 @@ interface PromotionalReelsProps {
 
 const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
   const [selectedReel, setSelectedReel] = useState<PromotionalReel | null>(null);
+  const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [progress, setProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const pausedTimeRef = useRef<number>(0);
+
+  const STORY_DURATION = 4000; // 4 seconds per image
 
   useEffect(() => {
     // Entrance animation for reel items
@@ -41,94 +50,181 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
         }
       }
     );
-
-    // Floating animation for reel items
-    gsap.utils.toArray('.reel-item').forEach((item, index) => {
-      gsap.to(item as Element, {
-        y: -10,
-        duration: 2 + index * 0.1,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut',
-        delay: index * 0.2
-      });
-    });
   }, []);
 
-  const openReel = (reel: PromotionalReel) => {
+  const startTimer = () => {
+    if (!selectedReel || !isPlaying) return;
+    
+    startTimeRef.current = Date.now() - pausedTimeRef.current;
+    
+    const updateProgress = () => {
+      if (!isPlaying) return;
+      
+      const elapsed = Date.now() - startTimeRef.current;
+      const newProgress = (elapsed / STORY_DURATION) * 100;
+      
+      setProgress(newProgress);
+      
+      if (newProgress >= 100) {
+        nextContent();
+      } else {
+        requestAnimationFrame(updateProgress);
+      }
+    };
+    
+    requestAnimationFrame(updateProgress);
+  };
+
+  const stopTimer = () => {
+    pausedTimeRef.current = Date.now() - startTimeRef.current;
+  };
+
+  const resetTimer = () => {
+    setProgress(0);
+    pausedTimeRef.current = 0;
+    startTimeRef.current = Date.now();
+  };
+
+  const nextContent = () => {
+    if (!selectedReel) return;
+
+    if (currentImageIndex < selectedReel.images.length - 1) {
+      // Next image in current reel
+      setCurrentImageIndex(prev => prev + 1);
+    } else if (currentReelIndex < reels.length - 1) {
+      // Next reel
+      const nextReel = reels[currentReelIndex + 1];
+      setCurrentReelIndex(prev => prev + 1);
+      setSelectedReel(nextReel);
+      setCurrentImageIndex(0);
+    } else {
+      // End of all reels
+      closeReel();
+      return;
+    }
+    
+    resetTimer();
+    
+    // Animate image change
+    gsap.fromTo(
+      imageRef.current,
+      { opacity: 0, scale: 1.1 },
+      { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
+    );
+  };
+
+  const prevContent = () => {
+    if (!selectedReel) return;
+
+    if (currentImageIndex > 0) {
+      // Previous image in current reel
+      setCurrentImageIndex(prev => prev - 1);
+    } else if (currentReelIndex > 0) {
+      // Previous reel
+      const prevReel = reels[currentReelIndex - 1];
+      setCurrentReelIndex(prev => prev - 1);
+      setSelectedReel(prevReel);
+      setCurrentImageIndex(prevReel.images.length - 1);
+    }
+    
+    resetTimer();
+    
+    // Animate image change
+    gsap.fromTo(
+      imageRef.current,
+      { opacity: 0, scale: 1.1 },
+      { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
+    );
+  };
+
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  useEffect(() => {
+    if (selectedReel && isPlaying) {
+      startTimer();
+    } else {
+      stopTimer();
+    }
+  }, [selectedReel, isPlaying, currentImageIndex]);
+
+  const openReel = (reel: PromotionalReel, index: number) => {
     setSelectedReel(reel);
+    setCurrentReelIndex(index);
     setCurrentImageIndex(0);
+    setIsPlaying(true);
+    resetTimer();
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
     
     // Modal entrance animation
     gsap.fromTo(
       modalRef.current,
-      { opacity: 0, scale: 0.5 },
-      { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.7)' }
+      { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' }
     );
   };
 
   const closeReel = () => {
+    setIsPlaying(false);
+    
+    // Restore body scroll
+    document.body.style.overflow = 'unset';
+    
     // Modal exit animation
     gsap.to(modalRef.current, {
       opacity: 0,
-      scale: 0.5,
+      scale: 0.9,
       duration: 0.3,
-      ease: 'back.in(1.7)',
-      onComplete: () => setSelectedReel(null)
-    });
-  };
-
-  const nextImage = () => {
-    if (!selectedReel) return;
-    
-    gsap.to(imageRef.current, {
-      x: -20,
-      opacity: 0,
-      duration: 0.2,
+      ease: 'power2.in',
       onComplete: () => {
-        setCurrentImageIndex((prev) => 
-          prev === selectedReel.images.length - 1 ? 0 : prev + 1
-        );
-        gsap.fromTo(
-          imageRef.current,
-          { x: 20, opacity: 0 },
-          { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }
-        );
+        setSelectedReel(null);
+        setProgress(0);
+        pausedTimeRef.current = 0;
       }
     });
   };
 
-  const prevImage = () => {
-    if (!selectedReel) return;
-    
-    gsap.to(imageRef.current, {
-      x: 20,
-      opacity: 0,
-      duration: 0.2,
-      onComplete: () => {
-        setCurrentImageIndex((prev) => 
-          prev === 0 ? selectedReel.images.length - 1 : prev - 1
-        );
-        gsap.fromTo(
-          imageRef.current,
-          { x: -20, opacity: 0 },
-          { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }
-        );
-      }
-    });
-  };
-
-  const handleReelClick = (reel: PromotionalReel) => {
+  const handleReelClick = (reel: PromotionalReel, index: number) => {
     // Click animation
-    gsap.to(event?.currentTarget, {
+    const target = document.querySelector(`[data-reel-index="${index}"]`);
+    gsap.to(target, {
       scale: 0.95,
       duration: 0.1,
       yoyo: true,
       repeat: 1,
       ease: 'power2.inOut',
-      onComplete: () => openReel(reel)
+      onComplete: () => openReel(reel, index)
     });
   };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedReel) return;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          prevContent();
+          break;
+        case 'ArrowRight':
+          nextContent();
+          break;
+        case ' ':
+          e.preventDefault();
+          togglePlayPause();
+          break;
+        case 'Escape':
+          closeReel();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedReel, currentImageIndex, currentReelIndex, isPlaying]);
 
   return (
     <>
@@ -147,8 +243,9 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
             {reels.map((reel, index) => (
               <div
                 key={index}
+                data-reel-index={index}
                 className="reel-item cursor-pointer group"
-                onClick={() => handleReelClick(reel)}
+                onClick={() => handleReelClick(reel, index)}
               >
                 <div className="relative">
                   <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 p-1 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
@@ -169,61 +266,90 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
         </div>
       </section>
 
-      {/* Modal */}
+      {/* Full Screen Modal */}
       {selectedReel && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
           <div
             ref={modalRef}
-            className="relative w-full max-w-4xl h-full max-h-[90vh] bg-white rounded-3xl overflow-hidden shadow-2xl"
+            className="relative w-full h-full max-w-md mx-auto bg-black flex flex-col"
           >
+            {/* Progress Bars */}
+            <div className="absolute top-4 left-4 right-4 z-20 flex gap-1">
+              {selectedReel.images.map((_, index) => (
+                <div key={index} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white transition-all duration-100 ease-linear"
+                    style={{
+                      width: index < currentImageIndex ? '100%' : 
+                             index === currentImageIndex ? `${progress}%` : '0%'
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/50 to-transparent p-6 flex justify-between items-center">
-              <h3 className="text-white text-xl font-semibold">
-                {selectedReel.name}
-              </h3>
-              <button
-                onClick={closeReel}
-                className="text-white hover:text-gray-300 transition-colors duration-200 p-2 hover:bg-white/10 rounded-full"
-              >
-                <X size={24} />
-              </button>
+            <div className="absolute top-12 left-4 right-4 z-20 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 p-0.5">
+                  <img
+                    src={selectedReel.media}
+                    alt={selectedReel.name}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                </div>
+                <span className="text-white font-medium text-sm">
+                  {selectedReel.name}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={togglePlayPause}
+                  className="text-white hover:text-gray-300 transition-colors duration-200 p-2"
+                >
+                  {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                </button>
+                <button
+                  onClick={closeReel}
+                  className="text-white hover:text-gray-300 transition-colors duration-200 p-2"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Image Container */}
-            <div className="relative w-full h-full flex items-center justify-center bg-black">
+            <div className="flex-1 relative flex items-center justify-center">
               <img
                 ref={imageRef}
                 src={selectedReel.images[currentImageIndex]?.url}
                 alt={selectedReel.images[currentImageIndex]?.title}
                 className="w-full h-full object-contain"
+                style={{ maxHeight: '100vh' }}
               />
 
-              {/* Navigation Buttons */}
-              {selectedReel.images.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-110"
-                  >
-                    <ChevronLeft size={24} />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-110"
-                  >
-                    <ChevronRight size={24} />
-                  </button>
-                </>
-              )}
+              {/* Touch Areas for Navigation */}
+              <div
+                className="absolute left-0 top-0 w-1/3 h-full z-10 cursor-pointer"
+                onClick={prevContent}
+              />
+              <div
+                className="absolute right-0 top-0 w-1/3 h-full z-10 cursor-pointer"
+                onClick={nextContent}
+              />
+              <div
+                className="absolute center top-0 w-1/3 h-full z-10 cursor-pointer"
+                onClick={togglePlayPause}
+              />
             </div>
 
             {/* Bottom Info */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 z-20">
               <div className="text-white">
                 <h4 className="text-lg font-semibold mb-2">
                   {selectedReel.images[currentImageIndex]?.title}
                 </h4>
-                <p className="text-gray-200 mb-4">
+                <p className="text-gray-200 mb-4 text-sm">
                   {selectedReel.images[currentImageIndex]?.description}
                 </p>
                 {selectedReel.images[currentImageIndex]?.link && (
@@ -231,30 +357,34 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
                     href={selectedReel.images[currentImageIndex].link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors duration-200"
+                    className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors duration-200 text-sm"
                   >
                     <span>Learn More</span>
-                    <ExternalLink size={16} />
+                    <ExternalLink size={14} />
                   </a>
                 )}
               </div>
+            </div>
 
-              {/* Dots Indicator */}
-              {selectedReel.images.length > 1 && (
-                <div className="flex justify-center mt-4 gap-2">
-                  {selectedReel.images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                        index === currentImageIndex
-                          ? 'bg-white scale-125'
-                          : 'bg-white/50 hover:bg-white/75'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
+            {/* Navigation Hints (Desktop) */}
+            <div className="hidden md:block">
+              {currentImageIndex > 0 || currentReelIndex > 0 ? (
+                <button
+                  onClick={prevContent}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200 hover:scale-110 z-20"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              ) : null}
+              
+              {(currentImageIndex < selectedReel.images.length - 1) || (currentReelIndex < reels.length - 1) ? (
+                <button
+                  onClick={nextContent}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200 hover:scale-110 z-20"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
