@@ -97,12 +97,7 @@ const Home: React.FC = () => {
                 style={{ minHeight: '420px' }}
               >
                 {/* Accent SVG shape with GSAP morphing */}
-                <svg
-                  className={`absolute z-0 ${idx % 2 === 0 ? 'left-[-40px] sm:left-[-80px] md:left-[-120px]' : 'right-[-40px] sm:right-[-80px] md:right-[-120px]'} top-1/2 -translate-y-1/2 opacity-20 pointer-events-none magazine-svg-accent`}
-                  width="240" height="320" viewBox="0 0 340 420" fill="none"
-                >
-                  <path id={`magazine-shape-${idx}`} d="M60,60 Q170,0 280,60 Q340,210 170,420 Q0,210 60,60 Z" fill="#222" />
-                </svg>
+               
                 {/* Product Image */}
                 <div className="relative z-10 w-full md:w-1/2 flex justify-center items-center px-2 sm:px-4 md:px-0">
                   <img

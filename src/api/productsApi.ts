@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { Product } from '../types/product';
 
-// const API_BASE_URL = 'http://localhost:8080'; // Change if your Go API runs elsewhere
-const API_BASE_URL = 'https://bfde-2402-e280-240b-1f-a274-cdd7-f79c-d9ba.ngrok-free.app'; // Change if your Go API runs elsewhere
+ const API_BASE_URL = 'http://localhost:8080'; // Change if your Go API runs elsewhere
+//const API_BASE_URL = 'https://bfde-2402-e280-240b-1f-a274-cdd7-f79c-d9ba.ngrok-free.app'; // Change if your Go API runs elsewhere
 
 
 export const fetchProducts = async (): Promise<Product[]> => {
