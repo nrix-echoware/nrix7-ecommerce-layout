@@ -41,8 +41,7 @@ const Navigation = () => {
       <nav
         ref={navRef}
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300
-          ${scrolled ? 'bg-neutral-50/95 shadow-lg backdrop-blur text-black' : 'bg-transparent text-black'}
-        `}
+    ${scrolled ? 'bg-neutral-50/95 shadow-lg backdrop-blur text-black' : 'bg-black text-white'}`}
         style={{
           WebkitBackdropFilter: scrolled ? 'blur(8px)' : undefined,
           backdropFilter: scrolled ? 'blur(8px)' : undefined,
@@ -53,7 +52,8 @@ const Navigation = () => {
             {/* Logo */}
             <Link
               to="/"
-              className="text-black text-2xl font-light tracking-wider hover:opacity-70 transition-opacity"
+              className={`text-2xl font-light tracking-wider hover:opacity-70 transition-opacity 
+          ${scrolled ? 'text-black' : 'text-white'}`}
             >
               Ethereal
             </Link>
@@ -64,15 +64,22 @@ const Navigation = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`text-black relative text-sm font-light tracking-wide transition-colors hover:text-foreground/70 ${
-                    location.pathname === item.path
-                      ? 'text-foreground'
-                      : 'text-foreground/60'
-                  }`}
+                  className={`relative text-sm font-light tracking-wide transition-colors 
+              ${scrolled
+                      ? location.pathname === item.path
+                        ? 'text-black'
+                        : 'text-black/60 hover:text-black/80'
+                      : location.pathname === item.path
+                        ? 'text-white'
+                        : 'text-white/70 hover:text-white/90'}
+            `}
                 >
                   {item.label}
                   {location.pathname === item.path && (
-                    <div className="absolute -bottom-1 left-0 right-0 h-px bg-foreground transform origin-left transition-transform duration-300" />
+                    <div
+                      className={`absolute -bottom-1 left-0 right-0 h-px transform origin-left transition-transform duration-300
+                  ${scrolled ? 'bg-black' : 'bg-white'}`}
+                    />
                   )}
                 </Link>
               ))}
@@ -83,10 +90,11 @@ const Navigation = () => {
               {/* Cart Button */}
               <button
                 onClick={() => dispatch(toggleCart())}
-                className="relative flex items-center gap-2 text-sm font-light tracking-wide hover:opacity-70 transition-opacity"
+                className={`relative flex items-center gap-2 text-sm font-light tracking-wide hover:opacity-70 transition-opacity
+            ${scrolled ? 'text-black' : 'text-white'}`}
               >
                 <ShoppingCart size={20} />
-                <span className="hidden sm:inline text-black">Cart</span>
+                <span className="hidden sm:inline">Cart</span>
                 {cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartItemCount}
@@ -97,7 +105,7 @@ const Navigation = () => {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2"
+                className={`md:hidden p-2 ${scrolled ? 'text-black' : 'text-white'}`}
               >
                 <Menu size={20} />
               </button>
@@ -106,7 +114,10 @@ const Navigation = () => {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="p-2 md:hidden mt-4 py-4 border-t border-border bg-neutral-50/95 text-black rounded-lg shadow-lg">
+            <div
+              className={`p-2 md:hidden mt-4 py-4 border-t border-border rounded-lg shadow-lg 
+          ${scrolled ? 'bg-neutral-50/95 text-black' : 'bg-black text-white'}`}
+            >
               {navItems.map((item) => (
                 <Link
                   key={item.path}
