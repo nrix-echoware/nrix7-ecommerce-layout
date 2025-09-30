@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/yourorg/contactus-microservice/internal/config"
 )
 
 type ProductController struct {
@@ -42,11 +43,23 @@ type ProductVariantReq struct {
 	InStock    bool                `json:"in_stock"`
 }
 
+func adminKeyMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		expected := config.Get().AdminAPIKey
+		provided := c.GetHeader("X-Admin-API-Key")
+		if expected == "" || provided == "" || provided != expected {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+		c.Next()
+	}
+}
+
 func (c *ProductController) RegisterRoutes(r *gin.Engine) {
 	group := r.Group("/products")
-	group.POST("", c.CreateProduct)
-	group.PUT(":id", c.UpdateProduct)
-	group.DELETE(":id", c.DeleteProduct)
+	group.POST("", adminKeyMiddleware(), c.CreateProduct)
+	group.PUT(":id", adminKeyMiddleware(), c.UpdateProduct)
+	group.DELETE(":id", adminKeyMiddleware(), c.DeleteProduct)
 	group.GET(":id", c.GetProduct)
 	group.GET("", c.ListProducts)
 }

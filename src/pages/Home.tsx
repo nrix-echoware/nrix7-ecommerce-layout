@@ -90,7 +90,7 @@ const Home: React.FC = () => {
             Featured <span className="italic font-serif">Edit</span>
           </h2>
           <div className="flex flex-col gap-16 sm:gap-24 md:gap-32">
-            {featured ?? featured?.map((product, idx) => (
+            {featured?.map((product, idx) => (
               <div
                 key={product.id}
                 className={`relative flex flex-col md:flex-row items-center md:items-stretch gap-8 md:gap-0 group magazine-featured-product ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}

@@ -139,7 +139,7 @@ If you need example responses or more advanced queries, let me know!
 ## Example: Create Product with Variants
 
 ```
-curl -X POST http://localhost:8080/products \
+curl -X POST http://localhost:9997/products \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Minimal Leather Jacket",
@@ -179,7 +179,7 @@ curl -X POST http://localhost:8080/products \
 ## Example: Create Product without Variants
 
 ```
-curl -X POST http://localhost:8080/products \
+curl -X POST http://localhost:9997/products \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Essential Cotton Tee",

@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.25-alpine AS base
+
+# Install build tools and air for live reload
+RUN apk add --no-cache git bash curl build-base sqlite-dev && \
+    go install github.com/air-verse/air@latest
+
+ENV CGO_ENABLED=1
+
+WORKDIR /app
+
+# Cache go modules
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source
+COPY . .
+
+# Expose app port and run air
+EXPOSE 9997
+
+# Air will watch files and rebuild/restart
+CMD ["/go/bin/air", "-c", ".air.toml"] 

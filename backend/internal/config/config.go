@@ -18,8 +18,9 @@ type RateLimitConfig struct {
 }
 
 type Config struct {
-	DBFile    string
-	RateLimit RateLimitConfig
+	DBFile       string
+	RateLimit    RateLimitConfig
+	AdminAPIKey  string `mapstructure:"admin_api_key"`
 }
 
 var (
@@ -33,7 +34,9 @@ func loadConfig() *Config {
 	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
 	_ = v.BindEnv("DB_FILE")
+	_ = v.BindEnv("ADMIN_API_KEY")
 	v.SetDefault("dbfile", os.Getenv("DB_FILE"))
+	v.SetDefault("admin_api_key", os.Getenv("ADMIN_API_KEY"))
 	v.SetDefault("ratelimit.default.post", 300)
 	v.SetDefault("ratelimit.default.get", 100)
 	if err := v.ReadInConfig(); err != nil {
@@ -45,6 +48,9 @@ func loadConfig() *Config {
 	}
 	if c.DBFile == "" {
 		c.DBFile = v.GetString("dbfile")
+	}
+	if c.AdminAPIKey == "" {
+		c.AdminAPIKey = v.GetString("admin_api_key")
 	}
 	return &c
 }

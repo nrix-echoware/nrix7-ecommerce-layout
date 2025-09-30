@@ -31,7 +31,13 @@ func main() {
 	r := gin.Default()
 
 	// CORS middleware (allow all origins, customize as needed)
-	r.Use(cors.Default())
+	corsCfg := cors.Config{
+		AllowAllOrigins: true,
+		AllowMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:   []string{"Origin", "Content-Type", "Accept", "X-Admin-API-Key"},
+		ExposeHeaders:  []string{"Content-Length"},
+	}
+	r.Use(cors.New(corsCfg))
 
 	// Security headers (helmet-like)
 	secureMiddleware := secure.New(secure.Options{
@@ -48,6 +54,11 @@ func main() {
 			return
 		}
 		c.Next()
+	})
+
+	// Health check
+	r.GET("/healthz", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
 	})
 
 	// Rate limiting middleware for contactus

@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    image: ecommerce-backend-dev
+    container_name: ecommerce-backend-dev
+    working_dir: /app
+    command: ["/go/bin/air", "-c", ".air.toml"]
+    ports:
+      - "9997:9997"
+    environment:
+      - DB_FILE=/app/contactus.db
+      - GIN_MODE=debug
+      - ADMIN_API_KEY=mock-api-key
+    volumes:
+      - ./backend:/app
+      - backend-go-cache:/go/pkg/mod
+    networks:
+      - devnet
+
+networks:
+  devnet:
+    driver: bridge
+
+volumes:
+  backend-go-cache: {}

@@ -2,11 +2,7 @@
 export interface Variant {
   id: string;
   sku: string;
-  attributes: {
-    color?: string;
-    size?: string;
-    model?: string;
-  };
+  attributes: Record<string, string>;
   image: string;
   price: number;
   inStock: boolean;

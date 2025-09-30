@@ -19,6 +19,7 @@ import Checkout from './pages/Checkout';
 import About from './pages/About';
 import Policies from './pages/Policies';
 import NotFound from './pages/NotFound';
+import AdminPanel from './pages/AdminPanel';
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => {
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/policies" element={<Policies />} />
+                  <Route path="/admin-panel" element={<AdminPanel />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

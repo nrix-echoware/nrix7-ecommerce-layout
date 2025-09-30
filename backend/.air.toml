@@ -1,0 +1,24 @@
+# Air configuration for Go live reload
+# See: https://github.com/air-verse/air
+
+root = "."
+cmd = "go run ./"
+bin = "./tmp/main"
+delay = 1000
+stop_on_error = true
+
+[log]
+color = true
+
+[build]
+include_ext = ["go", "mod", "sum", "yaml"]
+exclude_dir = ["tmp", "vendor", ".git"]
+
+[proxy]
+# Disable proxy; bind app directly to 9997
+proxy_port = 0
+app_port = 9997
+enabled = false
+
+[env]
+# Pass DB_FILE via environment or config.yaml 
