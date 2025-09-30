@@ -38,6 +38,12 @@ export interface ParallaxSectionConfig {
   cta?: { text: string; href: string };
 }
 
+export interface StoreOwnerConfig {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 export interface SiteConfig {
   shopName: string;
   hero: HeroConfig;
@@ -46,6 +52,7 @@ export interface SiteConfig {
   animations: AnimationConfig;
   reels: PromotionalReel[];
   parallax: ParallaxSectionConfig[];
+  storeOwner?: StoreOwnerConfig;
 }
 
 const defaultConfig: SiteConfig = {
@@ -67,6 +74,7 @@ const defaultConfig: SiteConfig = {
   },
   reels: [],
   parallax: [],
+  storeOwner: { name: '', email: '', phone: '' },
 };
 
 interface SiteConfigState {
@@ -82,7 +90,7 @@ const siteConfigSlice = createSlice({
   initialState,
   reducers: {
     setConfig(state, action: PayloadAction<SiteConfig>) {
-      state.config = action.payload;
+      state.config = action.payload as SiteConfig;
     },
     updateConfig(state, action: PayloadAction<Partial<SiteConfig>>) {
       state.config = { ...state.config, ...action.payload } as SiteConfig;

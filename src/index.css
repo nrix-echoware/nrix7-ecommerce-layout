@@ -16,16 +16,16 @@
     --primary: 23 23 23;
     --primary-foreground: 255 255 255;
 
-    --secondary: 245 245 245;
+    --secondary: 255 255 255;
     --secondary-foreground: 23 23 23;
 
-    --muted: 245 245 245;
+    --muted: 255 255 255;
     --muted-foreground: 115 115 115;
 
-    --accent: 245 245 245;
+    --accent: 255 255 255;
     --accent-foreground: 23 23 23;
 
-    --destructive: 220 38 38;
+    --destructive: 0 0 0;
     --destructive-foreground: 255 255 255;
 
     --border: 229 229 229;
@@ -38,7 +38,7 @@
     --sidebar-foreground: 23 23 23;
     --sidebar-primary: 23 23 23;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 245 245 245;
+    --sidebar-accent: 255 255 255;
     --sidebar-accent-foreground: 23 23 23;
     --sidebar-border: 229 229 229;
     --sidebar-ring: 23 23 23;
@@ -57,17 +57,17 @@
     --primary: 255 255 255;
     --primary-foreground: 23 23 23;
 
-    --secondary: 30 30 30;
+    --secondary: 23 23 23;
     --secondary-foreground: 255 255 255;
 
-    --muted: 30 30 30;
+    --muted: 23 23 23;
     --muted-foreground: 160 160 160;
 
-    --accent: 30 30 30;
+    --accent: 23 23 23;
     --accent-foreground: 255 255 255;
 
-    --destructive: 220 38 38;
-    --destructive-foreground: 255 255 255;
+    --destructive: 255 255 255;
+    --destructive-foreground: 23 23 23;
 
     --border: 45 45 45;
     --input: 45 45 45;
@@ -88,6 +88,40 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Form controls: enforce white background and neutral borders */
+  input, textarea, select {
+    background-color: rgb(255 255 255) !important;
+    color: rgb(23 23 23) !important;
+    border-color: rgb(229 229 229) !important;
+  }
+
+  /* Chrome/Safari autofill yellow override */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #171717 !important;
+    caret-color: #171717 !important;
+    box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
+  /* Radix/Select trigger buttons */
+  [role="combobox"],
+  [aria-haspopup="listbox"][role="button"],
+  button[role="combobox"],
+  div[role="combobox"] {
+    background-color: rgb(255 255 255) !important;
+    color: rgb(23 23 23) !important;
+    border-color: rgb(229 229 229) !important;
   }
 }
 

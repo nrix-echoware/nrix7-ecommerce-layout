@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimationController } from '../utils/animations';
 import { Github, ExternalLink, GitCommit } from 'lucide-react';
+import ContactUsModal from '../components/ContactUsModal';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 interface GitHubRepo {
   id: number;
@@ -44,6 +47,8 @@ const About = () => {
   const [commits, setCommits] = useState<Record<string, Commit[]>>({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<GitHubUser | null>(null);
+  const [contactOpen, setContactOpen] = useState(false);
+  const owner = useSelector((s: RootState) => s.siteConfig.config.storeOwner);
 
   useEffect(() => {
     if (headerRef.current) {
@@ -54,15 +59,12 @@ const About = () => {
   useEffect(() => {
     const fetchGitHubData = async () => {
       try {
-        // Fetch user profile
         const userRes = await fetch(`https://api.github.com/users/${GITHUB_USER}`);
         const userData = await userRes.json();
         setUser(userData);
-        // Fetch repos
         const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=6`);
         const data = await response.json();
         setRepos(data);
-        // Fetch commits for each repo
         const commitsObj: Record<string, Commit[]> = {};
         await Promise.all(
           data.map(async (repo: GitHubRepo) => {
@@ -105,13 +107,11 @@ const About = () => {
   return (
     <div className="min-h-screen pt-24 pb-16 bg-white">
       <div className="container mx-auto px-6">
-        {/* Header Section */}
         <div ref={headerRef} className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-light mb-6 text-neutral-900">
             About the Creator
           </h1>
         </div>
-        {/* GitHub Profile & Contribution Graph */}
         <div ref={profileRef} className="max-w-4xl mx-auto mb-16 flex flex-col md:flex-row items-center gap-8 bg-neutral-50 rounded-xl p-8 shadow-md">
           {user && (
             <>
@@ -132,7 +132,6 @@ const About = () => {
               </div>
             </>
           )}
-          {/* Contribution Graph */}
           <div className="w-full md:w-auto mt-8 md:mt-0 flex justify-center">
             <img
               src={`https://ghchart.rshah.org/${GITHUB_USER}`}
@@ -142,7 +141,6 @@ const About = () => {
             />
           </div>
         </div>
-        {/* GitHub Projects Section */}
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-light mb-4 text-neutral-900">Open Source Projects</h2>
@@ -193,9 +191,8 @@ const About = () => {
                     </div>
                     <span>Updated {formatDate(repo.updated_at)}</span>
                   </div>
-                  {/* Commit logs */}
                   <div className="mt-4">
-                    <h4 className="text-xs font-semibold text-neutral-700 mb-2 flex items-center gap-1"><GitCommit size={14}/> Recent Commits</h4>
+                    <h4 className="text-xs font-semibold text-neutral-700 mb-2"><GitCommit size={14}/> Recent Commits</h4>
                     <ul className="space-y-1">
                       {(commits[repo.name] || []).map((commit) => (
                         <li key={commit.sha} className="text-xs text-neutral-600 flex flex-col md:flex-row md:items-center md:gap-2">
@@ -213,18 +210,24 @@ const About = () => {
             </div>
           )}
         </div>
-        {/* Contact Section */}
         <div className="text-center mt-16 pt-16 border-t border-neutral-200">
           <h2 className="text-2xl font-light mb-4 text-neutral-900">Get in Touch</h2>
-          <p className="text-neutral-600 mb-6">
+          <p className="text-neutral-600 mb-4">
             Have questions about our products or want to collaborate? We'd love to hear from you.
           </p>
-          <a
-            href="mailto:hello@ethereal.com"
+          {owner && (owner.email || owner.phone) && (
+            <p className="text-sm text-neutral-600 mb-6">For urgent queries contact {owner.name ? owner.name + ' at ' : ''}
+              {owner.email && (<a className="underline" href={`mailto:${owner.email}`}>{owner.email}</a>)}
+              {(owner.email && owner.phone) && ' or '}
+              {owner.phone && (<a className="underline" href={`tel:${owner.phone}`}>{owner.phone}</a>)}</p>
+          )}
+          <button
+            onClick={() => setContactOpen(true)}
             className="inline-block bg-neutral-900 text-white px-8 py-3 rounded font-medium hover:bg-neutral-800 transition-colors"
           >
             Contact Us
-          </a>
+          </button>
+          <ContactUsModal isOpen={contactOpen} onClose={() => setContactOpen(false)} />
         </div>
       </div>
     </div>

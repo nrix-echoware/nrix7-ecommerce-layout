@@ -7,6 +7,7 @@ import VariantSelector from '../components/VariantSelector';
 import { Variant, Product, CartItem } from '../types/product';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
+import { toast } from 'sonner';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -16,6 +17,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [imageOverrideUrl, setImageOverrideUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -27,7 +29,6 @@ const ProductDetail = () => {
     fetchProductById(id)
       .then((data) => {
         setProduct(data);
-        // Auto-select first available variant
         if (data.variants && data.variants.length > 0) {
           const firstAvailable = data.variants.find(v => v.inStock) || data.variants[0];
           setSelectedVariant(firstAvailable);
@@ -35,6 +36,7 @@ const ProductDetail = () => {
           setSelectedVariant(null);
         }
         setSelectedImageIndex(0);
+        setImageOverrideUrl(null);
       })
       .catch(() => {
         setError('Product not found');
@@ -48,9 +50,10 @@ const ProductDetail = () => {
     }
   }, [product]);
 
-  // When variant changes, prefer variant image; if variant image also in product gallery, sync selectedImageIndex to that thumbnail; otherwise keep variant image as override.
+  // Sync to variant image if present; clear manual override on variant change
   useEffect(() => {
     if (!product) return;
+    setImageOverrideUrl(null);
     if (selectedVariant) {
       const idx = product.images.findIndex(img => img === selectedVariant.image);
       if (idx >= 0) setSelectedImageIndex(idx);
@@ -76,7 +79,11 @@ const ProductDetail = () => {
   const handleAddToCart = () => {
     if (product.variants && product.variants.length > 0) {
       if (!selectedVariant) {
-        alert('Please select product options');
+        toast.error('Please select product options');
+        return;
+      }
+      if (!selectedVariant.inStock) {
+        toast.error('Selected variant is out of stock');
         return;
       }
       const cartItem: CartItem = {
@@ -89,6 +96,7 @@ const ProductDetail = () => {
         quantity: 1
       };
       dispatch(addToCart(cartItem));
+      toast.success('Added to cart');
     } else {
       const cartItem: CartItem = {
         id: product.id,
@@ -99,6 +107,7 @@ const ProductDetail = () => {
         quantity: 1
       };
       dispatch(addToCart(cartItem));
+      toast.success('Added to cart');
     }
   };
 
@@ -108,12 +117,13 @@ const ProductDetail = () => {
 
   const displayPrice = selectedVariant ? `₹${selectedVariant.price}` : `₹${product.price}`;
 
-  const displayImage = (selectedVariant && selectedVariant.image) ? selectedVariant.image : product.images[selectedImageIndex];
+  const displayImage = imageOverrideUrl
+    ? imageOverrideUrl
+    : (selectedVariant && selectedVariant.image) ? selectedVariant.image : product.images[selectedImageIndex];
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-white">
       <div className="container mx-auto px-6">
-        {/* Back Button */}
         <Link
           to="/products"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors mb-8"
@@ -123,7 +133,6 @@ const ProductDetail = () => {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 max-w-6xl mx-auto">
-          {/* Product Images */}
           <div className="space-y-4">
             <div className="relative">
               <img
@@ -133,15 +142,14 @@ const ProductDetail = () => {
                 className="w-full aspect-[4/5] object-cover rounded"
               />
             </div>
-            {/* Image thumbnails */}
             {(product.images.length > 1 || (selectedVariant && !product.images.includes(selectedVariant.image))) && (
               <div className="flex gap-2 flex-wrap">
                 {product.images.map((image, index) => (
                   <button
                     key={`thumb-${index}`}
-                    onClick={() => setSelectedImageIndex(index)}
+                    onClick={() => { setSelectedImageIndex(index); setImageOverrideUrl(product.images[index]); }}
                     className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${
-                      selectedImageIndex === index 
+                      (imageOverrideUrl ? product.images[index] === imageOverrideUrl : selectedImageIndex === index)
                         ? 'border-neutral-900' 
                         : 'border-neutral-200 hover:border-neutral-400'
                     }`}
@@ -153,12 +161,13 @@ const ProductDetail = () => {
                     />
                   </button>
                 ))}
-                {/* If variant image is not in product gallery, show an extra thumbnail for it */}
                 {selectedVariant && selectedVariant.image && !product.images.includes(selectedVariant.image) && (
                   <button
                     key={`thumb-variant`}
-                    onClick={() => {/* keep variant override image */}}
-                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors border-neutral-900`}
+                    onClick={() => { setImageOverrideUrl(selectedVariant.image); }}
+                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${
+                      imageOverrideUrl === selectedVariant.image ? 'border-neutral-900' : 'border-neutral-200 hover:border-neutral-400'
+                    }`}
                   >
                     <img src={selectedVariant.image} alt={`Variant`} className="w-full h-full object-cover" />
                   </button>
@@ -167,7 +176,6 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {/* Product Info */}
           <div 
             ref={contentRef}
             className="space-y-8"
@@ -188,7 +196,6 @@ const ProductDetail = () => {
               {product.description}
             </p>
 
-            {/* Variant Selector */}
             {product.variants && product.variants.length > 0 && (
               <VariantSelector
                 variants={product.variants}
@@ -199,7 +206,6 @@ const ProductDetail = () => {
               />
             )}
 
-            {/* Add to Cart */}
             <div className="space-y-4">
               <button
                 onClick={handleAddToCart}
@@ -218,7 +224,6 @@ const ProductDetail = () => {
               </p>
             </div>
 
-            {/* Product Details */}
             <div className="space-y-6 pt-8 border-t border-neutral-200">
               <div>
                 <h3 className="font-medium mb-2 text-neutral-900">Details</h3>

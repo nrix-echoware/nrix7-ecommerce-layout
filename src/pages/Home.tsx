@@ -98,10 +98,10 @@ const Home: React.FC = () => {
                   />
                 </div>
                 <div className="relative z-10 w-full md:w-1/2 flex flex-col justify-center px-2 sm:px-6 md:px-12 py-8 md:py-0">
-                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif font-light mb-4 sm:mb-6 text-neutral-900 tracking-tight luxury-product-title">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-light mb-3 sm:mb-4 text-neutral-900 tracking-tight luxury-product-title" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {product.name}
                   </h3>
-                  <p className="text-base sm:text-lg md:text-xl text-neutral-600 mb-6 sm:mb-8 max-w-lg luxury-product-desc">
+                  <p className="text-sm sm:text-base md:text-lg text-neutral-600 mb-6 sm:mb-8 max-w-lg luxury-product-desc" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {product.description}
                   </p>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 mb-6 sm:mb-8">

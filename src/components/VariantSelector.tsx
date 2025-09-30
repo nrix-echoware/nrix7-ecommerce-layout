@@ -17,12 +17,10 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
     }
   }, [selectedVariant]);
 
-  // Get unique attribute types
-  const attributeTypes = Array.from(
-    new Set(variants.flatMap(v => Object.keys(v.attributes)))
-  );
+  // Unique attribute types
+  const attributeTypes = Array.from(new Set(variants.flatMap(v => Object.keys(v.attributes))));
 
-  // Get available values for each attribute type
+  // Values for attribute type
   const getAttributeValues = (attributeType: string) => {
     return Array.from(
       new Set(
@@ -33,7 +31,7 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
     ).filter(Boolean);
   };
 
-  // Find variant based on selected attributes
+  // Find first variant matching current selection
   const findVariant = (attributes: Record<string, string>) => {
     return variants.find(variant => {
       return Object.entries(attributes).every(([key, value]) => 
@@ -61,29 +59,28 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
           <div className="flex flex-wrap gap-2">
             {getAttributeValues(attributeType).map(value => {
               const isSelected = selectedAttributes[attributeType] === value;
-              
-              // Check if this combination would result in an out-of-stock or non-existent variant
               const testAttributes = { ...selectedAttributes, [attributeType]: value };
               const testVariant = findVariant(testAttributes);
-              const isAvailable = !!(testVariant && testVariant.inStock);
-              
+              const exists = !!testVariant; // only disable if no variant exists for this path
+              const isOutOfStock = !!(testVariant && !testVariant.inStock);
+
               return (
                 <button
                   key={value as string}
                   onClick={() => handleAttributeChange(attributeType, value as string)}
-                  disabled={!isAvailable}
+                  disabled={!exists}
                   className={`
                     px-4 py-2 text-sm border rounded transition-all duration-200
                     ${isSelected 
                       ? 'border-neutral-900 bg-neutral-900 text-white' 
-                      : isAvailable 
+                      : exists 
                         ? 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-400' 
                         : 'border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed'
                     }
                   `}
                 >
                   {value as string}
-                  {!isAvailable && ' (Unavailable)'}
+                  {exists && isOutOfStock && ' (Out of stock)'}
                 </button>
               );
             })}
@@ -97,6 +94,9 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
           <p className="text-lg font-medium text-neutral-900 mt-1">
             ₹{selectedVariant.price}
           </p>
+          {!selectedVariant.inStock && (
+            <p className="text-xs text-red-600 mt-1">Selected variant is currently out of stock</p>
+          )}
         </div>
       )}
     </div>

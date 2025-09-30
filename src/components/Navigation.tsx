@@ -5,6 +5,7 @@ import { RootState } from '../store/store';
 import { toggleCart } from '../store/slices/cartSlice';
 import { AnimationController } from '../utils/animations';
 import { Menu, ShoppingCart } from 'lucide-react';
+import ContactUsModal from './ContactUsModal';
 
 const Navigation = () => {
   const location = useLocation();
@@ -14,6 +15,7 @@ const Navigation = () => {
   const navRef = useRef<HTMLElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Home' },
@@ -103,6 +105,15 @@ const Navigation = () => {
                 )}
               </button>
 
+              {/* Contact Button */}
+              <button
+                onClick={() => setContactOpen(true)}
+                className={`relative flex items-center gap-2 text-sm font-light tracking-wide hover:opacity-70 transition-opacity
+            ${scrolled ? 'text-black' : 'text-white'}`}
+              >
+                <span className="hidden sm:inline">Contact</span>
+              </button>
+
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -133,6 +144,7 @@ const Navigation = () => {
           )}
         </div>
       </nav>
+      <ContactUsModal isOpen={contactOpen} onClose={() => setContactOpen(false)} />
     </>
   );
 };

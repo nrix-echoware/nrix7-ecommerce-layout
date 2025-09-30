@@ -4,11 +4,14 @@ import { ChevronDown } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import ContactUsModal from '../components/ContactUsModal';
 
 const Policies = () => {
   const pageRef = useRef<HTMLDivElement>(null);
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
   const faq = useSelector((s: RootState) => s.siteConfig.config.faq);
+  const owner = useSelector((s: RootState) => s.siteConfig.config.storeOwner);
+  const [contactOpen, setContactOpen] = useState(false);
 
   useEffect(() => {
     if (pageRef.current) {
@@ -116,23 +119,23 @@ const Policies = () => {
             <h2 className="text-2xl font-light mb-4 text-neutral-900">
               Still have questions?
             </h2>
-            <p className="text-neutral-600 mb-6">
+            <p className="text-neutral-600 mb-4">
               Can't find what you're looking for? Our customer support team is here to help.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="mailto:support@example.com"
-                className="inline-block bg-neutral-900 text-white px-8 py-3 rounded font-medium hover:bg-neutral-800 transition-colors"
-              >
-                Email Support
-              </a>
-              <a
-                href="tel:+1234567890"
-                className="inline-block border border-neutral-900 text-neutral-900 px-8 py-3 rounded font-medium hover:bg-neutral-900 hover:text-white transition-colors"
-              >
-                Call Us
-              </a>
-            </div>
+            {owner && (owner.email || owner.phone) && (
+              <p className="text-sm text-neutral-600 mb-6">For urgent queries contact {owner.name ? owner.name + ' at ' : ''}
+                {owner.email && (<a className="underline" href={`mailto:${owner.email}`}>{owner.email}</a>)}
+                {(owner.email && owner.phone) && ' or '}
+                {owner.phone && (<a className="underline" href={`tel:${owner.phone}`}>{owner.phone}</a>)}
+              </p>
+            )}
+            <button
+              onClick={() => setContactOpen(true)}
+              className="inline-block bg-neutral-900 text-white px-8 py-3 rounded font-medium hover:bg-neutral-800 transition-colors"
+            >
+              Contact Us
+            </button>
+            <ContactUsModal isOpen={contactOpen} onClose={() => setContactOpen(false)} />
           </div>
         </div>
       </div>
