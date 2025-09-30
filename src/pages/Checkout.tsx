@@ -261,6 +261,10 @@ const Checkout = () => {
                     />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-neutral-900">{item.name}</p>
+                      
+                      <p className="text-sm font-medium text-neutral-900">
+                        ₹{item.price}
+                      </p>
                       {item.attributes && (
                         <p className="text-xs text-neutral-500">
                           {Object.entries(item.attributes).map(([key, value]) => `${key}: ${value}`).join(', ')}
@@ -268,9 +272,6 @@ const Checkout = () => {
                       )}
                       <p className="text-sm text-neutral-600">Qty: {item.quantity}</p>
                     </div>
-                    <p className="text-sm font-medium text-neutral-900">
-                      ₹{(item.price * item.quantity).toFixed(2)}
-                    </p>
                   </div>
                 ))}
               </div>
