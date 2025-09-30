@@ -6,6 +6,7 @@ import (
 	"github.com/yourorg/contactus-microservice/internal/db"
 	"github.com/yourorg/contactus-microservice/core/contactus"
 	"github.com/yourorg/contactus-microservice/core/products"
+	"github.com/yourorg/contactus-microservice/core/analytics"
 	"github.com/gin-contrib/cors"
 	"github.com/unrolled/secure"
 )
@@ -26,6 +27,10 @@ func main() {
 	productRepo := products.NewProductRepository(db.DB)
 	productSvc := products.NewProductService(productRepo)
 	productCtrl := products.NewProductController(productSvc)
+
+	analyticsRepo := analytics.NewRepository(db.DB)
+	analyticsSvc := analytics.NewService(analyticsRepo)
+	analyticsCtrl := analytics.NewController(analyticsSvc)
 
 	// Setup Gin
 	r := gin.Default()
@@ -69,6 +74,7 @@ func main() {
 
 	ctrl.RegisterRoutes(r)
 	productCtrl.RegisterRoutes(r)
+	analyticsCtrl.RegisterRoutes(r)
 
 	// Start server
 	logrus.Info("Server running on :9997")

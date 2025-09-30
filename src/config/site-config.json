@@ -1,5 +1,10 @@
 {
   "shopName": "Minimal Commerce",
+  "storeOwner": {
+    "name": "Sourav",
+    "email": "sourav@gmail.com",
+    "phone": "+1234567890"
+  },
   "hero": {
     "title": "Modern Essentials",
     "subtitle": "Timeless pieces for everyday",
