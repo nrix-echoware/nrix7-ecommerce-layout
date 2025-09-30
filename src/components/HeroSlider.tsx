@@ -2,6 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+
 gsap.registerPlugin(ScrollTrigger);
 
 interface Slide {
@@ -11,21 +14,21 @@ interface Slide {
   tag?: string;
 }
 
-const slides: Slide[] = [
+const fallbackSlides: Slide[] = [
   {
-    image: 'https://images.unsplash.com/photo-1506152983158-b4a74a01c721?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: 'https://images.unsplash.com/photo-1506152983158-b4a74a01c721?q=80&w=2073&auto=format&fit=crop',
     heading: 'Minimal Luxury',
     subtext: 'Timeless essentials for the modern wardrobe.',
     tag: 'New',
   },
   {
-    image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop',
     heading: 'Modern Silhouettes',
     subtext: 'Effortless style, elevated basics.',
     tag: 'Sale',
   },
   {
-    image: 'https://images.unsplash.com/photo-1508427953056-b00b8d78ebf5?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: 'https://images.unsplash.com/photo-1508427953056-b00b8d78ebf5?q=80&w=2070&auto=format&fit=crop',
     heading: 'Sustainable Craft',
     subtext: 'Responsibly sourced, beautifully made.',
     tag: 'Featured',
@@ -33,6 +36,9 @@ const slides: Slide[] = [
 ];
 
 export const HeroSlider: React.FC = () => {
+  const slidesFromConfig = useSelector((s: RootState) => s.siteConfig.config.hero.slides) as Slide[];
+  const slides = slidesFromConfig && slidesFromConfig.length ? slidesFromConfig : fallbackSlides;
+
   const [active, setActive] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const textRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -60,7 +66,7 @@ export const HeroSlider: React.FC = () => {
   useEffect(() => {
     const id = setTimeout(() => setActive((a) => (a + 1) % slides.length), 4200);
     return () => clearTimeout(id);
-  }, [active]);
+  }, [active, slides.length]);
 
   const handleNav = (dir: number) => {
     setActive((prev) => (prev + dir + slides.length) % slides.length);

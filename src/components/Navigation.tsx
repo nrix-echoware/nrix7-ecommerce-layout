@@ -10,6 +10,7 @@ const Navigation = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state: RootState) => state.cart.items);
+  const config = useSelector((s: RootState) => s.siteConfig.config);
   const navRef = useRef<HTMLElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -55,7 +56,7 @@ const Navigation = () => {
               className={`text-2xl font-light tracking-wider hover:opacity-70 transition-opacity 
           ${scrolled ? 'text-black' : 'text-white'}`}
             >
-              Ethereal
+              {config.shopName}
             </Link>
 
             {/* Desktop Navigation */}
