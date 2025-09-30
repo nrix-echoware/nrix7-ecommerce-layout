@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Variant } from '../types/product';
 
 interface VariantSelectorProps {
@@ -10,6 +10,12 @@ interface VariantSelectorProps {
 
 const VariantSelector = ({ variants, selectedVariant, onVariantChange }: VariantSelectorProps) => {
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (selectedVariant) {
+      setSelectedAttributes(selectedVariant.attributes || {});
+    }
+  }, [selectedVariant]);
 
   // Get unique attribute types
   const attributeTypes = Array.from(
@@ -39,7 +45,6 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
   const handleAttributeChange = (attributeType: string, value: string) => {
     const newAttributes = { ...selectedAttributes, [attributeType]: value };
     setSelectedAttributes(newAttributes);
-    
     const variant = findVariant(newAttributes);
     if (variant) {
       onVariantChange(variant);
@@ -57,15 +62,15 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
             {getAttributeValues(attributeType).map(value => {
               const isSelected = selectedAttributes[attributeType] === value;
               
-              // Check if this combination would result in an out-of-stock variant
+              // Check if this combination would result in an out-of-stock or non-existent variant
               const testAttributes = { ...selectedAttributes, [attributeType]: value };
               const testVariant = findVariant(testAttributes);
-              const isAvailable = testVariant?.inStock !== false;
+              const isAvailable = !!(testVariant && testVariant.inStock);
               
               return (
                 <button
-                  key={value}
-                  onClick={() => handleAttributeChange(attributeType, value)}
+                  key={value as string}
+                  onClick={() => handleAttributeChange(attributeType, value as string)}
                   disabled={!isAvailable}
                   className={`
                     px-4 py-2 text-sm border rounded transition-all duration-200
@@ -77,8 +82,8 @@ const VariantSelector = ({ variants, selectedVariant, onVariantChange }: Variant
                     }
                   `}
                 >
-                  {value}
-                  {!isAvailable && ' (Out of Stock)'}
+                  {value as string}
+                  {!isAvailable && ' (Unavailable)'}
                 </button>
               );
             })}

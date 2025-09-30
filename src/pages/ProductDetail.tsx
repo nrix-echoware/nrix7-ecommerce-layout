@@ -15,7 +15,7 @@ const ProductDetail = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -29,11 +29,12 @@ const ProductDetail = () => {
         setProduct(data);
         // Auto-select first available variant
         if (data.variants && data.variants.length > 0) {
-          const firstAvailable = data.variants.find(v => v.inStock);
-          if (firstAvailable) {
-            setSelectedVariant(firstAvailable);
-          }
+          const firstAvailable = data.variants.find(v => v.inStock) || data.variants[0];
+          setSelectedVariant(firstAvailable);
+        } else {
+          setSelectedVariant(null);
         }
+        setSelectedImageIndex(0);
       })
       .catch(() => {
         setError('Product not found');
@@ -46,6 +47,15 @@ const ProductDetail = () => {
       AnimationController.staggerFadeIn([imageRef.current, contentRef.current], 0.2);
     }
   }, [product]);
+
+  // When variant changes, prefer variant image; if variant image also in product gallery, sync selectedImageIndex to that thumbnail; otherwise keep variant image as override.
+  useEffect(() => {
+    if (!product) return;
+    if (selectedVariant) {
+      const idx = product.images.findIndex(img => img === selectedVariant.image);
+      if (idx >= 0) setSelectedImageIndex(idx);
+    }
+  }, [selectedVariant, product]);
 
   if (loading) {
     return (
@@ -96,13 +106,9 @@ const ProductDetail = () => {
     ? selectedVariant?.inStock 
     : true;
 
-  const displayPrice = selectedVariant 
-    ? `₹${selectedVariant.price}` 
-    : `₹${product.price}`;
+  const displayPrice = selectedVariant ? `₹${selectedVariant.price}` : `₹${product.price}`;
 
-  const displayImage = selectedVariant 
-    ? selectedVariant.image 
-    : product.images[selectedImageIndex];
+  const displayImage = (selectedVariant && selectedVariant.image) ? selectedVariant.image : product.images[selectedImageIndex];
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-white">
@@ -128,11 +134,11 @@ const ProductDetail = () => {
               />
             </div>
             {/* Image thumbnails */}
-            {product.images.length > 1 && (
-              <div className="flex gap-2">
+            {(product.images.length > 1 || (selectedVariant && !product.images.includes(selectedVariant.image))) && (
+              <div className="flex gap-2 flex-wrap">
                 {product.images.map((image, index) => (
                   <button
-                    key={index}
+                    key={`thumb-${index}`}
                     onClick={() => setSelectedImageIndex(index)}
                     className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${
                       selectedImageIndex === index 
@@ -147,6 +153,16 @@ const ProductDetail = () => {
                     />
                   </button>
                 ))}
+                {/* If variant image is not in product gallery, show an extra thumbnail for it */}
+                {selectedVariant && selectedVariant.image && !product.images.includes(selectedVariant.image) && (
+                  <button
+                    key={`thumb-variant`}
+                    onClick={() => {/* keep variant override image */}}
+                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors border-neutral-900`}
+                  >
+                    <img src={selectedVariant.image} alt={`Variant`} className="w-full h-full object-cover" />
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -177,7 +193,9 @@ const ProductDetail = () => {
               <VariantSelector
                 variants={product.variants}
                 selectedVariant={selectedVariant}
-                onVariantChange={setSelectedVariant}
+                onVariantChange={(v) => {
+                  setSelectedVariant(v);
+                }}
               />
             )}
 
