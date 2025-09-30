@@ -48,10 +48,6 @@ const Checkout = () => {
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
-    
-    if (formData.paymentMethod === 'upi' && !formData.upiId?.trim()) {
-      newErrors.upiId = 'UPI ID is required';
-    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,21 +67,13 @@ const Checkout = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-
     setIsSubmitting(true);
-
-    // Simulate order processing
     await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Show success animation
     setShowSuccess(true);
     if (successRef.current) {
       AnimationController.staggerFadeIn([successRef.current], 0.1);
     }
-
-    // Clear cart and redirect after success
     setTimeout(() => {
       dispatch(clearCart());
       navigate('/');
@@ -99,7 +87,7 @@ const Checkout = () => {
     }
   };
 
-  const shipping = total > 200 ? 0 : 25;
+  const shipping = 0;
   const finalTotal = total + shipping;
 
   if (showSuccess) {
@@ -136,7 +124,7 @@ const Checkout = () => {
             <h1 className="text-3xl font-light mb-8 text-neutral-900">Checkout</h1>
             
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-              {/* Personal Information */}
+              {/* Contact Information */}
               <div className="space-y-4">
                 <h2 className="text-lg font-medium text-neutral-900">Contact Information</h2>
                 
@@ -241,52 +229,7 @@ const Checkout = () => {
               {/* Payment Method */}
               <div className="space-y-4">
                 <h2 className="text-lg font-medium text-neutral-900">Payment Method</h2>
-                
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cod"
-                      checked={formData.paymentMethod === 'cod'}
-                      onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                      className="w-4 h-4 text-neutral-900 focus:ring-neutral-900"
-                    />
-                    <span className="text-sm text-neutral-700">Cash on Delivery</span>
-                  </label>
-                  
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="upi"
-                      checked={formData.paymentMethod === 'upi'}
-                      onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                      className="w-4 h-4 text-neutral-900 focus:ring-neutral-900"
-                    />
-                    <span className="text-sm text-neutral-700">UPI Payment</span>
-                  </label>
-                </div>
-
-                {formData.paymentMethod === 'upi' && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      UPI ID *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.upiId || ''}
-                      onChange={(e) => handleInputChange('upiId', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition-colors ${
-                        errors.upiId ? 'border-red-500' : 'border-neutral-300'
-                      }`}
-                      placeholder="yourname@upi"
-                    />
-                    {errors.upiId && (
-                      <p className="text-red-500 text-sm mt-1">{errors.upiId}</p>
-                    )}
-                  </div>
-                )}
+                <p className="text-sm text-neutral-700">Cash on Delivery (COD) only</p>
               </div>
 
               <button
@@ -339,21 +282,13 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Shipping</span>
-                  <span className="text-neutral-900">
-                    {shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}
-                  </span>
+                  <span className="text-neutral-900">Free</span>
                 </div>
                 <div className="flex justify-between text-lg font-medium pt-2 border-t border-neutral-200">
                   <span className="text-neutral-900">Total</span>
                   <span className="text-neutral-900">₹{finalTotal.toFixed(2)}</span>
                 </div>
               </div>
-
-              {total < 200 && (
-                <p className="text-xs text-neutral-500 mt-4">
-                  Add ₹{(200 - total).toFixed(2)} more for free shipping!
-                </p>
-              )}
             </div>
           </div>
         </div>

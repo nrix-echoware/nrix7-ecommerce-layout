@@ -5,9 +5,11 @@ import { RootState } from '../store/store';
 import { closeCart, removeFromCart, updateQuantity } from '../store/slices/cartSlice';
 import { gsap } from 'gsap';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CartOverlay = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { items, isOpen, total } = useSelector((state: RootState) => state.cart);
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -48,6 +50,11 @@ const CartOverlay = () => {
     return Object.entries(attributes)
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
+  };
+
+  const goToCheckout = () => {
+    dispatch(closeCart());
+    navigate('/checkout');
   };
 
   return (
@@ -140,7 +147,7 @@ const CartOverlay = () => {
                 <span className="font-medium text-neutral-900">Total</span>
                 <span className="font-medium text-lg text-neutral-900">₹{total.toFixed(2)}</span>
               </div>
-              <button className="w-full bg-neutral-900 text-white py-3 rounded font-medium hover:bg-neutral-800 transition-colors">
+              <button onClick={goToCheckout} className="w-full bg-neutral-900 text-white py-3 rounded font-medium hover:bg-neutral-800 transition-colors">
                 Checkout
               </button>
             </div>
