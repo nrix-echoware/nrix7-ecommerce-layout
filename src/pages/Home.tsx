@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import HeroSlider from '../components/HeroSlider';
 import ParallaxSection from '../components/ParallaxSection';
 import ProductCarousel from '../components/ProductCarousel';
 import CTAButton from '../components/CTAButton';
 import PageLoader from '../components/PageLoader';
 import PromotionalReels from '../components/PromotionalReels';
+import DeliveryVisualization from '../components/DeliveryVisualization';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { fetchProductsPaginated } from '../api/productsApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { Package, Truck, CheckCircle, Star } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,6 +20,9 @@ const Home: React.FC = () => {
   const [featured, setFeatured] = useState([]);
   const config = useSelector((s: RootState) => s.siteConfig.config);
   const reels = useSelector((s: RootState) => s.siteConfig.config.reels);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const trustRef = useRef<HTMLDivElement>(null);
+  const deliveryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchProductsPaginated(0, config.featured.take || 3)
@@ -29,6 +34,7 @@ const Home: React.FC = () => {
     if (!config.animations.enabled) return;
     const ctx = gsap.context(() => {
       if (config.animations.scrollReveal) {
+        // Featured products animation
         gsap.utils.toArray('.magazine-featured-product').forEach((el, i) => {
           gsap.fromTo(
             el as Element,
@@ -47,6 +53,63 @@ const Home: React.FC = () => {
             }
           );
         });
+
+        // Stats counter animation
+        if (statsRef.current) {
+          gsap.utils.toArray('.stat-number').forEach((el) => {
+            const target = parseInt((el as HTMLElement).getAttribute('data-count') || '0');
+            gsap.from(el as Element, {
+              textContent: 0,
+              duration: 2,
+              ease: 'power1.inOut',
+              snap: { textContent: 1 },
+              scrollTrigger: {
+                trigger: el as Element,
+                start: 'top 80%',
+              },
+              onUpdate: function() {
+                (el as HTMLElement).textContent = Math.ceil(this.targets()[0].textContent).toLocaleString();
+              }
+            });
+          });
+        }
+
+        // Trust badges animation
+        gsap.utils.toArray('.trust-badge').forEach((el, i) => {
+          gsap.fromTo(
+            el as Element,
+            { opacity: 0, scale: 0.8 },
+            {
+              opacity: 1,
+              scale: 1,
+              duration: 0.6,
+              delay: i * 0.1,
+              ease: 'back.out(1.7)',
+              scrollTrigger: {
+                trigger: el as Element,
+                start: 'top 85%',
+              },
+            }
+          );
+        });
+
+        // Delivery section animation
+        if (deliveryRef.current) {
+          gsap.fromTo(
+            deliveryRef.current,
+            { opacity: 0, y: 50 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 1,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: deliveryRef.current,
+                start: 'top 80%',
+              },
+            }
+          );
+        }
       }
     });
 
@@ -61,7 +124,54 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-white">
       <HeroSlider />
 
-      <div style={{marginTop: '7rem'}}></div>
+      {/* Stats Section */}
+      <section ref={statsRef} className="py-20 bg-gradient-to-b from-white to-neutral-50">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="10000">0</div>
+              <p className="text-neutral-600">Happy Customers</p>
+            </div>
+            <div className="text-center">
+              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="500">0</div>
+              <p className="text-neutral-600">Products</p>
+            </div>
+            <div className="text-center">
+              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="50">0</div>
+              <p className="text-neutral-600">Cities</p>
+            </div>
+            <div className="text-center">
+              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="99">0</div>
+              <p className="text-neutral-600">% Satisfaction</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Badges */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-wrap justify-center gap-8">
+            <div className="trust-badge flex items-center gap-3 px-6 py-3 bg-neutral-50 rounded-full">
+              <Package className="text-neutral-900" size={24} />
+              <span className="text-neutral-900 font-medium">Free Shipping</span>
+            </div>
+            <div className="trust-badge flex items-center gap-3 px-6 py-3 bg-neutral-50 rounded-full">
+              <Truck className="text-neutral-900" size={24} />
+              <span className="text-neutral-900 font-medium">Fast Delivery</span>
+            </div>
+            <div className="trust-badge flex items-center gap-3 px-6 py-3 bg-neutral-50 rounded-full">
+              <CheckCircle className="text-neutral-900" size={24} />
+              <span className="text-neutral-900 font-medium">Quality Assured</span>
+            </div>
+            <div className="trust-badge flex items-center gap-3 px-6 py-3 bg-neutral-50 rounded-full">
+              <Star className="text-neutral-900" size={24} />
+              <span className="text-neutral-900 font-medium">Top Rated</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {config.parallax.map((sec, i) => (
         <ParallaxSection key={i}
           title={sec.title}
@@ -120,6 +230,19 @@ const Home: React.FC = () => {
       </section>
 
       <PromotionalReels reels={reels} />
+
+      {/* Delivery Process Section */}
+      <section ref={deliveryRef} className="py-20 bg-gradient-to-b from-neutral-50 to-white">
+        <div className="container mx-auto px-6 text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-light text-neutral-900 mb-4 tracking-tight">
+            Seamless <span className="italic font-serif">Delivery</span>
+          </h2>
+          <p className="text-lg text-neutral-600 max-w-2xl mx-auto mb-8">
+            Experience transparent logistics from seller to your doorstep
+          </p>
+          <CTAButton href="/how-we-work">Watch Our Process</CTAButton>
+        </div>
+      </section>
 
       {config.faq && config.faq.length > 0 && (
         <section className="py-16 bg-neutral-50">

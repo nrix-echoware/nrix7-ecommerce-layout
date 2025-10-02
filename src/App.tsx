@@ -20,6 +20,7 @@ import About from './pages/About';
 import Policies from './pages/Policies';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
+import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => {
                   <Route path="/about" element={<About />} />
                   <Route path="/policies" element={<Policies />} />
                   <Route path="/admin-panel" element={<AdminPanel />} />
+                  <Route path="/how-we-work" element={<DeliveryVisualization />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

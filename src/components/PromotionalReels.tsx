@@ -431,7 +431,7 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;

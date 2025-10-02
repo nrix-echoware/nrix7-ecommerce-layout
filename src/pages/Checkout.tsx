@@ -5,7 +5,7 @@ import { RootState } from '../store/store';
 import { clearCart } from '../store/slices/cartSlice';
 import { CheckoutForm } from '../types/checkout';
 import { AnimationController } from '../utils/animations';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle } from 'lucide-react';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -108,25 +108,25 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-white">
-      <div className="container mx-auto px-6 max-w-4xl">
+    <div className="min-h-screen pt-24 pb-16 bg-gradient-to-b from-neutral-50 to-white">
+      <div className="container mx-auto px-6 max-w-6xl">
         <button
           onClick={() => navigate('/cart')}
-          className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors mb-8"
+          className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors mb-8 hover:gap-3 transition-all"
         >
           <ArrowLeft size={16} />
           Back to Cart
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Checkout Form */}
-          <div>
-            <h1 className="text-3xl font-light mb-8 text-neutral-900">Checkout</h1>
+          <div className="lg:col-span-3">
+            <h1 className="text-4xl font-light mb-8 text-neutral-900 tracking-tight">Complete Your <span className="italic font-serif">Order</span></h1>
             
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
               {/* Contact Information */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-medium text-neutral-900">Contact Information</h2>
+              <div className="space-y-4 bg-white p-6 rounded-xl shadow-sm">
+                <h2 className="text-xl font-medium text-neutral-900 mb-4">Contact Information</h2>
                 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -186,8 +186,8 @@ const Checkout = () => {
               </div>
 
               {/* Shipping Address */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-medium text-neutral-900">Shipping Address</h2>
+              <div className="space-y-4 bg-white p-6 rounded-xl shadow-sm">
+                <h2 className="text-xl font-medium text-neutral-900 mb-4">Shipping Address</h2>
                 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -227,65 +227,77 @@ const Checkout = () => {
               </div>
 
               {/* Payment Method */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-medium text-neutral-900">Payment Method</h2>
-                <p className="text-sm text-neutral-700">Cash on Delivery (COD) only</p>
+              <div className="space-y-4 bg-white p-6 rounded-xl shadow-sm">
+                <h2 className="text-xl font-medium text-neutral-900 mb-4">Payment Method</h2>
+                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="text-green-600" size={24} />
+                  <div>
+                    <p className="font-medium text-green-900">Cash on Delivery</p>
+                    <p className="text-sm text-green-700">Pay when you receive your order</p>
+                  </div>
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full py-4 rounded-md font-medium transition-all duration-200 ${
+                className={`w-full py-5 rounded-xl font-medium text-lg transition-all duration-300 shadow-lg ${
                   isSubmitting
                     ? 'bg-neutral-400 text-white cursor-not-allowed'
-                    : 'bg-neutral-900 text-white hover:bg-neutral-800'
+                    : 'bg-neutral-900 text-white hover:bg-neutral-800 hover:shadow-xl hover:-translate-y-0.5'
                 }`}
               >
-                {isSubmitting ? 'Placing Order...' : 'Place Order'}
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Placing Order...
+                  </span>
+                ) : (
+                  'Complete Order'
+                )}
               </button>
             </form>
           </div>
 
           {/* Order Summary */}
-          <div>
-            <div className="bg-neutral-50 p-6 rounded-lg sticky top-32">
-              <h2 className="text-lg font-medium text-neutral-900 mb-4">Order Summary</h2>
+          <div className="lg:col-span-2">
+            <div className="bg-white p-8 rounded-2xl shadow-lg sticky top-32 border border-neutral-100">
+              <h2 className="text-2xl font-medium text-neutral-900 mb-6">Order Summary</h2>
               
-              <div className="space-y-4 mb-6">
+              <div className="space-y-5 mb-6 max-h-64 overflow-y-auto">
                 {items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3">
+                  <div key={item.id} className="flex items-start gap-4 p-3 bg-neutral-50 rounded-lg">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-12 h-12 object-cover rounded"
+                      className="w-16 h-16 object-cover rounded-lg shadow-sm"
                     />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-neutral-900">{item.name}</p>
-                      
-                      <p className="text-sm font-medium text-neutral-900">
-                        ₹{item.price}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-neutral-900 truncate">{item.name}</p>
                       {item.attributes && (
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-neutral-500 mt-1">
                           {Object.entries(item.attributes).map(([key, value]) => `${key}: ${value}`).join(', ')}
                         </p>
                       )}
-                      <p className="text-sm text-neutral-600">Qty: {item.quantity}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-sm text-neutral-600">Qty: {item.quantity}</p>
+                        <p className="font-medium text-neutral-900">₹{(item.price * item.quantity).toFixed(2)}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="space-y-2 border-t border-neutral-200 pt-4">
-                <div className="flex justify-between text-sm">
+              <div className="space-y-3 border-t-2 border-neutral-200 pt-5">
+                <div className="flex justify-between text-base">
                   <span className="text-neutral-600">Subtotal</span>
-                  <span className="text-neutral-900">₹{total.toFixed(2)}</span>
+                  <span className="text-neutral-900 font-medium">₹{total.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-base">
                   <span className="text-neutral-600">Shipping</span>
-                  <span className="text-neutral-900">Free</span>
+                  <span className="text-green-600 font-medium">Free</span>
                 </div>
-                <div className="flex justify-between text-lg font-medium pt-2 border-t border-neutral-200">
+                <div className="flex justify-between text-2xl font-bold pt-3 border-t-2 border-neutral-900">
                   <span className="text-neutral-900">Total</span>
                   <span className="text-neutral-900">₹{finalTotal.toFixed(2)}</span>
                 </div>
