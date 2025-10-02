@@ -3,11 +3,12 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yourorg/contactus-microservice/internal/db"
-	"github.com/yourorg/contactus-microservice/core/contactus"
-	"github.com/yourorg/contactus-microservice/core/products"
-	"github.com/yourorg/contactus-microservice/core/comments"
-	"github.com/yourorg/contactus-microservice/core/analytics"
+	"ecommerce-backend/internal/db"
+	"ecommerce-backend/core/contactus"
+	"ecommerce-backend/core/products"
+	"ecommerce-backend/core/comments"
+	"ecommerce-backend/core/analytics"
+	"ecommerce-backend/common/security"
 	"github.com/gin-contrib/cors"
 	"github.com/unrolled/secure"
 )
@@ -29,9 +30,13 @@ func main() {
 	productSvc := products.NewProductService(productRepo)
 	productCtrl := products.NewProductController(productSvc)
 
+	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)
+	commentRateLimiter := security.NewCommentRateLimiter(db.DB)
+	defer commentRateLimiter.Stop() // Cleanup on shutdown
+
 	commentRepo := comments.NewCommentRepository(db.DB)
 	commentSvc := comments.NewCommentService(commentRepo)
-	commentCtrl := comments.NewCommentController(commentSvc)
+	commentCtrl := comments.NewCommentController(commentSvc, commentRateLimiter)
 
 	analyticsRepo := analytics.NewRepository(db.DB)
 	analyticsSvc := analytics.NewService(analyticsRepo)

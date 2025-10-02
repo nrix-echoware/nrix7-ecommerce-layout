@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 	"github.com/gin-gonic/gin"
-	"github.com/yourorg/contactus-microservice/internal/config"
+	"ecommerce-backend/internal/config"
 )
 
 type rateLimiter struct {

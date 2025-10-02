@@ -5,14 +5,19 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"ecommerce-backend/common/security"
 )
 
 type CommentController struct {
-	service CommentService
+	service     CommentService
+	rateLimiter *security.CommentRateLimiter
 }
 
-func NewCommentController(service CommentService) *CommentController {
-	return &CommentController{service: service}
+func NewCommentController(service CommentService, rateLimiter *security.CommentRateLimiter) *CommentController {
+	return &CommentController{
+		service:     service,
+		rateLimiter: rateLimiter,
+	}
 }
 
 // GetCommentsForProduct godoc
@@ -68,6 +73,7 @@ func (ctrl *CommentController) GetCommentsForProduct(c *gin.Context) {
 // @Param comment body CreateCommentRequest true "Comment data"
 // @Success 201 {object} CommentResponse
 // @Failure 400 {object} map[string]string
+// @Failure 429 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /products/{product_id}/comments [post]
 func (ctrl *CommentController) CreateComment(c *gin.Context) {
@@ -86,11 +92,31 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// Set the product ID from the URL parameter
 	req.ProductID = productID
 
+	// Get client IP
+	clientIP := c.ClientIP()
+
+	// Check rate limit BEFORE processing
+	rateLimitResult := ctrl.rateLimiter.CheckAndLog(clientIP, productID, req.Email)
+	if !rateLimitResult.Allowed {
+		c.JSON(http.StatusTooManyRequests, gin.H{
+			"error":          "Rate limit exceeded",
+			"message":        rateLimitResult.Reason,
+			"attempts":       rateLimitResult.AttemptsCount,
+			"max_attempts":   3,
+			"retry_after":    rateLimitResult.NextAvailable,
+		})
+		return
+	}
+
+	// Create the comment
 	comment, err := ctrl.service.CreateComment(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Log successful comment creation
+	ctrl.rateLimiter.LogSuccess(clientIP, productID, req.Email)
 
 	response := TransformCommentToResponse(comment)
 	c.JSON(http.StatusCreated, response)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/yourorg/contactus-microservice/internal/config"
+	"ecommerce-backend/internal/config"
 )
 
 type ProductController struct {

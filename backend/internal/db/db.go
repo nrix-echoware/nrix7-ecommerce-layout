@@ -1,14 +1,14 @@
 package db
 
 import (
-	"github.com/yourorg/contactus-microservice/core/contactus"
-	"github.com/yourorg/contactus-microservice/core/products"
-	"github.com/yourorg/contactus-microservice/core/comments"
-	"github.com/yourorg/contactus-microservice/core/analytics"
+	"ecommerce-backend/core/contactus"
+	"ecommerce-backend/core/products"
+	"ecommerce-backend/core/comments"
+	"ecommerce-backend/core/analytics"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"github.com/sirupsen/logrus"
-	"github.com/yourorg/contactus-microservice/internal/config"
+	"ecommerce-backend/internal/config"
 )
 
 var DB *gorm.DB
