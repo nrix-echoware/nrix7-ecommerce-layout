@@ -2,9 +2,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CartItem, CartState } from '../../types/product';
 
+const CART_STORAGE_KEY = 'ethereal-cart';
+const CART_HASH_STORAGE_KEY = 'ethereal-cart-hash';
+
 const loadCartFromStorage = (): CartItem[] => {
   try {
-    const cart = localStorage.getItem('ethereal-cart');
+    const cart = localStorage.getItem(CART_STORAGE_KEY);
     return cart ? JSON.parse(cart) : [];
   } catch {
     return [];
@@ -13,9 +16,25 @@ const loadCartFromStorage = (): CartItem[] => {
 
 const saveCartToStorage = (items: CartItem[]) => {
   try {
-    localStorage.setItem('ethereal-cart', JSON.stringify(items));
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   } catch (error) {
     console.error('Failed to save cart to localStorage:', error);
+  }
+};
+
+const getStoredHash = (): string | null => {
+  try {
+    return localStorage.getItem(CART_HASH_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const saveHashToStorage = (hash: string) => {
+  try {
+    localStorage.setItem(CART_HASH_STORAGE_KEY, hash);
+  } catch (error) {
+    console.error('Failed to save hash to localStorage:', error);
   }
 };
 
@@ -27,6 +46,7 @@ const initialState: CartState = {
   items: loadCartFromStorage(),
   isOpen: false,
   total: calculateTotal(loadCartFromStorage()),
+  hash: getStoredHash(),
 };
 
 const cartSlice = createSlice({
@@ -77,6 +97,30 @@ const cartSlice = createSlice({
     closeCart: (state) => {
       state.isOpen = false;
     },
+    validateCartHash: (state, action: PayloadAction<string>) => {
+      const currentHash = action.payload;
+      
+      // If cart is empty, just update the hash
+      if (state.items.length === 0) {
+        state.hash = currentHash;
+        saveHashToStorage(currentHash);
+        return;
+      }
+      
+      // If stored hash doesn't match current hash, clear the cart
+      if (state.hash !== currentHash) {
+        console.log('Cart invalidated - product data has changed');
+        state.items = [];
+        state.total = 0;
+        state.hash = currentHash;
+        saveCartToStorage([]);
+        saveHashToStorage(currentHash);
+      }
+    },
+    setCartHash: (state, action: PayloadAction<string>) => {
+      state.hash = action.payload;
+      saveHashToStorage(action.payload);
+    },
   },
 });
 
@@ -86,7 +130,9 @@ export const {
   updateQuantity, 
   clearCart, 
   toggleCart, 
-  closeCart 
+  closeCart,
+  validateCartHash,
+  setCartHash
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

@@ -18,4 +18,9 @@ export const fetchProductById = async (id: string): Promise<Product> => {
 export const fetchProductsPaginated = async (skip = 0, take = 3): Promise<Product[]> => {
   const response = await axios.get<Product[]>(`${API_BASE_URL}/products?skip=${skip}&take=${take}`);
   return response.data;
+};
+
+export const fetchCartHash = async (): Promise<string> => {
+  const response = await axios.get<{ hash: string }>(`${API_BASE_URL}/products/cart/hash`);
+  return response.data.hash;
 }; 

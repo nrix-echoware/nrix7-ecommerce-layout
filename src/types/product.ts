@@ -37,6 +37,7 @@ export interface CartState {
   items: CartItem[];
   isOpen: boolean;
   total: number;
+  hash: string | null;
 }
 
 export interface ProductsState {

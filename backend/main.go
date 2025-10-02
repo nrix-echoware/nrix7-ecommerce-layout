@@ -27,7 +27,8 @@ func main() {
 	ctrl := contactus.NewContactUsController(svc)
 
 	productRepo := products.NewProductRepository(db.DB)
-	productSvc := products.NewProductService(productRepo)
+	cartInvalidationRepo := products.NewCartInvalidationRepository(db.DB)
+	productSvc := products.NewProductService(productRepo, cartInvalidationRepo)
 	productCtrl := products.NewProductController(productSvc)
 
 	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)

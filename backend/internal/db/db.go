@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/products"
 	"ecommerce-backend/core/comments"
@@ -22,7 +23,7 @@ func InitDB() {
 	if err := DB.AutoMigrate(&contactus.ContactUs{}); err != nil {
 		logrus.Fatalf("failed to migrate database: %v", err)
 	}
-	if err := DB.AutoMigrate(&products.Product{}, &products.ProductImage{}, &products.ProductVariant{}); err != nil {
+	if err := DB.AutoMigrate(&products.Product{}, &products.ProductImage{}, &products.ProductVariant{}, &products.CartInvalidation{}); err != nil {
 		logrus.Fatalf("failed to migrate products tables: %v", err)
 	}
 	if err := DB.AutoMigrate(&comments.Comment{}); err != nil {
@@ -30,5 +31,11 @@ func InitDB() {
 	}
 	if err := DB.AutoMigrate(&analytics.VisitorEvent{}); err != nil {
 		logrus.Fatalf("failed to migrate analytics tables: %v", err)
+	}
+	
+	// Initialize cart invalidation hash if not exists
+	cartInvalidationRepo := products.NewCartInvalidationRepository(DB)
+	if err := cartInvalidationRepo.InitializeHash(context.Background()); err != nil {
+		logrus.Warnf("failed to initialize cart invalidation hash: %v", err)
 	}
 }

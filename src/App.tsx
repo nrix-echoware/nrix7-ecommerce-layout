@@ -22,6 +22,7 @@ import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
 import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
+import { CartHashValidator } from './components/CartHashValidator';
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => {
           <BrowserRouter>
             {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
             <AnalyticsTracker />
+            <CartHashValidator />
             
             <div className="relative">
               <Navigation />

@@ -57,6 +57,8 @@ func adminKeyMiddleware() gin.HandlerFunc {
 
 func (c *ProductController) RegisterRoutes(r *gin.Engine) {
 	group := r.Group("/products")
+	// Register specific routes before parameterized routes to avoid conflicts
+	group.GET("/cart/hash", c.GetCartHash)
 	group.POST("", adminKeyMiddleware(), c.CreateProduct)
 	group.PUT(":id", adminKeyMiddleware(), c.UpdateProduct)
 	group.DELETE(":id", adminKeyMiddleware(), c.DeleteProduct)
@@ -183,4 +185,13 @@ func (c *ProductController) ListProducts(ctx *gin.Context) {
 
 func (c *ProductController) Name() string {
 	return "products"
+}
+
+func (c *ProductController) GetCartHash(ctx *gin.Context) {
+	hash, err := c.service.GetCartHash(context.Background())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"hash": hash})
 }
