@@ -8,6 +8,7 @@ import { Variant, Product, CartItem } from '../types/product';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { toast } from 'sonner';
+import { CommentSection } from '../components/comments';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -222,6 +223,11 @@ const ProductDetail = () => {
               <p className="text-sm text-neutral-500 text-center">
                 Free shipping on orders over ₹500
               </p>
+            </div>
+
+            {/* Comments Section */}
+            <div className="pt-8 border-t border-neutral-200">
+              <CommentSection productId={product.id} />
             </div>
 
             <div className="space-y-6 pt-8 border-t border-neutral-200">

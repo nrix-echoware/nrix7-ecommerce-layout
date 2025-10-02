@@ -1,11 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface Slide {
   image: string;
@@ -40,94 +37,158 @@ export const HeroSlider: React.FC = () => {
   const slides = slidesFromConfig && slidesFromConfig.length ? slidesFromConfig : fallbackSlides;
 
   const [active, setActive] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const textRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const bgRef = useRef<HTMLDivElement>(null);
-  const timeline = useRef<gsap.core.Timeline | null>(null);
+  const [paused, setPaused] = useState(false);
 
+  const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const textRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const transitionTlRef = useRef<gsap.core.Timeline | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+  const prevIndexRef = useRef<number>(0);
+
+  // Initialize visual state on mount or when slides change
   useEffect(() => {
-    if (!containerRef.current) return;
-    timeline.current = gsap.timeline({ defaults: { duration: 1, ease: 'power3.out' } });
-    timeline.current.fromTo(
-      textRefs.current,
-      { opacity: 0, y: 60, skewY: 8 },
-      { opacity: 1, y: 0, skewY: 0, stagger: 0.15 },
-    );
-    timeline.current.fromTo(
-      bgRef.current,
-      { opacity: 0, scale: 1.1 },
-      { opacity: 1, scale: 1, duration: 1.2 },
-      0.2
-    );
-    return () => { timeline.current?.kill(); };
+    // Kill any existing animation
+    transitionTlRef.current?.kill();
+    transitionTlRef.current = null;
+
+    // Hide all slides initially
+    imageRefs.current.forEach((img) => {
+      if (img) gsap.set(img, { autoAlpha: 0, scale: 1.05 });
+    });
+    textRefs.current.forEach((grp) => {
+      if (grp) gsap.set(grp, { autoAlpha: 0, y: 20 });
+    });
+
+    // Reveal the initial active slide
+    const img = imageRefs.current[active];
+    const grp = textRefs.current[active];
+    if (img) gsap.set(img, { autoAlpha: 1, scale: 1 });
+    if (grp) gsap.set(grp, { autoAlpha: 1, y: 0 });
+
+    prevIndexRef.current = active;
+
+    return () => {
+      transitionTlRef.current?.kill();
+    };
+    // We intentionally skip active here to avoid re-initializing on every change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slides.length]);
+
+  // Handle transitions when active changes
+  useEffect(() => {
+    const prev = prevIndexRef.current;
+    const next = active;
+    if (prev === next) return;
+
+    transitionTlRef.current?.kill();
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+    transitionTlRef.current = tl;
+
+    const prevImg = imageRefs.current[prev];
+    const prevTxt = textRefs.current[prev];
+    const nextImg = imageRefs.current[next];
+    const nextTxt = textRefs.current[next];
+
+    if (nextImg) gsap.set(nextImg, { autoAlpha: 0, scale: 1.05 });
+    if (nextTxt) gsap.set(nextTxt, { autoAlpha: 0, y: 20 });
+
+    // Outgoing
+    if (prevTxt) tl.to(prevTxt, { autoAlpha: 0, y: 10, duration: 0.4 }, 0);
+    if (prevImg) tl.to(prevImg, { autoAlpha: 0, scale: 1.03, duration: 0.8 }, 0);
+
+    // Incoming
+    if (nextImg) tl.to(nextImg, { autoAlpha: 1, scale: 1, duration: 1.0 }, 0.1);
+    if (nextTxt) tl.to(nextTxt, { autoAlpha: 1, y: 0, duration: 0.6 }, 0.25);
+
+    prevIndexRef.current = next;
+
+    return () => {
+      tl.kill();
+    };
   }, [active]);
 
-  // Auto-advance
+  // Autoplay with pause on hover
   useEffect(() => {
-    const id = setTimeout(() => setActive((a) => (a + 1) % slides.length), 4200);
-    return () => clearTimeout(id);
-  }, [active, slides.length]);
+    if (paused) {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      return;
+    }
 
-  const handleNav = (dir: number) => {
-    setActive((prev) => (prev + dir + slides.length) % slides.length);
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    // timeoutRef.current = window.setTimeout(() => {
+    //   setActive((a) => (a + 1) % slides.length);
+    // }, 5000);
+
+    return () => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [active, paused, slides.length]);
+
+  const handleDotClick = (i: number) => {
+    if (i === active) return;
+    setActive(i);
   };
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-neutral-100">
-      <div ref={bgRef} className="absolute inset-0 z-0">
-        <img
-          src={slides[active].image}
-          alt="Hero background"
-          className="object-cover w-full h-full opacity-80 scale-105 transition-all duration-700"
-        />
-        {/* Layered SVG or shape for extra depth */}
-        <svg className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10" width="600" height="600" viewBox="0 0 600 600" fill="none">
-          <circle cx="300" cy="300" r="280" fill="#222" />
-        </svg>
-      </div>
-      <div ref={containerRef} className="relative z-10 flex flex-col items-center gap-6 text-center">
-        <div ref={el => textRefs.current[0] = el} className="text-5xl md:text-7xl font-light tracking-tight text-neutral-900 drop-shadow-xl">
-          {slides[active].heading}
+    <section
+      className="relative w-full h-[70vh] md:h-[80vh] overflow-hidden bg-white"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* Slides */}
+      {slides.map((s, i) => (
+        <div key={i} className="absolute inset-0">
+          <img
+            ref={(el) => (imageRefs.current[i] = el)}
+            src={s.image}
+            alt={s.heading}
+            className="w-full h-full object-cover"
+          />
+          {/* Soft vignette for contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/20 to-white/60" />
         </div>
-        <div ref={el => textRefs.current[1] = el} className="text-neutral-900 text-xl md:text-2xl font-normal max-w-xl">
-          {slides[active].subtext}
-        </div>
-        <div ref={el => textRefs.current[2] = el}>
-          <Link
-            to="/products"
-            className="mt-8 inline-block px-8 py-3 rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg relative group"
-          >
-            <span className="relative z-10">Shop the Collection</span>
-            <span className="absolute left-0 bottom-0 w-0 h-1 bg-white group-hover:w-full transition-all duration-300" />
-          </Link>
-        </div>
-        {/* {slides[active].tag && (
-          <div className="absolute top-8 left-8 bg-white/80 text-neutral-900 px-4 py-1 rounded-full text-xs font-semibold shadow minimal-shadow animate-pulse">
-            {slides[active].tag}
+      ))}
+
+      {/* Text overlays */}
+      {slides.map((s, i) => (
+        <div
+          key={`txt-${i}`}
+          ref={(el) => (textRefs.current[i] = el)}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <div className="text-center px-6">
+            <div className="text-4xl md:text-6xl font-light tracking-tight text-neutral-900">
+              {s.heading}
+            </div>
+            <div className="mt-3 text-neutral-900 text-lg md:text-2xl font-normal max-w-2xl mx-auto">
+              {s.subtext}
+            </div>
+            <Link
+              to="/products"
+              className="mt-8 inline-block px-8 py-3 rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg"
+            >
+              Shop the Collection
+            </Link>
           </div>
-        )} */}
-      </div>
-      {/* Navigation arrows */}
-      {/* <button
-        className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow hover:bg-neutral-200 transition-all"
-        onClick={() => handleNav(-1)}
-        aria-label="Previous slide"
-      >
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
-      </button> */}
-      {/* <button
-        className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow hover:bg-neutral-200 transition-all"
-        onClick={() => handleNav(1)}
-        aria-label="Next slide"
-      >
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-      </button> */}
-      {/* Slide indicators */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
+        </div>
+      ))}
+
+      {/* Indicators */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
         {slides.map((_, i) => (
-          <span
-            key={i}
-            className={`block w-2 h-2 rounded-full transition-all duration-300 ${i === active ? 'bg-neutral-900 scale-125' : 'bg-neutral-400'}`}
+          <button
+            key={`dot-${i}`}
+            onClick={() => handleDotClick(i)}
+            aria-label={`Go to slide ${i + 1}`}
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+              i === active ? 'bg-neutral-900 scale-125' : 'bg-neutral-400 hover:bg-neutral-500'
+            }`}
           />
         ))}
       </div>

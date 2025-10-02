@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/yourorg/contactus-microservice/core/contactus"
 	"github.com/yourorg/contactus-microservice/core/products"
+	"github.com/yourorg/contactus-microservice/core/comments"
 	"github.com/yourorg/contactus-microservice/core/analytics"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -24,7 +25,10 @@ func InitDB() {
 	if err := DB.AutoMigrate(&products.Product{}, &products.ProductImage{}, &products.ProductVariant{}); err != nil {
 		logrus.Fatalf("failed to migrate products tables: %v", err)
 	}
+	if err := DB.AutoMigrate(&comments.Comment{}); err != nil {
+		logrus.Fatalf("failed to migrate comments tables: %v", err)
+	}
 	if err := DB.AutoMigrate(&analytics.VisitorEvent{}); err != nil {
 		logrus.Fatalf("failed to migrate analytics tables: %v", err)
 	}
-} 
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/yourorg/contactus-microservice/internal/db"
 	"github.com/yourorg/contactus-microservice/core/contactus"
 	"github.com/yourorg/contactus-microservice/core/products"
+	"github.com/yourorg/contactus-microservice/core/comments"
 	"github.com/yourorg/contactus-microservice/core/analytics"
 	"github.com/gin-contrib/cors"
 	"github.com/unrolled/secure"
@@ -27,6 +28,10 @@ func main() {
 	productRepo := products.NewProductRepository(db.DB)
 	productSvc := products.NewProductService(productRepo)
 	productCtrl := products.NewProductController(productSvc)
+
+	commentRepo := comments.NewCommentRepository(db.DB)
+	commentSvc := comments.NewCommentService(commentRepo)
+	commentCtrl := comments.NewCommentController(commentSvc)
 
 	analyticsRepo := analytics.NewRepository(db.DB)
 	analyticsSvc := analytics.NewService(analyticsRepo)
@@ -74,6 +79,7 @@ func main() {
 
 	ctrl.RegisterRoutes(r)
 	productCtrl.RegisterRoutes(r)
+	commentCtrl.RegisterRoutes(r)
 	analyticsCtrl.RegisterRoutes(r)
 
 	// Start server
