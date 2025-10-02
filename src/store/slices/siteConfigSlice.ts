@@ -44,6 +44,11 @@ export interface StoreOwnerConfig {
   phone: string;
 }
 
+export interface StatsItem {
+  label: string;
+  value: string;
+}
+
 export interface SiteConfig {
   shopName: string;
   hero: HeroConfig;
@@ -53,6 +58,7 @@ export interface SiteConfig {
   reels: PromotionalReel[];
   parallax: ParallaxSectionConfig[];
   storeOwner?: StoreOwnerConfig;
+  stats?: StatsItem[];
 }
 
 const defaultConfig: SiteConfig = {
@@ -75,6 +81,7 @@ const defaultConfig: SiteConfig = {
   reels: [],
   parallax: [],
   storeOwner: { name: '', email: '', phone: '' },
+  stats: [],
 };
 
 interface SiteConfigState {

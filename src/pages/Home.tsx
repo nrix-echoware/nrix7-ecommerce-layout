@@ -54,26 +54,6 @@ const Home: React.FC = () => {
           );
         });
 
-        // Stats counter animation
-        if (statsRef.current) {
-          gsap.utils.toArray('.stat-number').forEach((el) => {
-            const target = parseInt((el as HTMLElement).getAttribute('data-count') || '0');
-            gsap.from(el as Element, {
-              textContent: 0,
-              duration: 2,
-              ease: 'power1.inOut',
-              snap: { textContent: 1 },
-              scrollTrigger: {
-                trigger: el as Element,
-                start: 'top 80%',
-              },
-              onUpdate: function() {
-                (el as HTMLElement).textContent = Math.ceil(this.targets()[0].textContent).toLocaleString();
-              }
-            });
-          });
-        }
-
         // Trust badges animation
         gsap.utils.toArray('.trust-badge').forEach((el, i) => {
           gsap.fromTo(
@@ -125,28 +105,20 @@ const Home: React.FC = () => {
       <HeroSlider />
 
       {/* Stats Section */}
-      <section ref={statsRef} className="py-20 bg-gradient-to-b from-white to-neutral-50">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="10000">0</div>
-              <p className="text-neutral-600">Happy Customers</p>
-            </div>
-            <div className="text-center">
-              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="500">0</div>
-              <p className="text-neutral-600">Products</p>
-            </div>
-            <div className="text-center">
-              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="50">0</div>
-              <p className="text-neutral-600">Cities</p>
-            </div>
-            <div className="text-center">
-              <div className="stat-number text-5xl font-light text-neutral-900 mb-2" data-count="99">0</div>
-              <p className="text-neutral-600">% Satisfaction</p>
+      {config.stats && config.stats.length > 0 && (
+        <section ref={statsRef} className="py-20 bg-gradient-to-b from-white to-neutral-50">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {config.stats.map((s, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-5xl font-light text-neutral-900 mb-2">{s.value}</div>
+                  <p className="text-neutral-600">{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Trust Badges */}
       <section className="py-16 bg-white">
