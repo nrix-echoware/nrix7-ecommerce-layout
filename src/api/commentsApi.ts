@@ -28,7 +28,7 @@ export interface UpdateCommentRequest {
 // Get comments for a product (tree structure)
 export const getCommentsForProduct = async (productId: string, limit = 10, offset = 0): Promise<Comment[]> => {
   const response = await axios.get<Comment[]>(
-    `${API_BASE_URL}/products/${productId}/comments`,
+    `${API_BASE_URL}/comments/products/${productId}/comments`,
     {
       params: { limit, offset }
     }
@@ -39,7 +39,7 @@ export const getCommentsForProduct = async (productId: string, limit = 10, offse
 // Create a new comment
 export const createComment = async (request: CreateCommentRequest): Promise<Comment> => {
   const response = await axios.post<Comment>(
-    `${API_BASE_URL}/products/${request.product_id}/comments`,
+    `${API_BASE_URL}/comments/products/${request.product_id}/comments`,
     request
   );
   return response.data;

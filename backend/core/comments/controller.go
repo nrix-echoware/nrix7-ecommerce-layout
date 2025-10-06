@@ -240,8 +240,8 @@ func (ctrl *CommentController) GetReplies(c *gin.Context) {
 // RegisterRoutes registers comment routes with the Gin router
 func (ctrl *CommentController) RegisterRoutes(r *gin.Engine) {
 	// Product comments
-	r.GET("/products/:product_id/comments", ctrl.GetCommentsForProduct)
-	r.POST("/products/:product_id/comments", ctrl.CreateComment)
+	r.GET("/comments/products/:product_id/comments", ctrl.GetCommentsForProduct)
+	r.POST("/comments/products/:product_id/comments", ctrl.CreateComment)
 	
 	// Individual comment operations
 	r.PUT("/comments/:id", ctrl.UpdateComment)
