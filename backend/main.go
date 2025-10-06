@@ -21,6 +21,34 @@ func main() {
 	// Initialize DB
 	db.InitDB()
 
+	
+
+	// Setup Gin
+	r := gin.Default()
+
+	corsCfg := cors.Config{
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowHeaders:    []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Admin-API-Key", "ngrok-skip-browser-warning"},
+		ExposeHeaders:   []string{"Content-Length"},
+		AllowCredentials: false,
+	}
+	r.Use(cors.New(corsCfg))
+
+	secureMiddleware := secure.New(secure.Options{
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		IsDevelopment:         true,
+	})
+	r.Use(func(c *gin.Context) {
+		if err := secureMiddleware.Process(c.Writer, c.Request); err != nil {
+			c.AbortWithStatus(400)
+			return
+		}
+		c.Next()
+	})
+
 	// Dependency injection
 	repo := contactus.NewContactUsRepository(db.DB)
 	svc := contactus.NewContactUsService(repo)
@@ -42,35 +70,6 @@ func main() {
 	analyticsRepo := analytics.NewRepository(db.DB)
 	analyticsSvc := analytics.NewService(analyticsRepo)
 	analyticsCtrl := analytics.NewController(analyticsSvc)
-
-	// Setup Gin
-	r := gin.Default()
-
-	// CORS middleware (allow all origins, customize as needed)
-	corsCfg := cors.Config{
-		AllowAllOrigins: true,
-		AllowMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:   []string{"Origin", "Content-Type", "Accept", "X-Admin-API-Key"},
-		ExposeHeaders:  []string{"Content-Length"},
-	}
-	r.Use(cors.New(corsCfg))
-
-	// Security headers (helmet-like)
-	secureMiddleware := secure.New(secure.Options{
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self'",
-		ReferrerPolicy:        "strict-origin-when-cross-origin",
-	})
-	r.Use(func(c *gin.Context) {
-		err := secureMiddleware.Process(c.Writer, c.Request)
-		if err != nil {
-			c.AbortWithStatus(400)
-			return
-		}
-		c.Next()
-	})
 
 	// Health check
 	r.GET("/healthz", func(c *gin.Context) {

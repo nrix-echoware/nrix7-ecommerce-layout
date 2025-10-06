@@ -239,16 +239,12 @@ func (ctrl *CommentController) GetReplies(c *gin.Context) {
 
 // RegisterRoutes registers comment routes with the Gin router
 func (ctrl *CommentController) RegisterRoutes(r *gin.Engine) {
-	// Comment routes
-	v1 := r.Group("/api/v1")
-	{
-		// Product comments
-		v1.GET("/products/:product_id/comments", ctrl.GetCommentsForProduct)
-		v1.POST("/products/:product_id/comments", ctrl.CreateComment)
-		
-		// Individual comment operations
-		v1.PUT("/comments/:id", ctrl.UpdateComment)
-		v1.DELETE("/comments/:id", ctrl.DeleteComment)
-		v1.GET("/comments/:id/replies", ctrl.GetReplies)
-	}
+	// Product comments
+	r.GET("/products/:product_id/comments", ctrl.GetCommentsForProduct)
+	r.POST("/products/:product_id/comments", ctrl.CreateComment)
+	
+	// Individual comment operations
+	r.PUT("/comments/:id", ctrl.UpdateComment)
+	r.DELETE("/comments/:id", ctrl.DeleteComment)
+	r.GET("/comments/:id/replies", ctrl.GetReplies)
 }
