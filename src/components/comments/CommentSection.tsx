@@ -166,7 +166,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ productId }) => 
       ) : !comments || comments.length === 0 ? (
         <div className="text-center py-8 text-neutral-700">
           <MessageCircle size={48} className="mx-auto mb-4 opacity-40" />
-          <p>No comments yet. Be the first to share your thoughts!</p>
+          <p>No questions yet. Be the first to ask your questions!</p>
         </div>
       ) : (
         <div className="space-y-4">

@@ -65,7 +65,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({
         <Textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder={isReply ? "Write your reply..." : "Share your thoughts about this product..."}
+          placeholder={isReply ? "Write your reply..." : "ask about this product..."}
           className="min-h-[100px] resize-none bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-500"
           disabled={isLoading}
         />
