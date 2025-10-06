@@ -23,6 +23,7 @@ import AdminPanel from './pages/AdminPanel';
 import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
 import { CartHashValidator } from './components/CartHashValidator';
+import axios from 'axios';
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function AnalyticsTracker() {
 }
 
 const App = () => {
+  axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420';
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
