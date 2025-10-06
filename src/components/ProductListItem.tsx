@@ -7,7 +7,7 @@ export default function ProductListItem({ product }: { product: Product }) {
     : product.price;
 
   return (
-    <div className="w-full border-b border-neutral-200 py-4 flex gap-4">
+    <div className="w-full border-b border-neutral-200 py-4 flex gap-4" style={{alignItems: 'center'}}>
       <div className="w-36 sm:w-48 flex-shrink-0">
         <Link to={`/products/${product.id}`} className="block">
           <img src={product.images[0]} alt={product.name} className="w-full h-auto object-cover rounded" />
