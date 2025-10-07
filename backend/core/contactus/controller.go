@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"encoding/json"
+	"ecommerce-backend/internal/config"
 )
 
 type ContactUsController struct {
@@ -28,9 +29,21 @@ type ContactUsRequest struct {
 	Extras  interface{} `json:"extras"`
 }
 
+func adminKeyMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		expected := config.Get().AdminAPIKey
+		provided := c.GetHeader("X-Admin-API-Key")
+		if expected == "" || provided == "" || provided != expected {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+		c.Next()
+	}
+}
+
 func (c *ContactUsController) RegisterRoutes(r *gin.Engine) {
 	r.POST("/contactus", c.CreateContactUs)
-	r.GET("/contactus", c.GetContactUs)
+	r.GET("/contactus", adminKeyMiddleware(), c.GetContactUs)
 }
 
 func (c *ContactUsController) CreateContactUs(ctx *gin.Context) {
