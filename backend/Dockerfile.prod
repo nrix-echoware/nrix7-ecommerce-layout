@@ -1,18 +1,26 @@
 # ---------- Build stage ----------
 FROM golang:1.25-alpine AS builder
 
+# Install build dependencies
 RUN apk add --no-cache git build-base sqlite-dev openssl
 
 WORKDIR /app
+
+# Copy go mod files
 COPY go.mod go.sum ./
 RUN go mod download
+
+# Copy source code
 COPY . .
+
+# Use a build argument for domain name (default to EC2 public DNS)
+ARG DOMAIN=
 
 # Generate a self-signed certificate INSIDE Docker
 RUN mkdir cert && \
     openssl req -x509 -newkey rsa:4096 \
       -keyout cert/key.pem -out cert/cert.pem \
-      -days 365 -nodes -subj "/CN=localhost"
+      -days 365 -nodes -subj "/CN=${DOMAIN}"
 
 # Build static Go binary
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo \

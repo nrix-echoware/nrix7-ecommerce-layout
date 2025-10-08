@@ -3,6 +3,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+      args:
+        DOMAIN: ec2-52-221-190-203.ap-southeast-1.compute.amazonaws.com
     image: ecommerce-backend-prod
     container_name: ecommerce-backend-prod
     working_dir: /app
