@@ -1,46 +1,37 @@
-# syntax=docker/dockerfile:1
-
-# Build stage
+# ---------- Build stage ----------
 FROM golang:1.25-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git build-base sqlite-dev
+RUN apk add --no-cache git build-base sqlite-dev openssl
 
 WORKDIR /app
-
-# Copy go mod files
 COPY go.mod go.sum ./
 RUN go mod download
-
-# Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags='-w -s -extldflags "-static"' -o main .
+# Generate a self-signed certificate INSIDE Docker
+RUN mkdir cert && \
+    openssl req -x509 -newkey rsa:4096 \
+      -keyout cert/key.pem -out cert/cert.pem \
+      -days 365 -nodes -subj "/CN=localhost"
 
-# Production stage
-FROM alpine:latest AS production
+# Build static Go binary
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo \
+    -ldflags='-w -s -extldflags "-static"' -o main .
 
-# Install runtime dependencies
+# ---------- Runtime stage ----------
+FROM alpine:latest
+
 RUN apk add --no-cache ca-certificates sqlite-libs
-
-# Create non-root user
-RUN addgroup -g 1001 -S appuser && \
-    adduser -u 1001 -S appuser -G appuser
+RUN addgroup -g 1001 -S appuser && adduser -u 1001 -S appuser -G appuser
 
 WORKDIR /app
 
-# Create data directory for database
-RUN mkdir -p /app/data && chown appuser:appuser /app/data
-
-# Copy only the binary (no directories needed)
+# Copy binary + certs from builder
 COPY --from=builder --chown=appuser:appuser /app/main .
+COPY --from=builder --chown=appuser:appuser /app/cert ./cert
 
-# Switch to non-root user
 USER appuser
 
-# Expose port
 EXPOSE 9997
 
-# Run the application
 CMD ["./main"]

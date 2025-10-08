@@ -89,5 +89,7 @@ func main() {
 
 	// Start server
 	logrus.Info("Server running on :9997")
-	r.Run(":9997")
+	if err := r.RunTLS(":9997", "cert/cert.pem", "cert/key.pem"); err != nil {
+		logrus.Fatal(err)
+	}
 }
