@@ -28,6 +28,11 @@ export async function listProducts(skip = 0, take = 100): Promise<Product[]> {
   return data;
 }
 
+export async function getProduct(id: string): Promise<Product> {
+  const { data } = await client.get<Product>(`/products/${id}`);
+  return data;
+}
+
 export async function createProduct(payload: Product): Promise<string> {
   const { data } = await client.post<{ id: string }>(`/products`, normalizeProduct(payload));
   return data.id;

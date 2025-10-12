@@ -56,7 +56,11 @@ export const updateComment = async (commentId: string, request: UpdateCommentReq
 
 // Delete a comment
 export const deleteComment = async (commentId: string): Promise<void> => {
-  await axios.delete(`${API_BASE_URL}/comments/${commentId}`);
+  await axios.delete(`${API_BASE_URL}/comments/${commentId}`, {
+    headers: {
+      'X-Admin-API-Key': sessionStorage.getItem('admin_api_key') || ''
+    }
+  });
 };
 
 // Get replies for a comment
@@ -65,6 +69,27 @@ export const getReplies = async (commentId: string, limit = 10, offset = 0): Pro
     `${API_BASE_URL}/comments/${commentId}/replies`,
     {
       params: { limit, offset }
+    }
+  );
+  return response.data;
+};
+
+export interface GetAllCommentsResponse {
+  comments: Comment[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+// Get all comments (Admin)
+export const getAllComments = async (limit = 50, offset = 0): Promise<GetAllCommentsResponse> => {
+  const response = await axios.get<GetAllCommentsResponse>(
+    `${API_BASE_URL}/comments`,
+    {
+      params: { limit, offset },
+      headers: {
+        'X-Admin-API-Key': sessionStorage.getItem('admin_api_key') || ''
+      }
     }
   );
   return response.data;

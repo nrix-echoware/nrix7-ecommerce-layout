@@ -12,6 +12,8 @@ type CommentRepository interface {
 	Delete(id string) error
 	GetReplies(parentID string, limit, offset int) ([]Comment, error)
 	GetCommentTree(productID string, limit, offset int, depth int) ([]CommentResponse, error)
+	GetAllComments(limit, offset int) ([]Comment, error)
+	GetTotalCommentsCount() (int64, error)
 }
 
 type commentRepository struct {
@@ -119,4 +121,19 @@ func (r *commentRepository) GetCommentTree(productID string, limit, offset int, 
 	}
 
 	return responses, nil
+}
+
+func (r *commentRepository) GetAllComments(limit, offset int) ([]Comment, error) {
+	var comments []Comment
+	err := r.db.Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&comments).Error
+	return comments, err
+}
+
+func (r *commentRepository) GetTotalCommentsCount() (int64, error) {
+	var count int64
+	err := r.db.Model(&Comment{}).Count(&count).Error
+	return count, err
 }

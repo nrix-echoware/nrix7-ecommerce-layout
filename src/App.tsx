@@ -35,6 +35,33 @@ function AnalyticsTracker() {
   return null;
 }
 
+function AppContent() {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="relative">
+      {!isAdminPage && <Navigation />}
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/policies" element={<Policies />} />
+          <Route path="/admin/*" element={<AdminPanel />} />
+          <Route path="/admin-panel" element={<AdminPanel />} />
+          <Route path="/how-we-work" element={<DeliveryVisualization />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      {!isAdminPage && <CartOverlay />}
+    </div>
+  );
+}
+
 const App = () => {
   //axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420';
   const [isLoading, setIsLoading] = useState(true);
@@ -62,25 +89,7 @@ const App = () => {
             {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
             <AnalyticsTracker />
             <CartHashValidator />
-            
-            <div className="relative">
-              <Navigation />
-              <main>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/products/:id" element={<ProductDetail />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/policies" element={<Policies />} />
-                  <Route path="/admin-panel" element={<AdminPanel />} />
-                  <Route path="/how-we-work" element={<DeliveryVisualization />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <CartOverlay />
-            </div>
+            <AppContent />
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>

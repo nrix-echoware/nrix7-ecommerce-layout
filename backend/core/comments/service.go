@@ -12,6 +12,7 @@ type CommentService interface {
 	UpdateComment(id string, req *UpdateCommentRequest) (*Comment, error)
 	DeleteComment(id string) error
 	GetReplies(parentID string, limit, offset int) ([]Comment, error)
+	GetAllComments(limit, offset int) ([]Comment, int64, error)
 }
 
 type commentService struct {
@@ -149,4 +150,28 @@ func (s *commentService) GetReplies(parentID string, limit, offset int) ([]Comme
 	}
 
 	return s.repo.GetReplies(parentID, limit, offset)
+}
+
+func (s *commentService) GetAllComments(limit, offset int) ([]Comment, int64, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	comments, err := s.repo.GetAllComments(limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count, err := s.repo.GetTotalCommentsCount()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return comments, count, nil
 }

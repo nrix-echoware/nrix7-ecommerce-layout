@@ -237,6 +237,47 @@ func (ctrl *CommentController) GetReplies(c *gin.Context) {
 	c.JSON(http.StatusOK, replies)
 }
 
+// GetAllComments godoc
+// @Summary Get all comments (Admin)
+// @Description Get all comments with pagination
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit (default 50, max 100)" minimum(1) maximum(100)
+// @Param offset query int false "Offset (default 0)" minimum(0)
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments [get]
+func (ctrl *CommentController) GetAllComments(c *gin.Context) {
+	// Parse query parameters
+	limitStr := c.DefaultQuery("limit", "50")
+	offsetStr := c.DefaultQuery("offset", "0")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 50
+	}
+
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	comments, total, err := ctrl.service.GetAllComments(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch comments"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"comments": comments,
+		"total":    total,
+		"limit":    limit,
+		"offset":   offset,
+	})
+}
+
 // RegisterRoutes registers comment routes with the Gin router
 func (ctrl *CommentController) RegisterRoutes(r *gin.Engine) {
 	// Product comments
@@ -247,4 +288,7 @@ func (ctrl *CommentController) RegisterRoutes(r *gin.Engine) {
 	r.PUT("/comments/:id", ctrl.UpdateComment)
 	r.DELETE("/comments/:id", ctrl.DeleteComment)
 	r.GET("/comments/:id/replies", ctrl.GetReplies)
+	
+	// Admin operations
+	r.GET("/comments", ctrl.GetAllComments)
 }
