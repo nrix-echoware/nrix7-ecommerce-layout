@@ -3,7 +3,8 @@
   "storeOwner": {
     "name": "Sourav",
     "email": "sourav@gmail.com",
-    "phone": "+6291048482"
+    "phone": "+6291048482",
+    "address": "123 Main St, Anytown, USA"
   },
   "hero": {
     "title": "Modern Essentials",
@@ -110,5 +111,114 @@
     "searchPlaceholder": "Search products...",
     "searchPlaceholderMobile": "Search...",
     "categoryDropdownLabel": "All"
+  },
+  "contact": {
+    "hero": {
+      "title": "Hey There!",
+      "subtitle": "We'd love to hear from you. Send us a message and we'll respond as soon as possible, and thats a MANs word."
+    },
+    "store": {
+      "name": "Nrix7 Store",
+      "address": {
+        "street": "Rajbari, Dum Dum",
+        "city": "Kolkata, West Bengal 700028",
+        "country": "India"
+      },
+      "phones": [
+        "+91 98765 43210",
+        "+91 87654 32109"
+      ],
+      "emails": [
+        "info@nrix7.com",
+        "support@nrix7.com"
+      ],
+      "hours": {
+        "weekdays": "Mon - Sat: 10:00 AM - 9:00 PM",
+        "weekend": "Sunday: 11:00 AM - 7:00 PM"
+      },
+      "map": {
+        "enabled": true,
+        "type": "google_maps",
+        "embedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.1234567890!2d88.4223455!3d22.6429924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f89e43db853bc5%3A0x762f48fc15d259c5!2sRajbari%2C%20Dum%20Dum%2C%20Kolkata%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1234567890123!5m2!1sen!2sin",
+        "linkUrl": "https://www.google.com/maps/place/Rajbari,+Dum+Dum,+Kolkata,+West+Bengal/@22.64253,88.4143218,15z/data=!3m1!4b1!4m6!3m5!1s0x39f89e43db853bc5:0x762f48fc15d259c5!8m2!3d22.6429924!4d88.4223455!16s%2Fg%2F1ttdww36?entry=ttu&g_ep=EgoyMDI1MTAwOC4wIKXMDSoASAFQAw%3D%3D",
+        "coordinates": {
+          "lat": 22.6429924,
+          "lng": 88.4223455
+        },
+        "placeId": "ChIJ1234567890",
+        "placeholder": "Google Maps Placeholder",
+        "description": "Interactive Google Maps showing our store location in Rajbari, Dum Dum, Kolkata.",
+        "overlay": {
+          "title": "Visit Our Store",
+          "description": "We're located in Rajbari, Dum Dum, Kolkata. Easy access by metro, bus, or car with parking available.",
+          "hours": "Open 10 AM - 9 PM (Mon-Sat)"
+        }
+      }
+    },
+    "form": {
+      "title": "Send us a Message",
+      "types": [
+        { "value": "inquiry", "label": "General Inquiry" },
+        { "value": "order_problem", "label": "Order Problem" },
+        { "value": "return_exchange", "label": "Return/Exchange" },
+        { "value": "bug_report", "label": "Bug Report" }
+      ],
+      "fields": {
+        "name": {
+          "label": "Full Name",
+          "placeholder": "Enter your full name",
+          "required": true
+        },
+        "email": {
+          "label": "Email Address",
+          "placeholder": "Enter your email address",
+          "required": true
+        },
+        "phone": {
+          "label": "Phone Number",
+          "placeholder": "Enter your phone number",
+          "required": false
+        },
+        "type": {
+          "label": "How can we help?",
+          "required": true
+        },
+        "message": {
+          "label": "Your Message",
+          "placeholder": "Tell us how we can help you...",
+          "required": true,
+          "rows": 6
+        }
+      },
+      "submit": {
+        "text": "Send Message",
+        "sending": "Sending..."
+      }
+    },
+    "storeInfo": {
+      "title": "Store Information",
+      "sections": [
+        {
+          "icon": "MapPin",
+          "title": "Visit Our Store",
+          "details": ["Rajbari, Dum Dum", "Kolkata, West Bengal 700028", "India"]
+        },
+        {
+          "icon": "Phone",
+          "title": "Call Us",
+          "details": ["+91 98765 43210", "+91 87654 32109"]
+        },
+        {
+          "icon": "Mail",
+          "title": "Email Us",
+          "details": ["info@nrix7.com", "support@nrix7.com"]
+        },
+        {
+          "icon": "Clock",
+          "title": "Store Hours",
+          "details": ["Mon - Sat: 10:00 AM - 9:00 PM", "Sunday: 11:00 AM - 7:00 PM"]
+        }
+      ]
+    }
   }
 } 

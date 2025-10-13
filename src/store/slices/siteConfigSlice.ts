@@ -66,6 +66,97 @@ export interface NavbarConfig {
   categoryDropdownLabel: string;
 }
 
+export interface ContactHeroConfig {
+  title: string;
+  subtitle: string;
+}
+
+export interface ContactStoreAddress {
+  street: string;
+  city: string;
+  country: string;
+}
+
+export interface ContactStoreHours {
+  weekdays: string;
+  weekend: string;
+}
+
+export interface ContactMapOverlay {
+  title: string;
+  description: string;
+  hours: string;
+}
+
+export interface ContactMapConfig {
+  enabled: boolean;
+  type?: string;
+  embedUrl?: string;
+  linkUrl?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  placeId?: string;
+  placeholder: string;
+  description: string;
+  overlay: ContactMapOverlay;
+}
+
+export interface ContactStoreConfig {
+  name: string;
+  address: ContactStoreAddress;
+  phones: string[];
+  emails: string[];
+  hours: ContactStoreHours;
+  map: ContactMapConfig;
+}
+
+export interface ContactFormField {
+  label: string;
+  placeholder: string;
+  required: boolean;
+  rows?: number;
+}
+
+export interface ContactFormFields {
+  name: ContactFormField;
+  email: ContactFormField;
+  phone: ContactFormField;
+  type: ContactFormField;
+  message: ContactFormField;
+}
+
+export interface ContactFormSubmit {
+  text: string;
+  sending: string;
+}
+
+export interface ContactFormConfig {
+  title: string;
+  types: { value: string; label: string }[];
+  fields: ContactFormFields;
+  submit: ContactFormSubmit;
+}
+
+export interface ContactStoreInfoSection {
+  icon: string;
+  title: string;
+  details: string[];
+}
+
+export interface ContactStoreInfoConfig {
+  title: string;
+  sections: ContactStoreInfoSection[];
+}
+
+export interface ContactConfig {
+  hero: ContactHeroConfig;
+  store: ContactStoreConfig;
+  form: ContactFormConfig;
+  storeInfo: ContactStoreInfoConfig;
+}
+
 export interface SiteConfig {
   shopName: string;
   hero: HeroConfig;
@@ -79,6 +170,7 @@ export interface SiteConfig {
   categories?: CategoryItem[];
   navigation?: NavigationItem[];
   navbar?: NavbarConfig;
+  contact?: ContactConfig;
 }
 
 const defaultConfig: SiteConfig = {

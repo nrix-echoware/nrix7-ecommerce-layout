@@ -108,9 +108,9 @@ const About = () => {
     <div className="min-h-screen pt-20 md:pt-16 pb-16 bg-white">
       <div className="container mx-auto px-6">
         <div ref={headerRef} className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-light mb-6 text-neutral-900">
+          {/* <h1 className="text-5xl md:text-6xl font-light mb-6 text-neutral-900">
             About the Creator
-          </h1>
+          </h1> */}
         </div>
         <div ref={profileRef} className="max-w-4xl mx-auto mb-16 flex flex-col md:flex-row items-center gap-8 bg-neutral-50 rounded-xl p-8 shadow-md">
           {user && (
