@@ -3,6 +3,7 @@ import { submitContact } from '../api/contactusApi';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { useUserEmail } from '../contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +27,7 @@ const REASONS = [
 
 export default function ContactUsModal({ isOpen, onClose, site = 'shop', message = '' }: Props) {
   const owner = useSelector((s: RootState) => s.siteConfig.config.storeOwner);
+  const userEmail = useUserEmail();
   const [type, setType] = useState('inquiry');
   const [messageText, setMessageText] = useState(message || '');
   const [extras, setExtras] = useState<Record<string, any>>({});
@@ -38,6 +40,10 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop', message
     if (isOpen) {
       // When opening, set the message from prop
       setMessageText(message || '');
+      // Auto-fill email if user is logged in
+      if (userEmail) {
+        setEmail(userEmail);
+      }
     } else {
       // When closing, reset everything
       setType('inquiry');
@@ -48,7 +54,7 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop', message
       setPhone('');
       setSubmitting(false);
     }
-  }, [isOpen, message]);
+  }, [isOpen, message, userEmail]);
 
   const reasonFields = () => {
     switch (type) {

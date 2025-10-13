@@ -34,8 +34,7 @@ type CommentResponse struct {
 }
 
 type CreateCommentRequest struct {
-	ProductID string  `json:"product_id" binding:"required"`
-	Email     string  `json:"email" binding:"required,email"`
+	ProductID string  `json:"product_id"` // Set from URL parameter
 	Comment   string  `json:"comment" binding:"required,min=1,max=1000"`
 	RepliedTo *string `json:"replied_to,omitempty"`
 }

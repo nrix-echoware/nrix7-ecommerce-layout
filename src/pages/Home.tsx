@@ -6,6 +6,7 @@ import CTAButton from '../components/CTAButton';
 import PageLoader from '../components/PageLoader';
 import PromotionalReels from '../components/PromotionalReels';
 import DeliveryVisualization from '../components/DeliveryVisualization';
+import Footer from '../components/Footer';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { fetchProductsPaginated } from '../api/productsApi';
@@ -101,7 +102,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-20 md:pt-16">
       <HeroSlider />
 
       {/* Stats Section */}
@@ -230,6 +231,9 @@ const Home: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* Footer - Only on Homepage */}
+      <Footer />
     </div>
   );
 };

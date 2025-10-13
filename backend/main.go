@@ -5,7 +5,9 @@ import (
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
+	"ecommerce-backend/core/newsletter"
 	"ecommerce-backend/core/products"
+	"ecommerce-backend/core/users"
 	"ecommerce-backend/internal/db"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -69,6 +71,16 @@ func main() {
 	analyticsSvc := analytics.NewService(analyticsRepo)
 	analyticsCtrl := analytics.NewController(analyticsSvc)
 
+	// Initialize Users module
+	userRepo := users.NewUserRepository(db.DB)
+	userSvc := users.NewUserService(userRepo)
+	userCtrl := users.NewUserController(userSvc)
+
+	// Initialize Newsletter module
+	newsletterRepo := newsletter.NewNewsletterRepository(db.DB)
+	newsletterSvc := newsletter.NewNewsletterService(newsletterRepo)
+	newsletterCtrl := newsletter.NewNewsletterController(newsletterSvc)
+
 	// Health check
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
@@ -84,6 +96,8 @@ func main() {
 	productCtrl.RegisterRoutes(r)
 	commentCtrl.RegisterRoutes(r)
 	analyticsCtrl.RegisterRoutes(r)
+	userCtrl.RegisterRoutes(r)
+	newsletterCtrl.RegisterRoutes(r)
 
 	// Start server
 	logrus.Info("Server running on :9997")

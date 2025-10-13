@@ -5,7 +5,9 @@ import (
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
+	"ecommerce-backend/core/newsletter"
 	"ecommerce-backend/core/products"
+	"ecommerce-backend/core/users"
 	"ecommerce-backend/internal/config"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/sqlite"
@@ -31,6 +33,12 @@ func InitDB() {
 	}
 	if err := DB.AutoMigrate(&analytics.VisitorEvent{}); err != nil {
 		logrus.Fatalf("failed to migrate analytics tables: %v", err)
+	}
+	if err := DB.AutoMigrate(&users.User{}, &users.RefreshToken{}, &users.UserSession{}); err != nil {
+		logrus.Fatalf("failed to migrate users tables: %v", err)
+	}
+	if err := DB.AutoMigrate(&newsletter.NewsletterSubscription{}); err != nil {
+		logrus.Fatalf("failed to migrate newsletter tables: %v", err)
 	}
 
 	// Initialize cart invalidation hash if not exists

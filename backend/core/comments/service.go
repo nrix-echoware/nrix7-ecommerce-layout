@@ -6,7 +6,7 @@ import (
 )
 
 type CommentService interface {
-	CreateComment(req *CreateCommentRequest) (*Comment, error)
+	CreateComment(req *CreateCommentRequest, email string) (*Comment, error)
 	GetCommentsForProduct(productID string, limit, offset int) ([]CommentResponse, error)
 	GetCommentByID(id string) (*Comment, error)
 	UpdateComment(id string, req *UpdateCommentRequest) (*Comment, error)
@@ -27,9 +27,9 @@ func NewCommentService(repo CommentRepository) CommentService {
 	return &commentService{repo: repo}
 }
 
-func (s *commentService) CreateComment(req *CreateCommentRequest) (*Comment, error) {
+func (s *commentService) CreateComment(req *CreateCommentRequest, email string) (*Comment, error) {
 	// Validate email
-	if strings.TrimSpace(req.Email) == "" {
+	if strings.TrimSpace(email) == "" {
 		return nil, errors.New("email is required")
 	}
 
@@ -56,7 +56,7 @@ func (s *commentService) CreateComment(req *CreateCommentRequest) (*Comment, err
 
 	commentModel := &Comment{
 		ProductID:  req.ProductID,
-		Email:      strings.ToLower(strings.TrimSpace(req.Email)),
+		Email:      strings.ToLower(strings.TrimSpace(email)),
 		Comment:    comment,
 		RepliedTo:  req.RepliedTo,
 		IsVerified: false, // Can be set to true based on some verification logic

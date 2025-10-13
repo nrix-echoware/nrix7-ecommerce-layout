@@ -94,5 +94,21 @@
     { "label": "Products", "value": "10+" },
     { "label": "Cities", "value": "Pan India" },
     { "label": "% Satisfaction", "value": "97" }
-  ]
+  ],
+  "categories": [
+    { "label": "Electronics", "path": "/products?category=electronics" },
+    { "label": "Fashion", "path": "/products?category=fashion" },
+    { "label": "Beauty", "path": "/products?category=beauty" }
+  ],
+  "navigation": [
+    { "path": "/", "label": "All", "icon": "Menu" },
+    { "path": "/products", "label": "Products", "icon": "Package" },
+    { "path": "/about", "label": "About", "icon": "Star" },
+    { "path": "/policies", "label": "Policies", "icon": "Shield" }
+  ],
+  "navbar": {
+    "searchPlaceholder": "Search products...",
+    "searchPlaceholderMobile": "Search...",
+    "categoryDropdownLabel": "All"
+  }
 } 

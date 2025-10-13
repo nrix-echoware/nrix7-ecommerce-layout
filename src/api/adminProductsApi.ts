@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Product } from '../types/product';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9997';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:9997';
 
 function getAdminKey(): string | null {
   return sessionStorage.getItem('admin_api_key');

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { TokenManager } from './authApi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9997';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:9997';
 
 export interface Comment {
   id: string;
@@ -16,7 +17,6 @@ export interface Comment {
 
 export interface CreateCommentRequest {
   product_id: string;
-  email: string;
   comment: string;
   replied_to?: string | null;
 }
@@ -38,9 +38,19 @@ export const getCommentsForProduct = async (productId: string, limit = 10, offse
 
 // Create a new comment
 export const createComment = async (request: CreateCommentRequest): Promise<Comment> => {
+  const accessToken = TokenManager.getAccessToken();
+  if (!accessToken) {
+    throw new Error('Authentication required to post comments');
+  }
+
   const response = await axios.post<Comment>(
     `${API_BASE_URL}/comments/products/${request.product_id}/comments`,
-    request
+    request,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    }
   );
   return response.data;
 };

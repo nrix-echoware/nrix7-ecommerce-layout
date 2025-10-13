@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9997';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:9997';
 
 export async function logVisitor(path: string, referrer?: string, extras?: Record<string, any>): Promise<void> {
   try {

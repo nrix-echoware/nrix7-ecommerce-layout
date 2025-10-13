@@ -133,7 +133,7 @@ const ProductDetail = () => {
   const uniqueImages = Array.from(allImages);
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-white">
+    <div className="min-h-screen pt-20 md:pt-16 pb-16 bg-white">
       <div className="container mx-auto px-6">
         <Link
           to="/products"

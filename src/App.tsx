@@ -20,9 +20,13 @@ import About from './pages/About';
 import Policies from './pages/Policies';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Profile from './pages/Profile';
 import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
 import { CartHashValidator } from './components/CartHashValidator';
+import { AuthProvider } from './contexts/AuthContext';
 import axios from 'axios';
 
 const queryClient = new QueryClient();
@@ -51,6 +55,9 @@ function AppContent() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/about" element={<About />} />
           <Route path="/policies" element={<Policies />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/admin/*" element={<AdminPanel />} />
           <Route path="/admin-panel" element={<AdminPanel />} />
           <Route path="/how-we-work" element={<DeliveryVisualization />} />
@@ -83,14 +90,16 @@ const App = () => {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-            <AnalyticsTracker />
-            <CartHashValidator />
-            <AppContent />
-          </BrowserRouter>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
+              <AnalyticsTracker />
+              <CartHashValidator />
+              <AppContent />
+            </BrowserRouter>
+          </AuthProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </Provider>

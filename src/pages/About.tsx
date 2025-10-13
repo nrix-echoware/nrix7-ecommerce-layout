@@ -105,7 +105,7 @@ const About = () => {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-white">
+    <div className="min-h-screen pt-20 md:pt-16 pb-16 bg-white">
       <div className="container mx-auto px-6">
         <div ref={headerRef} className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-light mb-6 text-neutral-900">
@@ -210,7 +210,7 @@ const About = () => {
             </div>
           )}
         </div>
-        <div className="text-center mt-16 pt-16 border-t border-neutral-200">
+        <div className="text-center mt-16 pt-20 md:pt-16 border-t border-neutral-200">
           <h2 className="text-2xl font-light mb-4 text-neutral-900">Get in Touch</h2>
           <p className="text-neutral-600 mb-4">
             Have questions about our products or want to collaborate? We'd love to hear from you.

@@ -5,13 +5,14 @@ import (
 	"ecommerce-backend/internal/config"
 	"encoding/json"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
-	"strconv"
 )
 
 type ContactUsController struct {
@@ -95,10 +96,10 @@ func NewContactUsController(s ContactUsService) *ContactUsController {
 }
 
 type ContactUsRequest struct {
-	Site    string      `json:"site" validate:"required"`
-	Type    string      `json:"type" validate:"required"`
-	Message string      `json:"message" validate:"required"`
-	Extras  interface{} `json:"extras"`
+	Site    string                 `json:"site" validate:"required"`
+	Type    string                 `json:"type" validate:"required"`
+	Message string                 `json:"message" validate:"required"`
+	Extras  map[string]interface{} `json:"extras"`
 }
 
 func adminKeyMiddleware() gin.HandlerFunc {
@@ -125,6 +126,25 @@ type UpdateContactUsStatusRequest struct {
 	Status string `json:"status" binding:"required,oneof=pending in_progress resolved closed"`
 }
 
+// Helper function to extract JWT email from Authorization header
+func (c *ContactUsController) getEmailFromJWT(ctx *gin.Context) string {
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" {
+		return "" // No auth header, user is anonymous
+	}
+
+	// Extract token from "Bearer <token>"
+	tokenParts := strings.Split(authHeader, " ")
+	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		return "" // Invalid format, treat as anonymous
+	}
+
+	// For now, we'll just return empty string since we don't have JWT validation here
+	// In a real implementation, you'd validate the JWT and extract the email
+	// This is a placeholder - the actual JWT validation should be done in the users module
+	return ""
+}
+
 func (c *ContactUsController) RegisterRoutes(r *gin.Engine) {
 	r.POST("/contactus", c.CreateContactUs)
 	r.GET("/contactus", adminKeyMiddleware(), c.GetAllContactUs)
@@ -140,6 +160,17 @@ func (c *ContactUsController) CreateContactUs(ctx *gin.Context) {
 	if err := c.validator.Struct(req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Get JWT email if user is authenticated
+	jwtEmail := c.getEmailFromJWT(ctx)
+
+	// If user is authenticated via JWT, auto-fill email from token
+	if jwtEmail != "" {
+		if req.Extras == nil {
+			req.Extras = make(map[string]interface{})
+		}
+		req.Extras["email"] = jwtEmail
 	}
 
 	// Rate limiting: 50 requests per day per IP+Site

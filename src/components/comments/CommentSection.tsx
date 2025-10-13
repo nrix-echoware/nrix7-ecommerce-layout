@@ -3,7 +3,6 @@ import { MessageCircle, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { CommentForm } from './CommentForm';
 import { CommentItem } from './CommentItem';
-import { EmailModal } from './EmailModal';
 import { Comment, CreateCommentRequest, getCommentsForProduct, createComment, updateComment, deleteComment } from '../../api/commentsApi';
 import { toast } from 'sonner';
 
@@ -17,8 +16,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ productId }) => 
   const [submitting, setSubmitting] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [pendingComment, setPendingComment] = useState<{ comment: string; repliedTo?: string | null } | null>(null);
 
   // Load comments when component mounts or productId changes
   useEffect(() => {
@@ -39,25 +36,13 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ productId }) => 
     }
   };
 
-  const handleCommentSubmit = (commentText: string) => {
-    // Store the pending comment and show email modal
-    setPendingComment({ comment: commentText, repliedTo: replyingTo });
-    setShowEmailModal(true);
-  };
-
-  const handleEmailSubmit = async (userEmail: string) => {
-    if (!pendingComment) {
-      setShowEmailModal(false);
-      return;
-    }
-
+  const handleCommentSubmit = async (commentText: string) => {
     try {
       setSubmitting(true);
       const request: CreateCommentRequest = {
         product_id: productId,
-        email: userEmail,
-        comment: pendingComment.comment,
-        replied_to: pendingComment.repliedTo || null
+        comment: commentText,
+        replied_to: replyingTo || null
       };
 
       await createComment(request);
@@ -69,11 +54,13 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ productId }) => 
       // Reset all form state
       setShowCommentForm(false);
       setReplyingTo(null);
-      setPendingComment(null);
-      setShowEmailModal(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to post comment:', error);
-      toast.error('Failed to post comment');
+      if (error?.message?.includes('Authentication required')) {
+        toast.error('Please sign in to post comments');
+      } else {
+        toast.error(error?.response?.data?.error || 'Failed to post comment');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -182,16 +169,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ productId }) => 
         </div>
       )}
 
-      {/* Email Modal */}
-      <EmailModal
-        isOpen={showEmailModal}
-        onClose={() => {
-          setShowEmailModal(false);
-          setPendingComment(null);
-        }}
-        onSubmit={handleEmailSubmit}
-        isLoading={submitting}
-      />
     </div>
   );
 };

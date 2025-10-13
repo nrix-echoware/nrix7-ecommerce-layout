@@ -49,6 +49,23 @@ export interface StatsItem {
   value: string;
 }
 
+export interface CategoryItem {
+  label: string;
+  path: string;
+}
+
+export interface NavigationItem {
+  path: string;
+  label: string;
+  icon: string;
+}
+
+export interface NavbarConfig {
+  searchPlaceholder: string;
+  searchPlaceholderMobile: string;
+  categoryDropdownLabel: string;
+}
+
 export interface SiteConfig {
   shopName: string;
   hero: HeroConfig;
@@ -59,6 +76,9 @@ export interface SiteConfig {
   parallax: ParallaxSectionConfig[];
   storeOwner?: StoreOwnerConfig;
   stats?: StatsItem[];
+  categories?: CategoryItem[];
+  navigation?: NavigationItem[];
+  navbar?: NavbarConfig;
 }
 
 const defaultConfig: SiteConfig = {
@@ -82,6 +102,13 @@ const defaultConfig: SiteConfig = {
   parallax: [],
   storeOwner: { name: '', email: '', phone: '' },
   stats: [],
+  categories: [],
+  navigation: [],
+  navbar: {
+    searchPlaceholder: 'Search products...',
+    searchPlaceholderMobile: 'Search...',
+    categoryDropdownLabel: 'All',
+  },
 };
 
 interface SiteConfigState {

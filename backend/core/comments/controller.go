@@ -3,14 +3,41 @@ package comments
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"ecommerce-backend/common/security"
+	"ecommerce-backend/core/users"
 	"github.com/gin-gonic/gin"
 )
 
 type CommentController struct {
 	service     CommentService
 	rateLimiter *security.CommentRateLimiter
+}
+
+// Helper function to extract JWT email from Authorization header
+func (ctrl *CommentController) getEmailFromJWT(c *gin.Context) (string, error) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		return "", nil // No auth header, user is anonymous
+	}
+
+	// Extract token from "Bearer <token>"
+	tokenParts := strings.Split(authHeader, " ")
+	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		return "", nil // Invalid format, treat as anonymous
+	}
+
+	tokenString := tokenParts[1]
+
+	// Validate JWT token and extract email
+	jwtManager := users.NewJWTManager()
+	claims, err := jwtManager.ValidateAccessToken(tokenString)
+	if err != nil {
+		return "", err // Invalid token
+	}
+
+	return claims.Email, nil
 }
 
 func NewCommentController(service CommentService, rateLimiter *security.CommentRateLimiter) *CommentController {
@@ -92,11 +119,19 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// Set the product ID from the URL parameter
 	req.ProductID = productID
 
+	// Get JWT email - authentication is required for comments
+	jwtEmail, err := ctrl.getEmailFromJWT(c)
+	if err != nil || jwtEmail == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required to post comments"})
+		return
+	}
+
+
 	// Get client IP
 	clientIP := c.ClientIP()
 
 	// Check rate limit BEFORE processing
-	rateLimitResult := ctrl.rateLimiter.CheckAndLog(clientIP, productID, req.Email)
+	rateLimitResult := ctrl.rateLimiter.CheckAndLog(clientIP, productID, jwtEmail)
 	if !rateLimitResult.Allowed {
 		c.JSON(http.StatusTooManyRequests, gin.H{
 			"error":        "Rate limit exceeded",
@@ -109,14 +144,14 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	}
 
 	// Create the comment
-	comment, err := ctrl.service.CreateComment(&req)
+	comment, err := ctrl.service.CreateComment(&req, jwtEmail)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Log successful comment creation
-	ctrl.rateLimiter.LogSuccess(clientIP, productID, req.Email)
+	ctrl.rateLimiter.LogSuccess(clientIP, productID, jwtEmail)
 
 	response := TransformCommentToResponse(comment)
 	c.JSON(http.StatusCreated, response)
