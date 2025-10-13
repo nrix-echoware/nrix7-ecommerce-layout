@@ -16,16 +16,21 @@ import {
   Truck,
   Shield,
   Star,
-  Mail
+  Mail,
+  Settings,
+  LogOut,
+  UserPlus,
+  LogIn
 } from 'lucide-react';
 import ContactUsModal from './ContactUsModal';
-import UserDropdown from './auth/UserDropdown';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navigation = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const config = useSelector((s: RootState) => s.siteConfig.config);
+  const { user, isAuthenticated, signOut } = useAuth();
   const navRef = useRef<HTMLElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -33,6 +38,15 @@ const Navigation = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategories, setShowCategories] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setShowAccountMenu(false);
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
 
   // Navigation items are now loaded from site config
   const navItems = (config.navigation || []).map(item => ({
@@ -189,8 +203,17 @@ const Navigation = () => {
                   >
                     <User size={20} className="flex-shrink-0" />
                     <div className="hidden sm:block text-left min-w-0 max-w-32">
-                      <div className="text-xs text-gray-500 truncate">Hello, Sign in</div>
-                      <div className="font-medium truncate">Account & Lists</div>
+                      {isAuthenticated && user ? (
+                        <>
+                          <div className="text-xs text-gray-500 truncate">Hello, {user.first_name || user.email.split('@')[0]}</div>
+                          <div className="font-medium truncate">Account</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-xs text-gray-500 truncate">Hello, Sign in</div>
+                          <div className="font-medium truncate">Account & Lists</div>
+                        </>
+                      )}
                     </div>
                     <ChevronDown size={16} className="flex-shrink-0" />
                   </button>
@@ -199,10 +222,62 @@ const Navigation = () => {
                   {showAccountMenu && (
                     <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                       <div className="py-2">
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <div className="text-sm font-medium">Your Account</div>
-                        </div>
-                        <UserDropdown />
+                        {isAuthenticated && user ? (
+                          <>
+                            <div className="px-4 py-2 border-b border-gray-100">
+                              <div className="text-sm font-medium text-gray-900 truncate" title={user.email}>{user.email}</div>
+                              {user.first_name && (
+                                <div className="text-sm text-gray-500">{user.first_name} {user.last_name}</div>
+                              )}
+                            </div>
+                            <div className="py-1">
+                              <Link
+                                to="/profile"
+                                onClick={() => setShowAccountMenu(false)}
+                                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                              >
+                                <User className="h-4 w-4" />
+                                My Profile
+                              </Link>
+                              <Link
+                                to="/settings"
+                                onClick={() => setShowAccountMenu(false)}
+                                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                              >
+                                <Settings className="h-4 w-4" />
+                                Settings
+                              </Link>
+                            </div>
+                            <div className="border-t border-gray-100 pt-1">
+                              <button
+                                onClick={handleSignOut}
+                                className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                              >
+                                <LogOut className="h-4 w-4" />
+                                Sign Out
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="py-1">
+                            <Link
+                              to="/login"
+                              onClick={() => setShowAccountMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                            >
+                              <LogIn className="h-4 w-4" />
+                              Sign In
+                            </Link>
+                            <Link
+                              to="/signup"
+                              onClick={() => setShowAccountMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                            >
+                              <UserPlus className="h-4 w-4" />
+                              Sign Up
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -248,14 +323,6 @@ const Navigation = () => {
 
                 {/* Mobile Actions */}
                 <div className="flex items-center space-x-2">
-                  {/* Account - Mobile */}
-                  <button
-                    onClick={() => setShowAccountMenu(!showAccountMenu)}
-                    className="p-2 text-gray-700 hover:text-orange-500"
-                  >
-                    <User size={20} />
-                  </button>
-
                   {/* Cart - Mobile */}
                   <button
                     onClick={() => dispatch(toggleCart())}
@@ -447,7 +514,57 @@ const Navigation = () => {
 
               {/* Account Section */}
               <div className="pt-4 border-t border-gray-200">
-                <UserDropdown />
+                <div className="space-y-3">
+                  {isAuthenticated && user ? (
+                    <>
+                      <Link
+                        to="/profile"
+                        className="flex items-center space-x-3 text-gray-700 hover:text-orange-500"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User size={20} />
+                        <span className="font-medium">My Profile</span>
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="flex items-center space-x-3 text-gray-700 hover:text-orange-500"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Settings size={20} />
+                        <span className="font-medium">Settings</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setIsMenuOpen(false);
+                        }}
+                        className="flex items-center space-x-3 text-red-600 hover:text-red-700 w-full text-left"
+                      >
+                        <LogOut size={20} />
+                        <span className="font-medium">Sign Out</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        className="flex items-center space-x-3 text-gray-700 hover:text-orange-500"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <LogIn size={20} />
+                        <span className="font-medium">Sign In</span>
+                      </Link>
+                      <Link
+                        to="/signup"
+                        className="flex items-center space-x-3 text-gray-700 hover:text-orange-500"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <UserPlus size={20} />
+                        <span className="font-medium">Sign Up</span>
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>

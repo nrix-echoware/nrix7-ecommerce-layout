@@ -93,7 +93,7 @@ export default function Footer() {
     ],
     support: [
       { label: 'Contact Us', path: '/contact' },
-      { label: 'FAQ', path: '/faq' },
+      { label: 'FAQ', path: '/policies' },
     ],
     company: [
       { label: 'About Us', path: '/about' },
