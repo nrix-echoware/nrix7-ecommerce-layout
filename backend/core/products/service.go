@@ -62,4 +62,4 @@ func (s *productService) PaginatedListProducts(ctx context.Context, skip, take i
 
 func (s *productService) GetCartHash(ctx context.Context) (string, error) {
 	return s.invalidation.GetCurrentHash(ctx)
-} 
+}

@@ -18,4 +18,4 @@ func NewService(r Repository) Service {
 
 func (s *service) LogVisitor(ctx context.Context, v *VisitorEvent) (string, error) {
 	return s.repo.Create(ctx, v)
-} 
+}

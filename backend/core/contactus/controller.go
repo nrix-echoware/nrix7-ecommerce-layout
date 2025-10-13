@@ -2,23 +2,95 @@ package contactus
 
 import (
 	"context"
-	"net/http"
-	"strconv"
+	"ecommerce-backend/internal/config"
+	"encoding/json"
+	"net"
+	"sync"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"encoding/json"
-	"ecommerce-backend/internal/config"
+	"net/http"
+	"strconv"
 )
 
 type ContactUsController struct {
-	service   ContactUsService
-	validator *validator.Validate
+	service     ContactUsService
+	validator   *validator.Validate
+	rateLimiter *contactRateLimiter
+}
+
+// Custom rate limiter for contact us: 50 requests per day per IP+Site
+type contactRateLimiter struct {
+	mu       sync.Mutex
+	attempts map[string]*attemptTracker
+}
+
+type attemptTracker struct {
+	count     int
+	lastReset time.Time
+}
+
+func newContactRateLimiter() *contactRateLimiter {
+	rl := &contactRateLimiter{
+		attempts: make(map[string]*attemptTracker),
+	}
+
+	// Cleanup old entries every hour
+	go func() {
+		for {
+			time.Sleep(time.Hour)
+			rl.mu.Lock()
+			now := time.Now()
+			for key, tracker := range rl.attempts {
+				if now.Sub(tracker.lastReset) > 24*time.Hour {
+					delete(rl.attempts, key)
+				}
+			}
+			rl.mu.Unlock()
+		}
+	}()
+
+	return rl
+}
+
+func (rl *contactRateLimiter) checkLimit(ip, site string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	key := ip + ":" + site
+	now := time.Now()
+
+	tracker, exists := rl.attempts[key]
+	if !exists {
+		rl.attempts[key] = &attemptTracker{
+			count:     1,
+			lastReset: now,
+		}
+		return true
+	}
+
+	// Reset if more than 24 hours have passed
+	if now.Sub(tracker.lastReset) > 24*time.Hour {
+		tracker.count = 1
+		tracker.lastReset = now
+		return true
+	}
+
+	// Check if under limit
+	if tracker.count < 50 {
+		tracker.count++
+		return true
+	}
+
+	return false
 }
 
 func NewContactUsController(s ContactUsService) *ContactUsController {
 	return &ContactUsController{
-		service:   s,
-		validator: validator.New(),
+		service:     s,
+		validator:   validator.New(),
+		rateLimiter: newContactRateLimiter(),
 	}
 }
 
@@ -41,9 +113,22 @@ func adminKeyMiddleware() gin.HandlerFunc {
 	}
 }
 
+func getClientIP(ctx *gin.Context) string {
+	ip := ctx.ClientIP()
+	if ip == "" {
+		ip, _, _ = net.SplitHostPort(ctx.Request.RemoteAddr)
+	}
+	return ip
+}
+
+type UpdateContactUsStatusRequest struct {
+	Status string `json:"status" binding:"required,oneof=pending in_progress resolved closed"`
+}
+
 func (c *ContactUsController) RegisterRoutes(r *gin.Engine) {
 	r.POST("/contactus", c.CreateContactUs)
-	r.GET("/contactus", adminKeyMiddleware(), c.GetContactUs)
+	r.GET("/contactus", adminKeyMiddleware(), c.GetAllContactUs)
+	r.PATCH("/contactus/:id/status", adminKeyMiddleware(), c.UpdateContactUsStatus)
 }
 
 func (c *ContactUsController) CreateContactUs(ctx *gin.Context) {
@@ -56,6 +141,17 @@ func (c *ContactUsController) CreateContactUs(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Rate limiting: 50 requests per day per IP+Site
+	clientIP := getClientIP(ctx)
+	if !c.rateLimiter.checkLimit(clientIP, req.Site) {
+		ctx.JSON(http.StatusTooManyRequests, gin.H{
+			"error":   "Rate limit exceeded",
+			"message": "You have exceeded the maximum of 50 submissions per day. Please try again tomorrow.",
+		})
+		return
+	}
+
 	extraBytes, err := json.Marshal(req.Extras)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid extras"})
@@ -75,28 +171,52 @@ func (c *ContactUsController) CreateContactUs(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"id": id})
 }
 
-func (c *ContactUsController) GetContactUs(ctx *gin.Context) {
-	query := make(map[string]interface{})
-	if site := ctx.Query("site"); site != "" {
-		query["site"] = site
+func (c *ContactUsController) GetAllContactUs(ctx *gin.Context) {
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "50"))
+
+	if limit > 100 {
+		limit = 100
 	}
-	if typ := ctx.Query("type"); typ != "" {
-		query["type"] = typ
+	if limit < 1 {
+		limit = 50
 	}
-	if msg := ctx.Query("message"); msg != "" {
-		query["message"] = msg
-	}
-	// extras fuzzy search is not supported directly, but can be extended
-	skip, _ := strconv.Atoi(ctx.DefaultQuery("skip", "0"))
-	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
-	results, total, err := c.service.FuzzySearchContactUs(context.Background(), query, skip, limit)
+
+	results, total, err := c.service.GetAllContactUs(context.Background(), limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"total": total, "data": results})
+	ctx.JSON(http.StatusOK, gin.H{
+		"contacts": results,
+		"total":    total,
+		"limit":    limit,
+		"offset":   offset,
+	})
+}
+
+func (c *ContactUsController) UpdateContactUsStatus(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+		return
+	}
+
+	var req UpdateContactUsStatusRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := c.service.UpdateContactUsStatus(context.Background(), id, req.Status)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Status updated successfully"})
 }
 
 func (c *ContactUsController) Name() string {
 	return "contactus"
-} 
+}

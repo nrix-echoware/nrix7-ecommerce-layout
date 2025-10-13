@@ -18,4 +18,4 @@ func GenerateHashKey() string {
 	timestamp := time.Now().UnixNano()
 	hash := sha256.Sum256([]byte(fmt.Sprintf("%d", timestamp)))
 	return fmt.Sprintf("%x", hash)
-} 
+}

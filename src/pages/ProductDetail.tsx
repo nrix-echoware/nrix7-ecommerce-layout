@@ -5,10 +5,12 @@ import { AnimationController } from '../utils/animations';
 import { ArrowLeft } from 'lucide-react';
 import VariantSelector from '../components/VariantSelector';
 import { Variant, Product, CartItem } from '../types/product';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { toast } from 'sonner';
 import { CommentSection } from '../components/comments';
+import ContactUsModal from '@/components/ContactUsModal';
+import { RootState } from '@/store/store';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -22,7 +24,8 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-
+  const [contactOpen, setContactOpen] = useState(false);
+  const storeOwner = useSelector((s: RootState) => s.siteConfig.config.storeOwner);
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -112,8 +115,8 @@ const ProductDetail = () => {
     }
   };
 
-  const canAddToCart = product.variants 
-    ? selectedVariant?.inStock 
+  const canAddToCart = product.variants
+    ? selectedVariant?.inStock
     : true;
 
   const displayPrice = selectedVariant ? `₹${selectedVariant.price}` : `₹${product.price}`;
@@ -121,6 +124,13 @@ const ProductDetail = () => {
   const displayImage = imageOverrideUrl
     ? imageOverrideUrl
     : (selectedVariant && selectedVariant.image) ? selectedVariant.image : product.images[selectedImageIndex];
+
+  // Create a unique set of images from product images and variant images
+  const allImages = new Set<string>([
+    ...product.images,
+    ...(product.variants?.map(v => v.image).filter(Boolean) || [])
+  ]);
+  const uniqueImages = Array.from(allImages);
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-white">
@@ -143,17 +153,16 @@ const ProductDetail = () => {
                 className="w-full aspect-[4/5] object-cover rounded"
               />
             </div>
-            {(product.images.length > 1 || (selectedVariant && !product.images.includes(selectedVariant.image))) && (
+            {uniqueImages.length > 1 && (
               <div className="flex gap-2 flex-wrap">
-                {product.images.map((image, index) => (
+                {uniqueImages.map((image, index) => (
                   <button
-                    key={`thumb-${index}`}
-                    onClick={() => { setSelectedImageIndex(index); setImageOverrideUrl(product.images[index]); }}
-                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${
-                      (imageOverrideUrl ? product.images[index] === imageOverrideUrl : selectedImageIndex === index)
-                        ? 'border-neutral-900' 
-                        : 'border-neutral-200 hover:border-neutral-400'
-                    }`}
+                    key={`thumb-${image}`}
+                    onClick={() => { setImageOverrideUrl(image); }}
+                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${imageOverrideUrl === image || (displayImage === image && !imageOverrideUrl)
+                      ? 'border-neutral-900'
+                      : 'border-neutral-200 hover:border-neutral-400'
+                      }`}
                   >
                     <img
                       src={image}
@@ -162,22 +171,11 @@ const ProductDetail = () => {
                     />
                   </button>
                 ))}
-                {selectedVariant && selectedVariant.image && !product.images.includes(selectedVariant.image) && (
-                  <button
-                    key={`thumb-variant`}
-                    onClick={() => { setImageOverrideUrl(selectedVariant.image); }}
-                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${
-                      imageOverrideUrl === selectedVariant.image ? 'border-neutral-900' : 'border-neutral-200 hover:border-neutral-400'
-                    }`}
-                  >
-                    <img src={selectedVariant.image} alt={`Variant`} className="w-full h-full object-cover" />
-                  </button>
-                )}
               </div>
             )}
           </div>
 
-          <div 
+          <div
             ref={contentRef}
             className="space-y-8"
           >
@@ -211,11 +209,10 @@ const ProductDetail = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={!canAddToCart}
-                className={`w-full py-4 rounded font-medium transition-all duration-200 ${
-                  canAddToCart
-                    ? 'bg-neutral-900 text-white hover:bg-neutral-800'
-                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                }`}
+                className={`w-full py-4 rounded font-medium transition-all duration-200 ${canAddToCart
+                  ? 'bg-neutral-900 text-white hover:bg-neutral-800'
+                  : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+                  }`}
               >
                 {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
               </button>
@@ -230,22 +227,32 @@ const ProductDetail = () => {
               <CommentSection productId={product.id} />
             </div>
 
+
             <div className="space-y-6 pt-8 border-t border-neutral-200">
               <div>
-                <h3 className="font-medium mb-2 text-neutral-900">Details</h3>
+                <h3 className="font-medium mb-2 text-neutral-900">Need More Support?</h3>
                 <p className="text-sm text-neutral-600">
-                  Crafted with attention to detail and sustainable materials. 
-                  Each piece is designed to last and age beautifully with time.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-2 text-neutral-900">Care Instructions</h3>
-                <p className="text-sm text-neutral-600">
-                  Handle with care. Store in a clean, dry place away from direct sunlight.
-                </p>
+                  {storeOwner && (storeOwner.email || storeOwner.phone) && (
+                    <p className="text-sm text-neutral-600 mb-6">For urgent queries contact {storeOwner.name ? storeOwner.name + ' at ' : ''}
+                      {storeOwner.email && (<a className="underline" href={`mailto:${storeOwner.email}`}>{storeOwner.email}</a>)}
+                      {(storeOwner.email && storeOwner.phone) && ' or '}
+                      {storeOwner.phone && (<a className="underline" href={`tel:${storeOwner.phone}`}>{storeOwner.phone}</a>)}</p>
+                  )}
+                  <button
+                    onClick={() => setContactOpen(true)}
+                    className="inline-block bg-neutral-900 text-white px-8 py-3 rounded font-medium hover:bg-neutral-800 transition-colors"
+                  >
+                    Contact Us
+                  </button>
+                  <ContactUsModal 
+                    isOpen={contactOpen} 
+                    onClose={() => setContactOpen(false)} 
+                    message={`I have a question about the product ${product.name}`}
+                  />
+                </p> 
               </div>
             </div>
+
           </div>
         </div>
       </div>

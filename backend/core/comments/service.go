@@ -13,6 +13,10 @@ type CommentService interface {
 	DeleteComment(id string) error
 	GetReplies(parentID string, limit, offset int) ([]Comment, error)
 	GetAllComments(limit, offset int) ([]Comment, int64, error)
+	// Admin methods
+	GetAllCommentsWithFilter(limit, offset int, filter string) ([]Comment, int64, error)
+	ApproveComment(id string) error
+	RejectComment(id string) error
 }
 
 type commentService struct {
@@ -28,7 +32,7 @@ func (s *commentService) CreateComment(req *CreateCommentRequest) (*Comment, err
 	if strings.TrimSpace(req.Email) == "" {
 		return nil, errors.New("email is required")
 	}
-	
+
 	// Validate comment length
 	comment := strings.TrimSpace(req.Comment)
 	if len(comment) == 0 {
@@ -108,7 +112,6 @@ func (s *commentService) UpdateComment(id string, req *UpdateCommentRequest) (*C
 		return nil, errors.New("comment cannot exceed 1000 characters")
 	}
 
-
 	// Update the comment
 	updateData := &Comment{
 		Comment: comment,
@@ -174,4 +177,73 @@ func (s *commentService) GetAllComments(limit, offset int) ([]Comment, int64, er
 	}
 
 	return comments, count, nil
+}
+
+// Admin methods
+
+func (s *commentService) GetAllCommentsWithFilter(limit, offset int, filter string) ([]Comment, int64, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	var verified *bool
+	switch filter {
+	case "approved":
+		v := true
+		verified = &v
+	case "pending":
+		v := false
+		verified = &v
+	case "all":
+		verified = nil
+	default:
+		// Default to all if invalid filter
+		verified = nil
+	}
+
+	comments, err := s.repo.GetAllCommentsWithFilter(limit, offset, verified)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count, err := s.repo.GetTotalCommentsCountWithFilter(verified)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return comments, count, nil
+}
+
+func (s *commentService) ApproveComment(id string) error {
+	if strings.TrimSpace(id) == "" {
+		return errors.New("comment ID is required")
+	}
+
+	// Check if comment exists
+	_, err := s.repo.GetByID(id)
+	if err != nil {
+		return errors.New("comment not found")
+	}
+
+	return s.repo.ApproveComment(id)
+}
+
+func (s *commentService) RejectComment(id string) error {
+	if strings.TrimSpace(id) == "" {
+		return errors.New("comment ID is required")
+	}
+
+	// Check if comment exists
+	_, err := s.repo.GetByID(id)
+	if err != nil {
+		return errors.New("comment not found")
+	}
+
+	return s.repo.RejectComment(id)
 }

@@ -2,9 +2,9 @@ package analytics
 
 import (
 	"context"
-	"net/http"
-	"github.com/gin-gonic/gin"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type Controller struct {
@@ -16,9 +16,9 @@ func NewController(s Service) *Controller {
 }
 
 type VisitorRequest struct {
-	Path    string                 `json:"path"`
-	Referrer string                `json:"referrer"`
-	Extras  map[string]interface{} `json:"extras"`
+	Path     string                 `json:"path"`
+	Referrer string                 `json:"referrer"`
+	Extras   map[string]interface{} `json:"extras"`
 }
 
 func (c *Controller) RegisterRoutes(r *gin.Engine) {
@@ -53,4 +53,4 @@ func (c *Controller) LogVisitor(ctx *gin.Context) {
 // jsonMarshal is isolated to avoid adding a new import in signature
 func jsonMarshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
-} 
+}

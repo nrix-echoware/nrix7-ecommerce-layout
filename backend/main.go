@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"ecommerce-backend/internal/db"
+	"ecommerce-backend/common/security"
+	"ecommerce-backend/core/analytics"
+	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/products"
-	"ecommerce-backend/core/comments"
-	"ecommerce-backend/core/analytics"
-	"ecommerce-backend/common/security"
+	"ecommerce-backend/internal/db"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/unrolled/secure"
 )
 
@@ -21,25 +21,23 @@ func main() {
 	// Initialize DB
 	db.InitDB()
 
-	
-
 	// Setup Gin
 	r := gin.Default()
 
 	corsCfg := cors.Config{
-		AllowAllOrigins: true,
-		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:    []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Admin-API-Key", "ngrok-skip-browser-warning"},
-		ExposeHeaders:   []string{"Content-Length"},
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Admin-API-Key", "ngrok-skip-browser-warning"},
+		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: false,
 	}
 	r.Use(cors.New(corsCfg))
 
 	secureMiddleware := secure.New(secure.Options{
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		IsDevelopment:         true,
+		FrameDeny:          true,
+		ContentTypeNosniff: true,
+		BrowserXssFilter:   true,
+		IsDevelopment:      true,
 	})
 	r.Use(func(c *gin.Context) {
 		if err := secureMiddleware.Process(c.Writer, c.Request); err != nil {

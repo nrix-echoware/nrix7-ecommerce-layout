@@ -11,11 +11,13 @@ interface CTAButtonProps {
 const CTAButton: React.FC<CTAButtonProps> = ({ children, href, onClick, className }) => {
   // If href is a relative path, use Link; otherwise, use <a>
   const isInternal = href && href.startsWith('/');
+  const buttonClasses = `inline-block px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg relative group ${className}`;
+  
   if (isInternal && href) {
     return (
       <Link
         to={href}
-        className={`inline-block px-8 py-3 rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg relative group ${className}`}
+        className={buttonClasses}
         onClick={onClick}
       >
         <span className="relative z-10">{children}</span>
@@ -26,7 +28,7 @@ const CTAButton: React.FC<CTAButtonProps> = ({ children, href, onClick, classNam
   return href ? (
     <a
       href={href}
-      className={`inline-block px-8 py-3 rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg relative group ${className}`}
+      className={buttonClasses}
       onClick={onClick}
     >
       <span className="relative z-10">{children}</span>
@@ -34,7 +36,7 @@ const CTAButton: React.FC<CTAButtonProps> = ({ children, href, onClick, classNam
     </a>
   ) : (
     <button
-      className={`inline-block px-8 py-3 rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg relative group ${className}`}
+      className={buttonClasses}
       onClick={onClick}
     >
       <span className="relative z-10">{children}</span>

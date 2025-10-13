@@ -1,11 +1,11 @@
 package contactus
 
 import (
+	"ecommerce-backend/internal/config"
+	"github.com/gin-gonic/gin"
 	"net"
 	"sync"
 	"time"
-	"github.com/gin-gonic/gin"
-	"ecommerce-backend/internal/config"
 )
 
 type rateLimiter struct {
@@ -124,4 +124,4 @@ func clientIP(c *gin.Context) string {
 		ip, _, _ = net.SplitHostPort(c.Request.RemoteAddr)
 	}
 	return ip
-} 
+}

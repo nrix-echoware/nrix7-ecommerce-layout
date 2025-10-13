@@ -22,12 +22,12 @@ type CommentAttempt struct {
 
 // CommentRateLimiter enforces strict rate limiting for comments
 type CommentRateLimiter struct {
-	db             *gorm.DB
-	mu             sync.RWMutex
-	maxAttempts    int           // 3 comments
-	timeWindow     time.Duration // 5 hours
-	cleanupTicker  *time.Ticker
-	stopCleanup    chan bool
+	db            *gorm.DB
+	mu            sync.RWMutex
+	maxAttempts   int           // 3 comments
+	timeWindow    time.Duration // 5 hours
+	cleanupTicker *time.Ticker
+	stopCleanup   chan bool
 }
 
 // RateLimitResult contains the result of rate limit check

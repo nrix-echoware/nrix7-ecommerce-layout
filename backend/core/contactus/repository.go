@@ -9,6 +9,9 @@ type ContactUsRepository interface {
 	Create(ctx context.Context, contact *ContactUs) error
 	FuzzySearch(ctx context.Context, query map[string]interface{}, skip, limit int) ([]ContactUs, error)
 	Count(ctx context.Context, query map[string]interface{}) (int64, error)
+	GetAll(ctx context.Context, limit, offset int) ([]ContactUs, error)
+	GetTotalCount(ctx context.Context) (int64, error)
+	UpdateStatus(ctx context.Context, id string, status string) error
 }
 
 type contactUsRepository struct {
@@ -46,4 +49,26 @@ func (r *contactUsRepository) Count(ctx context.Context, query map[string]interf
 		return 0, err
 	}
 	return count, nil
-} 
+}
+
+func (r *contactUsRepository) GetAll(ctx context.Context, limit, offset int) ([]ContactUs, error) {
+	var results []ContactUs
+	err := r.db.WithContext(ctx).
+		Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&results).Error
+	return results, err
+}
+
+func (r *contactUsRepository) GetTotalCount(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&ContactUs{}).Count(&count).Error
+	return count, err
+}
+
+func (r *contactUsRepository) UpdateStatus(ctx context.Context, id string, status string) error {
+	return r.db.WithContext(ctx).Model(&ContactUs{}).
+		Where("id = ?", id).
+		Update("status", status).Error
+}

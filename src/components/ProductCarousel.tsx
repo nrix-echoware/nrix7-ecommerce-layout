@@ -23,13 +23,13 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
   }, [products]);
 
   return (
-    <section className="py-24 px-6 bg-white" id="products">
+    <section className="py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 px-4 sm:px-6 bg-white" id="products">
       <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-light mb-4 text-neutral-900">
+        <div className="text-center mb-6 sm:mb-8 md:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-2 sm:mb-3 md:mb-4 text-neutral-900">
             Featured Products
           </h2>
-          <p className="text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-xs sm:text-sm md:text-base text-neutral-600 max-w-2xl mx-auto">
             Handpicked pieces that represent the essence of minimal luxury and timeless design.
           </p>
         </div>

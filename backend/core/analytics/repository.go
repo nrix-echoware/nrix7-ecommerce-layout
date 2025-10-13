@@ -22,4 +22,4 @@ func (r *repository) Create(ctx context.Context, v *VisitorEvent) (string, error
 		return "", err
 	}
 	return v.ID.String(), nil
-} 
+}

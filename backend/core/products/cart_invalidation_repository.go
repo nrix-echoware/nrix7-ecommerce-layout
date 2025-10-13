@@ -39,7 +39,7 @@ func (r *cartInvalidationRepository) GetCurrentHash(ctx context.Context) (string
 // InvalidateCart generates a new hash key, invalidating all existing carts
 func (r *cartInvalidationRepository) InvalidateCart(ctx context.Context) (string, error) {
 	newHash := GenerateHashKey()
-	
+
 	// Update or create the hash
 	var invalidation CartInvalidation
 	err := r.db.WithContext(ctx).First(&invalidation).Error
@@ -54,7 +54,7 @@ func (r *cartInvalidationRepository) InvalidateCart(ctx context.Context) (string
 		invalidation.HashKey = newHash
 		err = r.db.WithContext(ctx).Save(&invalidation).Error
 	}
-	
+
 	if err != nil {
 		return "", err
 	}
@@ -65,7 +65,7 @@ func (r *cartInvalidationRepository) InvalidateCart(ctx context.Context) (string
 func (r *cartInvalidationRepository) InitializeHash(ctx context.Context) error {
 	var count int64
 	r.db.WithContext(ctx).Model(&CartInvalidation{}).Count(&count)
-	
+
 	if count == 0 {
 		invalidation := CartInvalidation{
 			HashKey: GenerateHashKey(),
@@ -73,4 +73,4 @@ func (r *cartInvalidationRepository) InitializeHash(ctx context.Context) error {
 		return r.db.WithContext(ctx).Create(&invalidation).Error
 	}
 	return nil
-} 
+}

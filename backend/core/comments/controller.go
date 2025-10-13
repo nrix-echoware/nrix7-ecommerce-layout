@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"ecommerce-backend/common/security"
+	"github.com/gin-gonic/gin"
 )
 
 type CommentController struct {
@@ -99,11 +99,11 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	rateLimitResult := ctrl.rateLimiter.CheckAndLog(clientIP, productID, req.Email)
 	if !rateLimitResult.Allowed {
 		c.JSON(http.StatusTooManyRequests, gin.H{
-			"error":          "Rate limit exceeded",
-			"message":        rateLimitResult.Reason,
-			"attempts":       rateLimitResult.AttemptsCount,
-			"max_attempts":   3,
-			"retry_after":    rateLimitResult.NextAvailable,
+			"error":        "Rate limit exceeded",
+			"message":      rateLimitResult.Reason,
+			"attempts":     rateLimitResult.AttemptsCount,
+			"max_attempts": 3,
+			"retry_after":  rateLimitResult.NextAvailable,
 		})
 		return
 	}
@@ -239,12 +239,13 @@ func (ctrl *CommentController) GetReplies(c *gin.Context) {
 
 // GetAllComments godoc
 // @Summary Get all comments (Admin)
-// @Description Get all comments with pagination
+// @Description Get all comments with pagination and optional filter
 // @Tags Comments
 // @Accept json
 // @Produce json
 // @Param limit query int false "Limit (default 50, max 100)" minimum(1) maximum(100)
 // @Param offset query int false "Offset (default 0)" minimum(0)
+// @Param filter query string false "Filter: all, approved, pending" Enums(all, approved, pending)
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -253,6 +254,7 @@ func (ctrl *CommentController) GetAllComments(c *gin.Context) {
 	// Parse query parameters
 	limitStr := c.DefaultQuery("limit", "50")
 	offsetStr := c.DefaultQuery("offset", "0")
+	filter := c.DefaultQuery("filter", "all")
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
@@ -264,7 +266,7 @@ func (ctrl *CommentController) GetAllComments(c *gin.Context) {
 		offset = 0
 	}
 
-	comments, total, err := ctrl.service.GetAllComments(limit, offset)
+	comments, total, err := ctrl.service.GetAllCommentsWithFilter(limit, offset, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch comments"})
 		return
@@ -275,20 +277,87 @@ func (ctrl *CommentController) GetAllComments(c *gin.Context) {
 		"total":    total,
 		"limit":    limit,
 		"offset":   offset,
+		"filter":   filter,
 	})
+}
+
+// ApproveComment godoc
+// @Summary Approve a comment (Admin)
+// @Description Approve a comment to make it visible on the storefront
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path string true "Comment ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id}/approve [post]
+func (ctrl *CommentController) ApproveComment(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "comment id is required"})
+		return
+	}
+
+	err := ctrl.service.ApproveComment(id)
+	if err != nil {
+		if err.Error() == "comment not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to approve comment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Comment approved successfully"})
+}
+
+// RejectComment godoc
+// @Summary Reject a comment (Admin)
+// @Description Reject a comment to hide it from the storefront
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path string true "Comment ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id}/reject [post]
+func (ctrl *CommentController) RejectComment(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "comment id is required"})
+		return
+	}
+
+	err := ctrl.service.RejectComment(id)
+	if err != nil {
+		if err.Error() == "comment not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reject comment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Comment rejected successfully"})
 }
 
 // RegisterRoutes registers comment routes with the Gin router
 func (ctrl *CommentController) RegisterRoutes(r *gin.Engine) {
-	// Product comments
+	// Product comments (public)
 	r.GET("/comments/products/:product_id/comments", ctrl.GetCommentsForProduct)
 	r.POST("/comments/products/:product_id/comments", ctrl.CreateComment)
-	
+
 	// Individual comment operations
 	r.PUT("/comments/:id", ctrl.UpdateComment)
 	r.DELETE("/comments/:id", ctrl.DeleteComment)
 	r.GET("/comments/:id/replies", ctrl.GetReplies)
-	
+
 	// Admin operations
 	r.GET("/comments", ctrl.GetAllComments)
+	r.POST("/comments/:id/approve", ctrl.ApproveComment)
+	r.POST("/comments/:id/reject", ctrl.RejectComment)
 }

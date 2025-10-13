@@ -41,15 +41,15 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({ title, bgImage, fgIma
   }, []);
 
   return (
-    <section className="relative h-[70vh] w-full flex items-center justify-center overflow-hidden bg-white">
+    <section className="relative h-[40vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] w-full flex items-center justify-center overflow-hidden bg-white">
       <div ref={bgRef} className="absolute inset-0 z-0">
         <img src={bgImage} alt="Background" className="object-cover w-full h-full opacity-70" />
       </div>
       <div ref={fgRef} className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-        <img src={fgImage} alt="Foreground" className="object-contain w-1/2 h-1/2 opacity-90" />
+        <img src={fgImage} alt="Foreground" className="object-contain w-3/4 sm:w-2/3 md:w-1/2 h-1/2 opacity-90" />
       </div>
-      <div className="relative z-20 w-full text-center">
-        <h2 ref={titleRef} className="text-4xl md:text-5xl font-light text-neutral-900 mb-4 drop-shadow-xl">
+      <div className="relative z-20 w-full text-center px-4">
+        <h2 ref={titleRef} className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 mb-2 sm:mb-4 drop-shadow-xl">
           {title}
         </h2>
         {children}

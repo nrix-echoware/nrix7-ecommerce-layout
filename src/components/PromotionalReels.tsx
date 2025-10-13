@@ -241,13 +241,13 @@ const PromotionalReels: React.FC<PromotionalReelsProps> = ({ reels }) => {
 
   return (
     <>
-      <section ref={containerRef} className="py-20 px-4 bg-gradient-to-b from-gray-50 to-white">
+      <section ref={containerRef} className="py-8 sm:py-12 md:py-16 lg:py-20 px-4 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-4 tracking-tight">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-gray-900 mb-2 sm:mb-3 md:mb-4 tracking-tight">
               Featured <span className="font-serif italic">Stories</span>
             </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
               Discover our latest collections and behind-the-scenes moments
             </p>
           </div>

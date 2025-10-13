@@ -14,6 +14,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   site?: string;
+  message?: string;
 }
 
 const REASONS = [
@@ -23,10 +24,10 @@ const REASONS = [
   { value: 'bug_report', label: 'Bug Report' },
 ];
 
-export default function ContactUsModal({ isOpen, onClose, site = 'shop' }: Props) {
+export default function ContactUsModal({ isOpen, onClose, site = 'shop', message = '' }: Props) {
   const owner = useSelector((s: RootState) => s.siteConfig.config.storeOwner);
   const [type, setType] = useState('inquiry');
-  const [message, setMessage] = useState('');
+  const [messageText, setMessageText] = useState(message || '');
   const [extras, setExtras] = useState<Record<string, any>>({});
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -34,16 +35,20 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop' }: Props
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // When opening, set the message from prop
+      setMessageText(message || '');
+    } else {
+      // When closing, reset everything
       setType('inquiry');
-      setMessage('');
+      setMessageText('');
       setExtras({});
       setName('');
       setEmail('');
       setPhone('');
       setSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, message]);
 
   const reasonFields = () => {
     switch (type) {
@@ -106,7 +111,7 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop' }: Props
   };
 
   const onSubmit = async () => {
-    if (!message.trim()) {
+    if (!messageText.trim()) {
       toast.error('Please enter a message');
       return;
     }
@@ -116,7 +121,7 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop' }: Props
     }
     setSubmitting(true);
     try {
-      await submitContact({ site, type, message, extras: { ...extras, name, email, phone } });
+      await submitContact({ site, type, message: messageText, extras: { ...extras, name, email, phone } });
       toast.success('Thank you! We will get back to you shortly.');
       onClose();
     } catch (e: any) {
@@ -169,7 +174,7 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop' }: Props
 
         <div className="mt-2">
           <Label className="text-sm text-neutral-700">Message</Label>
-          <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} />
+          <Textarea rows={4} value={messageText} onChange={(e) => setMessageText(e.target.value)} />
         </div>
 
         {owner && (owner.email || owner.phone) && (

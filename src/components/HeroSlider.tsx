@@ -137,7 +137,7 @@ export const HeroSlider: React.FC = () => {
 
   return (
     <section
-      className="relative w-full h-[70vh] md:h-[80vh] overflow-hidden bg-white"
+      className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] overflow-hidden bg-white"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -162,16 +162,16 @@ export const HeroSlider: React.FC = () => {
           ref={(el) => (textRefs.current[i] = el)}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <div className="text-center px-6">
-            <div className="text-4xl md:text-6xl font-light tracking-tight text-neutral-900">
+          <div className="text-center px-4 sm:px-6">
+            <div className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-light tracking-tight text-neutral-900">
               {s.heading}
             </div>
-            <div className="mt-3 text-neutral-900 text-lg md:text-2xl font-normal max-w-2xl mx-auto">
+            <div className="mt-2 sm:mt-3 text-neutral-900 text-sm sm:text-base md:text-xl lg:text-2xl font-normal max-w-2xl mx-auto">
               {s.subtext}
             </div>
             <Link
               to="/products"
-              className="mt-8 inline-block px-8 py-3 rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg"
+              className="mt-4 sm:mt-6 md:mt-8 inline-block px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base rounded font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-lg"
             >
               Shop the Collection
             </Link>
@@ -180,13 +180,13 @@ export const HeroSlider: React.FC = () => {
       ))}
 
       {/* Indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
         {slides.map((_, i) => (
           <button
             key={`dot-${i}`}
             onClick={() => handleDotClick(i)}
             aria-label={`Go to slide ${i + 1}`}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-300 ${
               i === active ? 'bg-neutral-900 scale-125' : 'bg-neutral-400 hover:bg-neutral-500'
             }`}
           />

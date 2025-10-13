@@ -1,9 +1,9 @@
 package comments
 
 import (
-	"time"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Comment struct {
@@ -16,20 +16,20 @@ type Comment struct {
 	CreatedAt  time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt  time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	// Relations for nested queries
-	Replies    []Comment `gorm:"foreignKey:RepliedTo" json:"-"`
-	Parent     *Comment  `gorm:"foreignKey:RepliedTo;references:ID" json:"-"`
+	Replies []Comment `gorm:"foreignKey:RepliedTo" json:"-"`
+	Parent  *Comment  `gorm:"foreignKey:RepliedTo;references:ID" json:"-"`
 }
 
 // API Response structures
 type CommentResponse struct {
-	ID         string           `json:"id"`
-	ProductID  string           `json:"product_id"`
-	Email      string           `json:"email"`
-	Comment    string           `json:"comment"`
-	IsVerified bool             `json:"is_verified"`
-	RepliedTo  *string          `json:"replied_to,omitempty"`
-	CreatedAt  time.Time        `json:"created_at"`
-	UpdatedAt  time.Time        `json:"updated_at"`
+	ID         string            `json:"id"`
+	ProductID  string            `json:"product_id"`
+	Email      string            `json:"email"`
+	Comment    string            `json:"comment"`
+	IsVerified bool              `json:"is_verified"`
+	RepliedTo  *string           `json:"replied_to,omitempty"`
+	CreatedAt  time.Time         `json:"created_at"`
+	UpdatedAt  time.Time         `json:"updated_at"`
 	Replies    []CommentResponse `json:"replies,omitempty"`
 }
 

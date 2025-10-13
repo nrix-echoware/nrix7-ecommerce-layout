@@ -52,4 +52,4 @@ func (r *productRepository) PaginatedList(ctx context.Context, skip, take int) (
 		return nil, 0, err
 	}
 	return products, count, nil
-} 
+}

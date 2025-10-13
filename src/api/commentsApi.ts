@@ -79,14 +79,47 @@ export interface GetAllCommentsResponse {
   total: number;
   limit: number;
   offset: number;
+  filter?: string;
 }
 
-// Get all comments (Admin)
-export const getAllComments = async (limit = 50, offset = 0): Promise<GetAllCommentsResponse> => {
+// Get all comments (Admin) with optional filter
+export const getAllComments = async (
+  limit = 50, 
+  offset = 0, 
+  filter: 'all' | 'approved' | 'pending' = 'all'
+): Promise<GetAllCommentsResponse> => {
   const response = await axios.get<GetAllCommentsResponse>(
     `${API_BASE_URL}/comments`,
     {
-      params: { limit, offset },
+      params: { limit, offset, filter },
+      headers: {
+        'X-Admin-API-Key': sessionStorage.getItem('admin_api_key') || ''
+      }
+    }
+  );
+  return response.data;
+};
+
+// Approve a comment (Admin)
+export const approveComment = async (commentId: string): Promise<{ message: string }> => {
+  const response = await axios.post<{ message: string }>(
+    `${API_BASE_URL}/comments/${commentId}/approve`,
+    {},
+    {
+      headers: {
+        'X-Admin-API-Key': sessionStorage.getItem('admin_api_key') || ''
+      }
+    }
+  );
+  return response.data;
+};
+
+// Reject a comment (Admin)
+export const rejectComment = async (commentId: string): Promise<{ message: string }> => {
+  const response = await axios.post<{ message: string }>(
+    `${API_BASE_URL}/comments/${commentId}/reject`,
+    {},
+    {
       headers: {
         'X-Admin-API-Key': sessionStorage.getItem('admin_api_key') || ''
       }

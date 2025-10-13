@@ -1,21 +1,21 @@
 package products
 
 import (
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-	"gorm.io/datatypes"
-	"time"
 	"encoding/json"
+	"github.com/google/uuid"
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
+	"time"
 )
 
 type Product struct {
-	ID          string    `gorm:"primaryKey" json:"id"`
-	Name        string    `json:"name"`
-	Category    string    `json:"category"`
-	Description string    `json:"description"`
-	Price       int       `json:"price"` // price in smallest currency unit
-	Featured    bool      `json:"featured"`
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
+	ID          string           `gorm:"primaryKey" json:"id"`
+	Name        string           `json:"name"`
+	Category    string           `json:"category"`
+	Description string           `json:"description"`
+	Price       int              `json:"price"` // price in smallest currency unit
+	Featured    bool             `json:"featured"`
+	CreatedAt   time.Time        `gorm:"autoCreateTime" json:"created_at"`
 	Images      []ProductImage   `gorm:"foreignKey:ProductID" json:"images"`
 	Variants    []ProductVariant `gorm:"foreignKey:ProductID" json:"variants"`
 }
@@ -27,26 +27,26 @@ type ProductImage struct {
 }
 
 type ProductVariant struct {
-	ID        string         `gorm:"primaryKey" json:"id"`
-	ProductID string         `gorm:"index" json:"product_id"`
-	SKU       string         `json:"sku"`
+	ID         string         `gorm:"primaryKey" json:"id"`
+	ProductID  string         `gorm:"index" json:"product_id"`
+	SKU        string         `json:"sku"`
 	Attributes datatypes.JSON `json:"attributes"` // e.g. [{"name": "size", "value": "M"}]
-	ImageURL  string         `json:"image_url"`
-	Price     int            `json:"price"`
-	InStock   bool           `json:"in_stock"`
+	ImageURL   string         `json:"image_url"`
+	Price      int            `json:"price"`
+	InStock    bool           `json:"in_stock"`
 }
 
 // Transformation pipeline for API response
 
 type ProductResponse struct {
-	ID          string             `json:"id"`
-	Name        string             `json:"name"`
-	Category    string             `json:"category"`
-	Description string             `json:"description"`
-	Images      []string           `json:"images"`
-	Price       int                `json:"price"`
-	Featured    bool               `json:"featured"`
-	Variants    []VariantResponse  `json:"variants,omitempty"`
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Category    string            `json:"category"`
+	Description string            `json:"description"`
+	Images      []string          `json:"images"`
+	Price       int               `json:"price"`
+	Featured    bool              `json:"featured"`
+	Variants    []VariantResponse `json:"variants,omitempty"`
 }
 
 type VariantResponse struct {
@@ -108,4 +108,4 @@ func TransformProductToResponse(product *Product) ProductResponse {
 		Featured:    product.Featured,
 		Variants:    variants,
 	}
-} 
+}

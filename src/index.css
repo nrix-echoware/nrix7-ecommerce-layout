@@ -78,12 +78,26 @@
     width: 100vw;
     max-width: 100vw;
     overflow-x: hidden;
+    min-height: 100vh;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Ensure proper scaling on very small screens */
+  @media (max-height: 500px) {
+    html {
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-height: 400px) {
+    html {
+      font-size: 12px;
+    }
   }
 
   html {

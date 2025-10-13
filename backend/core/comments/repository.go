@@ -14,6 +14,11 @@ type CommentRepository interface {
 	GetCommentTree(productID string, limit, offset int, depth int) ([]CommentResponse, error)
 	GetAllComments(limit, offset int) ([]Comment, error)
 	GetTotalCommentsCount() (int64, error)
+	// Admin methods
+	GetAllCommentsWithFilter(limit, offset int, verified *bool) ([]Comment, error)
+	GetTotalCommentsCountWithFilter(verified *bool) (int64, error)
+	ApproveComment(id string) error
+	RejectComment(id string) error
 }
 
 type commentRepository struct {
@@ -63,16 +68,18 @@ func (r *commentRepository) GetReplies(parentID string, limit, offset int) ([]Co
 }
 
 // loadRepliesRecursive loads replies for a comment up to maxDepth levels
+// Only loads verified replies for public view
 func (r *commentRepository) loadRepliesRecursive(comment *Comment, currentDepth, maxDepth int) error {
 	if currentDepth >= maxDepth {
 		return nil
 	}
 
 	var replies []Comment
-	err := r.db.Where("replied_to = ?", comment.ID).
+	// Only show verified replies to public
+	err := r.db.Where("replied_to = ? AND is_verified = ?", comment.ID, true).
 		Order("created_at ASC").
 		Find(&replies).Error
-	
+
 	if err != nil {
 		return err
 	}
@@ -97,12 +104,13 @@ func (r *commentRepository) GetCommentTree(productID string, limit, offset int, 
 	}
 
 	var rootComments []Comment
-	err := r.db.Where("product_id = ? AND replied_to IS NULL", productID).
+	// Only show verified/approved comments to public
+	err := r.db.Where("product_id = ? AND replied_to IS NULL AND is_verified = ?", productID, true).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&rootComments).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -136,4 +144,42 @@ func (r *commentRepository) GetTotalCommentsCount() (int64, error) {
 	var count int64
 	err := r.db.Model(&Comment{}).Count(&count).Error
 	return count, err
+}
+
+// Admin methods
+
+func (r *commentRepository) GetAllCommentsWithFilter(limit, offset int, verified *bool) ([]Comment, error) {
+	var comments []Comment
+	query := r.db.Order("created_at DESC")
+
+	// Apply filter if specified
+	if verified != nil {
+		query = query.Where("is_verified = ?", *verified)
+	}
+
+	err := query.Limit(limit).Offset(offset).Find(&comments).Error
+	return comments, err
+}
+
+func (r *commentRepository) GetTotalCommentsCountWithFilter(verified *bool) (int64, error) {
+	var count int64
+	query := r.db.Model(&Comment{})
+
+	// Apply filter if specified
+	if verified != nil {
+		query = query.Where("is_verified = ?", *verified)
+	}
+
+	err := query.Count(&count).Error
+	return count, err
+}
+
+func (r *commentRepository) ApproveComment(id string) error {
+	return r.db.Model(&Comment{}).Where("id = ?", id).Update("is_verified", true).Error
+}
+
+func (r *commentRepository) RejectComment(id string) error {
+	// Rejecting means setting is_verified to false or deleting
+	// Here we'll just set it to false
+	return r.db.Model(&Comment{}).Where("id = ?", id).Update("is_verified", false).Error
 }

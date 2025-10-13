@@ -18,9 +18,9 @@ type RateLimitConfig struct {
 }
 
 type Config struct {
-	DBFile       string
-	RateLimit    RateLimitConfig
-	AdminAPIKey  string `mapstructure:"admin_api_key"`
+	DBFile      string
+	RateLimit   RateLimitConfig
+	AdminAPIKey string `mapstructure:"admin_api_key"`
 }
 
 var (

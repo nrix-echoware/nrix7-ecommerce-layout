@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"ecommerce-backend/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"ecommerce-backend/internal/config"
 )
 
 type ProductController struct {

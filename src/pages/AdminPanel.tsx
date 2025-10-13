@@ -5,6 +5,7 @@ import AdminLayout from '../components/admin/AdminLayout';
 import ProductsList from './admin/ProductsList';
 import ProductFormPage from './admin/ProductForm';
 import CommentsManagement from './admin/CommentsManagement';
+import ContactUsManagement from './admin/ContactUsManagement';
 
 const ADMIN_KEY_STORAGE = 'admin_api_key';
 
@@ -46,6 +47,7 @@ export default function AdminPanel() {
         <Route path="/products/create" element={<ProductFormPage onAuthError={clear} />} />
         <Route path="/products/edit/:id" element={<ProductFormPage onAuthError={clear} />} />
         <Route path="/comments" element={<CommentsManagement onAuthError={clear} />} />
+        <Route path="/contacts" element={<ContactUsManagement onAuthError={clear} />} />
       </Routes>
     </AdminLayout>
   );
