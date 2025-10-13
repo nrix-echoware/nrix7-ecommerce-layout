@@ -49,7 +49,7 @@
     --foreground: 255 255 255;
 
     --card: 23 23 23;
-    --card-foreground: 255 255 255;
+    /* --card-foreground: 255 255 255; */
 
     --popover: 23 23 23;
     --popover-foreground: 255 255 255;
@@ -111,22 +111,63 @@
     border-color: rgb(229 229 229) !important;
   }
 
-  /* Chrome/Safari autofill yellow override */
+  /* Override any yellow backgrounds specifically - less aggressive */
+  .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900 {
+    background-color: rgb(255 255 255);
+  }
+
+  /* Override yellow text colors - less aggressive */
+  .text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500, .text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900 {
+    color: rgb(23 23 23);
+  }
+
+  /* Override yellow border colors - less aggressive */
+  .border-yellow-50, .border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400, .border-yellow-500, .border-yellow-600, .border-yellow-700, .border-yellow-800, .border-yellow-900 {
+    border-color: rgb(229 229 229);
+  }
+
+  /* Force Sonner toast styles */
+  [data-sonner-toast] {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #4b5563 !important;
+  }
+
+  [data-sonner-toast] [data-title] {
+    color: #ffffff !important;
+  }
+
+  [data-sonner-toast] [data-description] {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  [data-sonner-toast] [data-icon] {
+    color: #ffffff !important;
+  }
+
+  /* Chrome/Safari autofill yellow override - MORE AGGRESSIVE */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
   textarea:-webkit-autofill,
   textarea:-webkit-autofill:hover,
   textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
-  select:-webkit-autofill:focus {
+  select:-webkit-autofill:focus,
+  select:-webkit-autofill:active {
     -webkit-text-fill-color: #171717 !important;
     caret-color: #171717 !important;
     box-shadow: 0 0 0px 1000px #ffffff inset !important;
     -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    background-color: #ffffff !important;
+    -webkit-background-color: #ffffff !important;
     transition: background-color 9999s ease-in-out 0s;
   }
+
+
 
   /* Radix/Select trigger buttons */
   [role="combobox"],

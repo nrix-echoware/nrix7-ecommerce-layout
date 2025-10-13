@@ -8,6 +8,7 @@ import (
 	"ecommerce-backend/core/newsletter"
 	"ecommerce-backend/core/products"
 	"ecommerce-backend/core/users"
+	"ecommerce-backend/core/websocket"
 	"ecommerce-backend/internal/db"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -81,6 +82,13 @@ func main() {
 	newsletterSvc := newsletter.NewNewsletterService(newsletterRepo)
 	newsletterCtrl := newsletter.NewNewsletterController(newsletterSvc)
 
+	// Initialize WebSocket module
+	wsHub := websocket.NewHub()
+	wsCtrl := websocket.NewWebSocketController(wsHub)
+	
+	// Start WebSocket hub in a goroutine
+	go wsHub.Run()
+
 	// Health check
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
@@ -98,6 +106,7 @@ func main() {
 	analyticsCtrl.RegisterRoutes(r)
 	userCtrl.RegisterRoutes(r)
 	newsletterCtrl.RegisterRoutes(r)
+	wsCtrl.RegisterRoutes(r)
 
 	// Start server
 	logrus.Info("Server running on :9997")

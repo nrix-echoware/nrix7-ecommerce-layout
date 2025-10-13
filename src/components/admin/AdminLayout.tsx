@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Package, MessageSquare, LogOut, Mail } from 'lucide-react';
+import { Package, MessageSquare, LogOut, Mail, Bell } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -14,6 +14,7 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
     { path: '/admin/products', label: 'Products', icon: Package },
     { path: '/admin/comments', label: 'Comments', icon: MessageSquare },
     { path: '/admin/contacts', label: 'Contact Us', icon: Mail },
+    { path: '/admin/notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (

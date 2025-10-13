@@ -1,4 +1,5 @@
 dbfile: contactus.db
+admin_api_key: "dev-admin-key-123"
 ratelimit:
   default:
     post: 300

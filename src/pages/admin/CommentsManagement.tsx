@@ -182,7 +182,7 @@ export default function CommentsManagement({ onAuthError }: CommentsManagementPr
               onClick={() => { setFilter('pending'); setPage(0); }}
               className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                 filter === 'pending'
-                  ? 'bg-yellow-100 text-yellow-700 font-medium'
+                  ? 'bg-gray-100 text-gray-700 font-medium'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -240,7 +240,7 @@ export default function CommentsManagement({ onAuthError }: CommentsManagementPr
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           comment.is_verified
                             ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
                         }`}
                       >
                         {comment.is_verified ? 'Verified' : 'Unverified'}

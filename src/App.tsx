@@ -28,6 +28,7 @@ import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
 import { CartHashValidator } from './components/CartHashValidator';
 import { AuthProvider } from './contexts/AuthContext';
+import { websocketService } from './services/websocketService';
 import axios from 'axios';
 
 const queryClient = new QueryClient();
@@ -43,6 +44,18 @@ function AnalyticsTracker() {
 function AppContent() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    // WebSocket service is already initialized as a singleton
+    // It will automatically connect when the service is imported
+    console.log('WebSocket service initialized');
+    
+    return () => {
+      // Cleanup on unmount
+      websocketService.disconnect();
+    };
+  }, []);
 
   return (
     <div className="relative">

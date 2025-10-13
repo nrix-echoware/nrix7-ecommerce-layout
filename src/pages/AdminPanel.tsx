@@ -6,17 +6,24 @@ import ProductsList from './admin/ProductsList';
 import ProductFormPage from './admin/ProductForm';
 import CommentsManagement from './admin/CommentsManagement';
 import ContactUsManagement from './admin/ContactUsManagement';
+import NotificationManagement from './admin/NotificationManagement';
 
 const ADMIN_KEY_STORAGE = 'admin_api_key';
 
 function useAdminKey() {
-  const [adminKey, setAdminKey] = useState<string | null>(() => sessionStorage.getItem(ADMIN_KEY_STORAGE));
+  const [adminKey, setAdminKey] = useState<string | null>(() => {
+    const storedKey = sessionStorage.getItem(ADMIN_KEY_STORAGE);
+    console.log('Loading admin key from sessionStorage:', storedKey);
+    return storedKey;
+  });
   const [needsPrompt, setNeedsPrompt] = useState(!adminKey);
 
   const save = (key: string) => {
+    console.log('Saving admin key to sessionStorage:', key);
     sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
     setAdminKey(key);
     setNeedsPrompt(false);
+    console.log('Admin key saved successfully');
   };
 
   const clear = () => {
@@ -48,6 +55,7 @@ export default function AdminPanel() {
         <Route path="/products/edit/:id" element={<ProductFormPage onAuthError={clear} />} />
         <Route path="/comments" element={<CommentsManagement onAuthError={clear} />} />
         <Route path="/contacts" element={<ContactUsManagement onAuthError={clear} />} />
+        <Route path="/notifications" element={<NotificationManagement onAuthError={clear} />} />
       </Routes>
     </AdminLayout>
   );
