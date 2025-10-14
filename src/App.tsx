@@ -85,7 +85,6 @@ function AppContent() {
 }
 
 const App = () => {
-  //axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420';
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

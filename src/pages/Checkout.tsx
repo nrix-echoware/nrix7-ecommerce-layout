@@ -6,11 +6,13 @@ import { clearCart } from '../store/slices/cartSlice';
 import { CheckoutForm } from '../types/checkout';
 import { AnimationController } from '../utils/animations';
 import { ArrowLeft, Check, CheckCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { items, total } = useSelector((state: RootState) => state.cart);
+  const { user, isAuthenticated } = useAuth();
   const formRef = useRef<HTMLFormElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,6 +41,25 @@ const Checkout = () => {
       AnimationController.pageTransition(formRef.current, 'in');
     }
   }, []);
+
+  // Pre-fill form with user data if authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const fullName = `${user.first_name} ${user.last_name}`.trim();
+      const address = [user.address_line1, user.address_line2, user.city, user.state]
+        .filter(Boolean)
+        .join(', ');
+      
+      setFormData(prev => ({
+        ...prev,
+        fullName: fullName || prev.fullName,
+        phone: user.phone || prev.phone,
+        email: user.email || prev.email,
+        address: address || prev.address,
+        zipCode: user.postal_code || prev.zipCode
+      }));
+    }
+  }, [isAuthenticated, user]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<CheckoutForm> = {};

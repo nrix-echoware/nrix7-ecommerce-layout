@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,6 +15,11 @@ import {
   Navigation
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Lazy load the heavy voice recorder component
+const LazyVoiceRecorderOptimized = lazy(() => import('@/components/ui/lazy-voice-recorder-optimized').then(module => ({ 
+  default: module.LazyVoiceRecorderOptimized 
+})));
 
 export default function Contact() {
   const config = useSelector((state: RootState) => state.siteConfig.config);
@@ -36,6 +41,7 @@ export default function Contact() {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -45,11 +51,18 @@ export default function Contact() {
     }));
   };
 
+  const handleAudioData = (audioData: Blob) => {
+    setAudioBlob(audioData);
+    // For now, just store the audio blob
+    // Later you can send it to backend or convert to text
+    console.log('Audio recorded:', audioData.size, 'bytes');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      toast.error('Please fill in all required fields');
+    if ((!formData.message.trim() && !audioBlob) || !formData.name.trim() || !formData.email.trim()) {
+      toast.error('Please fill in all required fields or record a voice message');
       return;
     }
 
@@ -65,8 +78,8 @@ export default function Contact() {
       await submitContact({
         site: storeConfig?.name || config.shopName || 'Nrix7 Store',
         type: formData.type,
-        message: formData.message,
-        extras
+        message: formData.message + (audioBlob ? ' [Audio message attached]' : ''),
+        extras: { ...extras, hasAudio: !!audioBlob }
       });
 
       toast.success('Message sent successfully! We\'ll get back to you soon.');
@@ -79,6 +92,7 @@ export default function Contact() {
         type: 'inquiry',
         message: ''
       });
+      setAudioBlob(null);
       
     } catch (error: any) {
       console.error('Contact form error:', error);
@@ -128,6 +142,47 @@ export default function Contact() {
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             {heroConfig.subtitle || "We'd love to hear from you. Send us a message and we'll respond as soon as possible."}
           </p>
+        </div>
+      </div>
+
+      {/* Voice Message Section */}
+      <div className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Send a Voice Message
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Sometimes it's easier to say it than type it. Record a voice message and let us hear your thoughts directly.
+            </p>
+          </div>
+          
+          <Suspense fallback={
+            <div className="w-[90%] mx-auto h-[40rem] bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl flex items-center justify-center">
+              <div className="text-center text-white">
+                <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                  <MessageSquare className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-light mb-2">Loading Voice Recorder...</h3>
+                <p className="text-white/80">Preparing audio components</p>
+              </div>
+            </div>
+          }>
+            <LazyVoiceRecorderOptimized 
+              onAudioData={handleAudioData}
+              className="w-[90%] mx-auto h-[40rem]"
+              isAuthenticated={isAuthenticated}
+              user={user}
+            />
+          </Suspense>
+          
+          {audioBlob && (
+            <div className="mt-8 text-center">
+              <p className="text-lg text-green-600 font-medium">
+                ✓ Voice message recorded! It will be included with your contact form submission.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

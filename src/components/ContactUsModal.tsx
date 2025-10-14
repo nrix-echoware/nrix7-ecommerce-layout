@@ -1,15 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { submitContact } from '../api/contactusApi';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { useUserEmail } from '../contexts/AuthContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
+// Lazy load heavy dialog components
+const Dialog = lazy(() => import('@/components/ui/dialog').then(module => ({ default: module.Dialog })));
+const DialogContent = lazy(() => import('@/components/ui/dialog').then(module => ({ default: module.DialogContent })));
+const DialogHeader = lazy(() => import('@/components/ui/dialog').then(module => ({ default: module.DialogHeader })));
+const DialogTitle = lazy(() => import('@/components/ui/dialog').then(module => ({ default: module.DialogTitle })));
+const DialogDescription = lazy(() => import('@/components/ui/dialog').then(module => ({ default: module.DialogDescription })));
+const DialogFooter = lazy(() => import('@/components/ui/dialog').then(module => ({ default: module.DialogFooter })));
+const Select = lazy(() => import('@/components/ui/select').then(module => ({ default: module.Select })));
+const SelectTrigger = lazy(() => import('@/components/ui/select').then(module => ({ default: module.SelectTrigger })));
+const SelectValue = lazy(() => import('@/components/ui/select').then(module => ({ default: module.SelectValue })));
+const SelectContent = lazy(() => import('@/components/ui/select').then(module => ({ default: module.SelectContent })));
+const SelectItem = lazy(() => import('@/components/ui/select').then(module => ({ default: module.SelectItem })));
 
 interface Props {
   isOpen: boolean;
@@ -138,14 +149,24 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop', message
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-md bg-white">
-        <DialogHeader>
-          <DialogTitle>Contact Us</DialogTitle>
-          <DialogDescription>
-            Share your query and we’ll get back to you. For urgent queries use the contact info below.
-          </DialogDescription>
-        </DialogHeader>
+    <Suspense fallback={
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-3" />
+            <span>Loading contact form...</span>
+          </div>
+        </div>
+      </div>
+    }>
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="sm:max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Contact Us</DialogTitle>
+            <DialogDescription>
+              Share your query and we'll get back to you. For urgent queries use the contact info below.
+            </DialogDescription>
+          </DialogHeader>
 
         <div className="space-y-3">
           <div>
@@ -198,5 +219,6 @@ export default function ContactUsModal({ isOpen, onClose, site = 'shop', message
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </Suspense>
   );
 } 
