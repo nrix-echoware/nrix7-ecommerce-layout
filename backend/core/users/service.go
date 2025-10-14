@@ -165,23 +165,27 @@ func (s *userService) RefreshToken(ctx context.Context, req *RefreshTokenRequest
 	// Validate refresh token
 	_, err := s.jwtManager.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
+		fmt.Printf("Refresh token validation failed: %v\n", err)
 		return nil, errors.New("invalid refresh token")
 	}
 
 	// Get refresh token from database
 	refreshTokenRecord, err := s.repo.GetRefreshToken(ctx, req.RefreshToken)
 	if err != nil {
+		fmt.Printf("Refresh token not found in database: %v\n", err)
 		return nil, errors.New("invalid refresh token")
 	}
 
 	// Get user
 	user, err := s.repo.GetByID(ctx, refreshTokenRecord.UserID)
 	if err != nil {
+		fmt.Printf("User not found: %v\n", err)
 		return nil, errors.New("user not found")
 	}
 
 	// Check if user is still active
 	if !user.IsActive {
+		fmt.Printf("User account is deactivated: %s\n", user.ID)
 		return nil, errors.New("account is deactivated")
 	}
 
@@ -191,26 +195,27 @@ func (s *userService) RefreshToken(ctx context.Context, req *RefreshTokenRequest
 		return nil, fmt.Errorf("failed to generate access token: %v", err)
 	}
 
-	// Revoke old refresh token
-	s.repo.RevokeRefreshToken(ctx, req.RefreshToken)
-
 	// Generate new refresh token
 	newRefreshToken, err := s.jwtManager.GenerateRefreshToken(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate refresh token: %v", err)
 	}
 
-	// Store new refresh token
-	newRefreshTokenRecord := &RefreshToken{
+	fmt.Printf("Refreshing token for user %s, old token: %s, new token: %s\n", 
+		user.ID, req.RefreshToken[:20]+"...", newRefreshToken[:20]+"...")
+
+	// Use atomic operation to revoke old token and create new one
+	if err := s.repo.ReplaceRefreshToken(ctx, req.RefreshToken, &RefreshToken{
 		UserID:    user.ID,
 		Token:     newRefreshToken,
 		ExpiresAt: time.Now().Add(s.jwtManager.GetRefreshTokenExpiry()),
 		IsActive:  true,
+	}); err != nil {
+		fmt.Printf("Failed to replace refresh token: %v\n", err)
+		return nil, fmt.Errorf("failed to replace refresh token: %v", err)
 	}
 
-	if err := s.repo.CreateRefreshToken(ctx, newRefreshTokenRecord); err != nil {
-		return nil, fmt.Errorf("failed to store refresh token: %v", err)
-	}
+	fmt.Printf("Successfully refreshed token for user %s\n", user.ID)
 
 	return &AuthResponse{
 		User:         *user,
@@ -232,6 +237,14 @@ func (s *userService) SignOutAll(ctx context.Context, userID uuid.UUID) error {
 
 	// Delete all sessions
 	return s.repo.DeleteAllUserSessions(ctx, userID)
+}
+
+func (s *userService) CleanupExpiredTokens(ctx context.Context) error {
+	return s.repo.CleanupExpiredTokens(ctx)
+}
+
+func (s *userService) CleanupInactiveTokens(ctx context.Context) error {
+	return s.repo.CleanupInactiveTokens(ctx)
 }
 
 // User management methods
@@ -367,10 +380,6 @@ func (s *userService) DeleteSession(ctx context.Context, sessionToken string) er
 }
 
 // Cleanup methods
-
-func (s *userService) CleanupExpiredTokens(ctx context.Context) error {
-	return s.repo.CleanupExpiredTokens(ctx)
-}
 
 func (s *userService) CleanupExpiredSessions(ctx context.Context) error {
 	return s.repo.CleanupExpiredSessions(ctx)

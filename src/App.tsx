@@ -18,6 +18,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import VoiceContact from './pages/VoiceContact';
 import Policies from './pages/Policies';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
@@ -69,6 +70,7 @@ function AppContent() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/voice-contact" element={<VoiceContact />} />
           <Route path="/policies" element={<Policies />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

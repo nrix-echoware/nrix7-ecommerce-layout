@@ -123,6 +123,9 @@ authApi.interceptors.request.use(
   }
 );
 
+// Refresh token queue to prevent multiple simultaneous refresh attempts
+let refreshPromise: Promise<any> | null = null;
+
 // Response interceptor to handle token refresh
 authApi.interceptors.response.use(
   (response) => response,
@@ -135,17 +138,36 @@ authApi.interceptors.response.use(
       const refreshToken = TokenManager.getRefreshToken();
       if (refreshToken) {
         try {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          // If there's already a refresh in progress, wait for it
+          if (refreshPromise) {
+            await refreshPromise;
+            // Retry original request with new token
+            const newAccessToken = TokenManager.getAccessToken();
+            if (newAccessToken) {
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+              return authApi(originalRequest);
+            }
+          }
+
+          // Start new refresh attempt
+          refreshPromise = axios.post(`${API_BASE_URL}/auth/refresh`, {
             refresh_token: refreshToken,
           });
 
+          const response = await refreshPromise;
           const { access_token, refresh_token, user } = response.data;
           TokenManager.setTokens(access_token, refresh_token, user);
+
+          // Clear the refresh promise
+          refreshPromise = null;
 
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
           return authApi(originalRequest);
         } catch (refreshError) {
+          // Clear the refresh promise on error
+          refreshPromise = null;
+          
           // Refresh failed, clear tokens and redirect to login
           TokenManager.clearTokens();
           window.location.href = '/login';

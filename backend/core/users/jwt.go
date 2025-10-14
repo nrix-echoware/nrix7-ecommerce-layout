@@ -1,6 +1,8 @@
 package users
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
@@ -59,6 +61,13 @@ func (j *JWTManager) GenerateAccessToken(user *User) (string, error) {
 
 // GenerateRefreshToken generates a new refresh token
 func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, error) {
+	// Generate a random component to ensure uniqueness
+	randomBytes := make([]byte, 16)
+	if _, err := rand.Read(randomBytes); err != nil {
+		return "", fmt.Errorf("failed to generate random bytes: %v", err)
+	}
+	randomComponent := hex.EncodeToString(randomBytes)
+
 	claims := &Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -67,6 +76,7 @@ func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, error) {
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    "nrix7-ecommerce",
 			Subject:   userID.String(),
+			ID:        randomComponent, // Add random ID to ensure uniqueness
 		},
 	}
 

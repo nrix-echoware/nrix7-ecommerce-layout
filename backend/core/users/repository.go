@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,10 +22,13 @@ type UserRepository interface {
 
 	// Refresh token operations
 	CreateRefreshToken(ctx context.Context, token *RefreshToken) error
+	CreateRefreshTokenIfNotExists(ctx context.Context, token *RefreshToken) error
 	GetRefreshToken(ctx context.Context, token string) (*RefreshToken, error)
 	RevokeRefreshToken(ctx context.Context, token string) error
+	ReplaceRefreshToken(ctx context.Context, oldToken string, newToken *RefreshToken) error
 	RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error
 	CleanupExpiredTokens(ctx context.Context) error
+	CleanupInactiveTokens(ctx context.Context) error
 
 	// Session management
 	CreateSession(ctx context.Context, session *UserSession) error
@@ -88,6 +92,23 @@ func (r *userRepository) CreateRefreshToken(ctx context.Context, token *RefreshT
 	return r.db.WithContext(ctx).Create(token).Error
 }
 
+func (r *userRepository) CreateRefreshTokenIfNotExists(ctx context.Context, token *RefreshToken) error {
+	// Check if token already exists
+	var existingToken RefreshToken
+	err := r.db.WithContext(ctx).Where("token = ?", token.Token).First(&existingToken).Error
+	if err == nil {
+		// Token already exists, return without error
+		return nil
+	}
+	if err != gorm.ErrRecordNotFound {
+		// Some other error occurred
+		return err
+	}
+	
+	// Token doesn't exist, create it
+	return r.db.WithContext(ctx).Create(token).Error
+}
+
 func (r *userRepository) GetRefreshToken(ctx context.Context, token string) (*RefreshToken, error) {
 	var refreshToken RefreshToken
 	err := r.db.WithContext(ctx).
@@ -106,6 +127,28 @@ func (r *userRepository) RevokeRefreshToken(ctx context.Context, token string) e
 		Update("is_active", false).Error
 }
 
+func (r *userRepository) ReplaceRefreshToken(ctx context.Context, oldToken string, newToken *RefreshToken) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// First, revoke the old token
+		result := tx.Model(&RefreshToken{}).
+			Where("token = ?", oldToken).
+			Update("is_active", false)
+		if result.Error != nil {
+			return fmt.Errorf("failed to revoke old token: %v", result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("old token not found or already revoked")
+		}
+
+		// Then create the new token
+		if err := tx.Create(newToken).Error; err != nil {
+			return fmt.Errorf("failed to create new token: %v", err)
+		}
+
+		return nil
+	})
+}
+
 func (r *userRepository) RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error {
 	return r.db.WithContext(ctx).Model(&RefreshToken{}).
 		Where("user_id = ?", userID).
@@ -114,6 +157,11 @@ func (r *userRepository) RevokeAllUserTokens(ctx context.Context, userID uuid.UU
 
 func (r *userRepository) CleanupExpiredTokens(ctx context.Context) error {
 	return r.db.WithContext(ctx).Where("expires_at < ?", time.Now()).
+		Delete(&RefreshToken{}).Error
+}
+
+func (r *userRepository) CleanupInactiveTokens(ctx context.Context) error {
+	return r.db.WithContext(ctx).Where("is_active = ? AND expires_at < ?", false, time.Now()).
 		Delete(&RefreshToken{}).Error
 }
 
