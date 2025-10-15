@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"nrix7-ecommerce-layout/backend/internal/config"
 )
 
 type AudioContactController struct {
@@ -19,6 +20,18 @@ func NewAudioContactController(service AudioContactService) *AudioContactControl
 
 // SubmitAudioContact handles audio contact submissions
 func (c *AudioContactController) SubmitAudioContact(ctx *gin.Context) {
+	// Check payload size limit
+	cfg := config.Get()
+	maxSizeBytes := int64(cfg.AudioStorage.MaxPayloadSizeMB) * 1024 * 1024
+	
+	if ctx.Request.ContentLength > maxSizeBytes {
+		ctx.JSON(http.StatusRequestEntityTooLarge, gin.H{
+			"error": "Payload size exceeds maximum allowed size",
+			"max_size_mb": cfg.AudioStorage.MaxPayloadSizeMB,
+		})
+		return
+	}
+
 	var req AudioContactRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{

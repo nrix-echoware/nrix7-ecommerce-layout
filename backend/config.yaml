@@ -3,6 +3,7 @@ admin_api_key: "dev-admin-key-123"
 audio_storage:
   path: "/tmp/audio_contacts"
   base_url: "https://localhost:9997/api"
+  max_payload_size_mb: 10
 ratelimit:
   default:
     post: 300

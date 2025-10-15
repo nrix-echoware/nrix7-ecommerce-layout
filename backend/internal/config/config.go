@@ -18,8 +18,9 @@ type RateLimitConfig struct {
 }
 
 type AudioStorageConfig struct {
-	Path    string `mapstructure:"path"`
-	BaseURL string `mapstructure:"base_url"`
+	Path             string `mapstructure:"path"`
+	BaseURL          string `mapstructure:"base_url"`
+	MaxPayloadSizeMB int    `mapstructure:"max_payload_size_mb"`
 }
 
 type Config struct {
@@ -47,6 +48,7 @@ func loadConfig() *Config {
 	v.SetDefault("ratelimit.default.get", 100)
 	v.SetDefault("audio_storage.path", "/tmp/audio_contacts")
 	v.SetDefault("audio_storage.base_url", "http://localhost:8080/api")
+	v.SetDefault("audio_storage.max_payload_size_mb", 10)
 	if err := v.ReadInConfig(); err != nil {
 		// fallback to env/defaults
 	}
