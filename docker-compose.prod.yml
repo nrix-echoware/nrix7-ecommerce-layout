@@ -16,6 +16,7 @@ services:
       - ADMIN_API_KEY=
     volumes:
       - ./backend-data:/app/data  # host folder bind mount for writable SQLite
+      - /tmp:/tmp  # Mount system temp folder for audio storage
     networks:
       - prodnet
     restart: unless-stopped

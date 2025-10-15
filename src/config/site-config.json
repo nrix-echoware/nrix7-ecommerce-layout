@@ -96,6 +96,38 @@
     { "label": "Cities", "value": "Pan India" },
     { "label": "% Satisfaction", "value": "97" }
   ],
+  "features": [
+    {
+      "icon": "ShoppingCart",
+      "title": "Easy Shopping",
+      "description": "Browse and purchase products with our intuitive shopping experience"
+    },
+    {
+      "icon": "Shield",
+      "title": "Secure Payments",
+      "description": "Your transactions are protected with industry-standard security"
+    },
+    {
+      "icon": "Truck",
+      "title": "Fast Delivery",
+      "description": "Quick and reliable shipping across India with tracking"
+    },
+    {
+      "icon": "Headphones",
+      "title": "24/7 Support",
+      "description": "Get help anytime with our dedicated customer support team"
+    },
+    {
+      "icon": "RotateCcw",
+      "title": "Easy Returns",
+      "description": "Hassle-free returns and exchanges within 30 days"
+    },
+    {
+      "icon": "Star",
+      "title": "Quality Products",
+      "description": "Curated selection of high-quality products from trusted brands"
+    }
+  ],
   "categories": [
     { "label": "Electronics", "path": "/products?category=electronics" },
     { "label": "Fashion", "path": "/products?category=fashion" },
