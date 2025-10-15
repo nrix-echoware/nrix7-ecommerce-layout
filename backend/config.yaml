@@ -1,5 +1,8 @@
 dbfile: contactus.db
 admin_api_key: "dev-admin-key-123"
+audio_storage:
+  path: "/tmp/audio_contacts"
+  base_url: "https://localhost:9997/api"
 ratelimit:
   default:
     post: 300
@@ -7,4 +10,7 @@ ratelimit:
   controllers:
     contactus:
       post: 900
+      get: 300
+    audiocontact:
+      post: 60  # Limit audio submissions to 1 per minute
       get: 300 

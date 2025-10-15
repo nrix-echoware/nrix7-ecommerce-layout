@@ -17,10 +17,16 @@ type RateLimitConfig struct {
 	Controllers map[string]RateLimitSetting `mapstructure:"controllers"`
 }
 
+type AudioStorageConfig struct {
+	Path    string `mapstructure:"path"`
+	BaseURL string `mapstructure:"base_url"`
+}
+
 type Config struct {
-	DBFile      string
-	RateLimit   RateLimitConfig
-	AdminAPIKey string `mapstructure:"admin_api_key"`
+	DBFile        string
+	RateLimit     RateLimitConfig
+	AdminAPIKey   string            `mapstructure:"admin_api_key"`
+	AudioStorage  AudioStorageConfig `mapstructure:"audio_storage"`
 }
 
 var (
@@ -39,6 +45,8 @@ func loadConfig() *Config {
 	v.SetDefault("admin_api_key", os.Getenv("ADMIN_API_KEY"))
 	v.SetDefault("ratelimit.default.post", 300)
 	v.SetDefault("ratelimit.default.get", 100)
+	v.SetDefault("audio_storage.path", "/tmp/audio_contacts")
+	v.SetDefault("audio_storage.base_url", "http://localhost:8080/api")
 	if err := v.ReadInConfig(); err != nil {
 		// fallback to env/defaults
 	}

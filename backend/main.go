@@ -3,12 +3,14 @@ package main
 import (
 	"ecommerce-backend/common/security"
 	"ecommerce-backend/core/analytics"
+	"ecommerce-backend/core/audiocontact"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
 	"ecommerce-backend/core/products"
 	"ecommerce-backend/core/users"
 	"ecommerce-backend/core/websocket"
+	"ecommerce-backend/internal/config"
 	"ecommerce-backend/internal/db"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -89,6 +91,16 @@ func main() {
 	// Start WebSocket hub in a goroutine
 	go wsHub.Run()
 
+	// Initialize Audio Contact module
+	cfg := config.Get()
+	audioContactRepo := audiocontact.NewAudioContactRepository(db.DB)
+	audioConfig := &audiocontact.AudioConfig{
+		StoragePath: cfg.AudioStorage.Path,
+		BaseURL:     cfg.AudioStorage.BaseURL,
+	}
+	audioContactSvc := audiocontact.NewAudioContactService(audioContactRepo, audioConfig)
+	audioContactCtrl := audiocontact.NewAudioContactController(audioContactSvc)
+
 	// Health check
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
@@ -100,6 +112,9 @@ func main() {
 	// Rate limiting middleware for products
 	r.Use(contactus.RateLimitMiddleware(productCtrl.Name()))
 
+	// Rate limiting middleware for audio contact
+	r.Use(contactus.RateLimitMiddleware("audiocontact"))
+
 	ctrl.RegisterRoutes(r)
 	productCtrl.RegisterRoutes(r)
 	commentCtrl.RegisterRoutes(r)
@@ -107,6 +122,9 @@ func main() {
 	userCtrl.RegisterRoutes(r)
 	newsletterCtrl.RegisterRoutes(r)
 	wsCtrl.RegisterRoutes(r)
+	
+	// Register audio contact routes
+	audioContactCtrl.RegisterRoutes(r)
 
 	// Start server
 	logrus.Info("Server running on :9997")

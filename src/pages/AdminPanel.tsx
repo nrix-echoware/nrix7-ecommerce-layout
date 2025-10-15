@@ -7,6 +7,7 @@ import ProductFormPage from './admin/ProductForm';
 import CommentsManagement from './admin/CommentsManagement';
 import ContactUsManagement from './admin/ContactUsManagement';
 import NotificationManagement from './admin/NotificationManagement';
+import AudioContactManagement from './admin/AudioContactManagement';
 
 const ADMIN_KEY_STORAGE = 'admin_api_key';
 
@@ -55,6 +56,7 @@ export default function AdminPanel() {
         <Route path="/products/edit/:id" element={<ProductFormPage onAuthError={clear} />} />
         <Route path="/comments" element={<CommentsManagement onAuthError={clear} />} />
         <Route path="/contacts" element={<ContactUsManagement onAuthError={clear} />} />
+        <Route path="/audio-contacts" element={<AudioContactManagement onAuthError={clear} />} />
         <Route path="/notifications" element={<NotificationManagement onAuthError={clear} />} />
       </Routes>
     </AdminLayout>

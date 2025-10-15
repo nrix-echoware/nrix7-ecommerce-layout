@@ -16,6 +16,7 @@ services:
     volumes:
       - ./backend:/app
       - backend-go-cache:/go/pkg/mod
+      - /tmp:/tmp  # Mount system temp folder for audio storage
     networks:
       - devnet
 

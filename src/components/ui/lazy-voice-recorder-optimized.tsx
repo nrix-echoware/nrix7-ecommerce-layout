@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect, Suspense, lazy } from 'react';
 import { Mic, Play, Pause, Square, Trash2, MessageSquare, Send, User } from 'lucide-react';
 import { Button } from './button';
+import { submitAudioContact } from '../../api/audioContactApi';
+import { toast } from 'sonner';
 
 // Lazy load the shader background
 const LazyShaderBackground = lazy(() => import('./lazy-shader-background').then(module => ({ 
@@ -148,25 +150,65 @@ export function LazyVoiceRecorderOptimized({ onAudioData, className = '', isAuth
     }
   };
 
-  const handleSubmitVoiceMessage = () => {
+  const handleSubmitVoiceMessage = async () => {
     if (!audioBlob) {
-      console.log('No audio recorded to submit');
+      toast.error('No audio recorded to submit');
       return;
     }
 
-    if (isAuthenticated && user) {
-      console.log('Submitting voice message for logged-in user:', {
-        userId: user.id,
-        userEmail: user.email,
-        userName: `${user.first_name} ${user.last_name}`,
+    if (!isAuthenticated || !user) {
+      toast.error('Please log in to submit voice messages. You can still record and play back your message.');
+      return;
+    }
+
+    try {
+      console.log('Starting audio submission...', {
         audioSize: audioBlob.size,
         audioType: audioBlob.type,
-        timestamp: new Date().toISOString()
+        duration: recordingTime,
+        userEmail: user.email
       });
-      alert('Voice message submitted successfully! (Mock - logged in user)');
-    } else {
-      console.log('Anonymous user attempted to submit voice message');
-      alert('Please log in to submit voice messages. Anonymous users cannot submit voice recordings.');
+
+      // Convert audio blob to base64 using FileReader
+      const base64Audio = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Remove the data URL prefix (e.g., "data:audio/webm;base64,")
+          const base64 = result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(audioBlob);
+      });
+
+      console.log('Audio converted to base64, length:', base64Audio.length);
+
+      // Submit to backend
+      const response = await submitAudioContact({
+        email: user.email,
+        name: `${user.first_name} ${user.last_name}`,
+        phone: user.phone || '',
+        audio_data: base64Audio,
+        duration: recordingTime,
+        mime_type: audioBlob.type || 'audio/webm'
+      });
+
+      console.log('Audio submission successful:', response);
+
+      toast.success('Voice message submitted successfully! We\'ll get back to you soon.');
+      
+      // Call the callback if provided (before clearing)
+      if (onAudioData) {
+        onAudioData(audioBlob);
+      }
+      
+      // Clear the audio
+      setAudioBlob(null);
+      setRecordingTime(0);
+    } catch (error) {
+      console.error('Error submitting voice message:', error);
+      toast.error('Failed to submit voice message. Please try again.');
     }
   };
 
