@@ -4,6 +4,9 @@ import { Github, ExternalLink, GitCommit } from 'lucide-react';
 import ContactUsModal from '../components/ContactUsModal';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { Timeline } from '../components/ui/timeline';
+import { TimelineContent } from '../components/TimelineContent';
+import { TimelineConfigEntry } from '../types/timeline';
 
 interface GitHubRepo {
   id: number;
@@ -49,6 +52,7 @@ const About = () => {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
   const owner = useSelector((s: RootState) => s.siteConfig.config.storeOwner);
+  const journey = useSelector((s: RootState) => s.siteConfig.config.journey);
 
   useEffect(() => {
     if (headerRef.current) {
@@ -60,22 +64,40 @@ const About = () => {
     const fetchGitHubData = async () => {
       try {
         const userRes = await fetch(`https://api.github.com/users/${GITHUB_USER}`);
+        if (!userRes.ok) {
+          throw new Error(`GitHub API error: ${userRes.status}`);
+        }
         const userData = await userRes.json();
         setUser(userData);
+        
         const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=6`);
+        if (!response.ok) {
+          throw new Error(`GitHub API error: ${response.status}`);
+        }
         const data = await response.json();
-        setRepos(data);
-        const commitsObj: Record<string, Commit[]> = {};
-        await Promise.all(
-          data.map(async (repo: GitHubRepo) => {
-            try {
-              const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${repo.name}/commits?per_page=3`);
-              const commitData = await res.json();
-              commitsObj[repo.name] = commitData;
-            } catch {}
-          })
-        );
-        setCommits(commitsObj);
+        
+        // Ensure data is an array before setting
+        if (Array.isArray(data)) {
+          setRepos(data);
+          const commitsObj: Record<string, Commit[]> = {};
+          await Promise.all(
+            data.map(async (repo: GitHubRepo) => {
+              try {
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${repo.name}/commits?per_page=3`);
+                if (res.ok) {
+                  const commitData = await res.json();
+                  if (Array.isArray(commitData)) {
+                    commitsObj[repo.name] = commitData;
+                  }
+                }
+              } catch {}
+            })
+          );
+          setCommits(commitsObj);
+        } else {
+          setRepos([]);
+        }
+        
         if (reposRef.current) {
           setTimeout(() => {
             AnimationController.staggerFadeIn(
@@ -89,6 +111,10 @@ const About = () => {
         }
       } catch (error) {
         console.error('Error fetching GitHub data:', error);
+        // Set empty arrays on error to prevent crashes
+        setUser(null);
+        setRepos([]);
+        setCommits({});
       } finally {
         setLoading(false);
       }
@@ -112,104 +138,119 @@ const About = () => {
             About the Creator
           </h1> */}
         </div>
-        <div ref={profileRef} className="max-w-4xl mx-auto mb-16 flex flex-col md:flex-row items-center gap-8 bg-neutral-50 rounded-xl p-8 shadow-md">
-          {user && (
-            <>
-              <img src={user.avatar_url} alt={user.login} className="w-32 h-32 rounded-full border-4 border-neutral-200 shadow-lg" />
-              <div className="flex-1 text-center md:text-left">
-                <h2 className="text-3xl font-semibold text-neutral-900 mb-2 flex items-center justify-center md:justify-start gap-2">
-                  <Github size={28} /> {user.name || user.login}
-                </h2>
-                <p className="text-neutral-600 mb-2">{user.bio}</p>
-                <div className="flex flex-wrap gap-4 justify-center md:justify-start text-neutral-500 text-sm mb-2">
-                  <span>@{user.login}</span>
-                  {user.location && <span>{user.location}</span>}
-                  <span>{user.public_repos} repos</span>
-                  <span>{user.followers} followers</span>
-                  <span>{user.following} following</span>
-                </div>
-                <a href={user.html_url} target="_blank" rel="noopener noreferrer" className="underline text-neutral-700 hover:text-neutral-900 transition-colors">View GitHub Profile</a>
+        {user && (
+          <div ref={profileRef} className="max-w-4xl mx-auto mb-16 flex flex-col md:flex-row items-center gap-8 bg-neutral-50 rounded-xl p-8 shadow-md">
+            <img src={user.avatar_url} alt={user.login} className="w-32 h-32 rounded-full border-4 border-neutral-200 shadow-lg" />
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-3xl font-semibold text-neutral-900 mb-2 flex items-center justify-center md:justify-start gap-2">
+                <Github size={28} /> {user.name || user.login}
+              </h2>
+              <p className="text-neutral-600 mb-2">{user.bio}</p>
+              <div className="flex flex-wrap gap-4 justify-center md:justify-start text-neutral-500 text-sm mb-2">
+                <span>@{user.login}</span>
+                {user.location && <span>{user.location}</span>}
+                <span>{user.public_repos} repos</span>
+                <span>{user.followers} followers</span>
+                <span>{user.following} following</span>
               </div>
-            </>
-          )}
-          <div className="w-full md:w-auto mt-8 md:mt-0 flex justify-center">
-            <img
-              src={`https://ghchart.rshah.org/${GITHUB_USER}`}
-              alt="GitHub Contribution Graph"
-              className="rounded-lg border border-neutral-200 shadow"
-              style={{ maxWidth: 320, width: '100%' }}
+              <a href={user.html_url} target="_blank" rel="noopener noreferrer" className="underline text-neutral-700 hover:text-neutral-900 transition-colors">View GitHub Profile</a>
+            </div>
+            <div className="w-full md:w-auto mt-8 md:mt-0 flex justify-center">
+              <img
+                src={`https://ghchart.rshah.org/${GITHUB_USER}`}
+                alt="GitHub Contribution Graph"
+                className="rounded-lg border border-neutral-200 shadow"
+                style={{ maxWidth: 320, width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+        {repos && repos.length > 0 && (
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-light mb-4 text-neutral-900">Open Source Projects</h2>
+              <p className="text-neutral-600">
+                Recent projects and commit activity from <a href={`https://github.com/${GITHUB_USER}`} className="underline" target="_blank" rel="noopener noreferrer">@{GITHUB_USER}</a>.
+              </p>
+            </div>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="border border-neutral-200 rounded-lg p-6 animate-pulse">
+                    <div className="h-4 bg-neutral-200 rounded mb-3"></div>
+                    <div className="h-3 bg-neutral-200 rounded mb-2"></div>
+                    <div className="h-3 bg-neutral-200 rounded w-2/3"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div ref={reposRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {repos.map((repo) => (
+                  <div key={repo.id} className="border border-neutral-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="text-lg font-medium text-neutral-900 flex items-center gap-2">
+                        <Github size={20} />
+                        {repo.name}
+                      </h3>
+                      <a
+                        href={repo.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-neutral-500 hover:text-neutral-700 transition-colors"
+                      >
+                        <ExternalLink size={16} />
+                      </a>
+                    </div>
+                    <p className="text-neutral-600 text-sm mb-4 line-clamp-2">
+                      {repo.description || 'No description available'}
+                    </p>
+                    <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
+                      <div className="flex items-center gap-4">
+                        {repo.language && (
+                          <span className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            {repo.language}
+                          </span>
+                        )}
+                        <span>⭐ {repo.stargazers_count}</span>
+                      </div>
+                      <span>Updated {formatDate(repo.updated_at)}</span>
+                    </div>
+                    <div className="mt-4">
+                      <h4 className="text-xs font-semibold text-neutral-700 mb-2"><GitCommit size={14}/> Recent Commits</h4>
+                      <ul className="space-y-1">
+                        {(commits[repo.name] || []).map((commit) => (
+                          <li key={commit.sha} className="text-xs text-neutral-600 flex flex-col md:flex-row md:items-center md:gap-2">
+                            <a href={commit.html_url} target="_blank" rel="noopener noreferrer" className="hover:underline block md:inline">
+                              {commit.commit.message.length > 40 ? commit.commit.message.slice(0, 40) + '…' : commit.commit.message}
+                            </a>
+                            <span className="text-neutral-400 block md:inline">by {commit.commit.author.name}</span>
+                            <span className="text-neutral-400 block md:inline">{formatDate(commit.commit.author.date)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Journey Timeline Section */}
+        {journey && journey.entries && journey.entries.length > 0 && (
+          <div className="mt-20">
+            <Timeline
+              title={journey.title}
+              subtitle={journey.subtitle}
+              data={journey.entries.map((entry: TimelineConfigEntry) => ({
+                title: entry.title,
+                content: <TimelineContent entry={entry} />
+              }))}
             />
           </div>
-        </div>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-light mb-4 text-neutral-900">Open Source Projects</h2>
-            <p className="text-neutral-600">
-              Recent projects and commit activity from <a href={`https://github.com/${GITHUB_USER}`} className="underline" target="_blank" rel="noopener noreferrer">@{GITHUB_USER}</a>.
-            </p>
-          </div>
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="border border-neutral-200 rounded-lg p-6 animate-pulse">
-                  <div className="h-4 bg-neutral-200 rounded mb-3"></div>
-                  <div className="h-3 bg-neutral-200 rounded mb-2"></div>
-                  <div className="h-3 bg-neutral-200 rounded w-2/3"></div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div ref={reposRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {repos.map((repo) => (
-                <div key={repo.id} className="border border-neutral-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col h-full">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-lg font-medium text-neutral-900 flex items-center gap-2">
-                      <Github size={20} />
-                      {repo.name}
-                    </h3>
-                    <a
-                      href={repo.html_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-neutral-500 hover:text-neutral-700 transition-colors"
-                    >
-                      <ExternalLink size={16} />
-                    </a>
-                  </div>
-                  <p className="text-neutral-600 text-sm mb-4 line-clamp-2">
-                    {repo.description || 'No description available'}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
-                    <div className="flex items-center gap-4">
-                      {repo.language && (
-                        <span className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          {repo.language}
-                        </span>
-                      )}
-                      <span>⭐ {repo.stargazers_count}</span>
-                    </div>
-                    <span>Updated {formatDate(repo.updated_at)}</span>
-                  </div>
-                  <div className="mt-4">
-                    <h4 className="text-xs font-semibold text-neutral-700 mb-2"><GitCommit size={14}/> Recent Commits</h4>
-                    <ul className="space-y-1">
-                      {(commits[repo.name] || []).map((commit) => (
-                        <li key={commit.sha} className="text-xs text-neutral-600 flex flex-col md:flex-row md:items-center md:gap-2">
-                          <a href={commit.html_url} target="_blank" rel="noopener noreferrer" className="hover:underline block md:inline">
-                            {commit.commit.message.length > 40 ? commit.commit.message.slice(0, 40) + '…' : commit.commit.message}
-                          </a>
-                          <span className="text-neutral-400 block md:inline">by {commit.commit.author.name}</span>
-                          <span className="text-neutral-400 block md:inline">{formatDate(commit.commit.author.date)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
+        
         <div className="text-center mt-16 pt-20 md:pt-16 border-t border-neutral-200">
           <h2 className="text-2xl font-light mb-4 text-neutral-900">Get in Touch</h2>
           <p className="text-neutral-600 mb-4">

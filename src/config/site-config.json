@@ -269,5 +269,109 @@
         }
       ]
     }
+  },
+  "journey": {
+    "title": "2025 Updates",
+    "subtitle": "Our Journey from Chayan's MCA Project to the present day. ://echoware.co.in [Multi Tenant Ecommerce (Industry Grade)] | this one [opensource]",
+    "entries": [
+      {
+        "title": "2025",
+        "content": {
+          "text": "The one youre seeing rn is an opensource, normal ecommerce, that is built for speed and scalability.unlike echoware this isnt multi teanant, it is a single tenant ecommerce, this is opensource, so you can use it how ever fuck you want, im not responsible for anything that happens to your business. you control everything, every fucking thing.",
+          "media": [
+            
+          ],
+          "features": [
+            "✅ Opensource",
+            "✅ Single Tenant",
+            "✅ Speed and Scalability",
+            "✅ Vibe coding, no bullshit"
+          ]
+        }
+      },
+      {
+        "title": "2024",
+        "content": {
+          "text": "After my breakup i thought i should do something, so i started with version 4 & 5, i kept the event driven system, changed the ui/ux, added whatsapp as layout, made the website more responsive and user friendly, added a lot of features, and made the website more secure and scalable. we use low level abis for encryption and decryption of sensitive client data. we have our own finetuned llm so that we can process customers messages and serve them in natural language on whatsapp.",
+          "media": [
+            {
+              "type": "youtube",
+              "url": "https://www.youtube.com/embed/qI1DaCZxsuM",
+              "title": "Whastapp Ecommerce",
+              "description": "Our Own Whatsapp Ecommerce Platform.",
+              "thumbnail": ""
+            },
+            {
+              "type": "image",
+              "url": "https://images.unsplash.com/photo-1489286696299-aa7486820bd5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1171",
+              "title": "Workshop Expansion",
+              "description": "New state-of-the-art crafting facility"
+            }
+          ],
+          "features": [
+            "✅ Launched our own whatsapp ecommerce platform.",
+            "✅ Added a lot of features to the website.",
+            "✅ Made the website more secure and scalable.",
+            "✅ Added a lot of features to the website.",
+            "✅ Intent Classification for customer messages.",
+            "✅ Low level abis for encryption and decryption of sensitive client data.",
+            "✅ Finetuned llm for customer messages."
+          ]
+        }
+      },
+      {
+        "title": "2023",
+        "content": {
+          "text": "Version 2, was too young like a little girls pussy, good for taste, but cant use it for its untablity. I started with version 4, removed the microfrontends, distributed system was turned in event driven systems, which became the eventual complete solution.",
+          "media": [
+            {
+              "type": "youtube",
+              "url": "https://www.youtube.com/embed/VYqhzS4dKCA",
+              "title": "Event Driven Systems",
+              "description": "Event Driven Systems are a type of software architecture that is designed to handle events in a scalable and efficient way. It is a type of architecture that is designed to handle events in a scalable and efficient way.",
+              "thumbnail": ""
+            },
+            {
+              "type": "youtube",
+              "url": "https://www.youtube.com/embed/JGCFxZw4US8",
+              "title": "Mature Systems, Mature Problems",
+              "description": "Beautiful code, but still not a mature system.",
+              "thumbnail": ""
+            }
+            
+          ],
+          "features": [
+            "✅ Established brand identity",
+            "✅ Perfected crafting techniques",
+            "✅ Built supplier relationships",
+            "✅ Launched local market presence"
+          ]
+        }
+      },
+      {
+        "title": "2021",
+        "content": {
+          "text": "Nrix started with a small motive to sell ecommerce so that me(sourav) and chayan can sell platforms to small businesses thats why this is multi tenant ecommerce, this is the beginning of our journey. we started with version 1 as chayans MCA project, version 2 was beoynd its time, we used microfrontneds, and distributed systems, micro frontnends were just a research topic when i started coding, withing 2 weeks the code was done, next 2 weeks were modifying and decorating.",
+          "media": [
+            {
+              "type": "youtube",
+              "url": "https://www.youtube.com/embed/G7YTUVidbHY",
+              "title": "Our Crafting Process",
+              "description": "Behind the scenes of leather jacket creation",
+              "thumbnail": ""
+            }
+          ],
+          "features": [
+            "✅ Founded the company",
+            "✅ Set up first workshop",
+            "✅ Learned Microfrontends and Distributed Systems",
+            "✅ Designed first prototype",
+            "✅ Established quality standards",
+            "✅ Created Api Gateway for all the microservices.",
+            "✅ Started selling platforms to small businesses"
+          ]
+        }
+      }
+    ]
   }
 }

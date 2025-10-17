@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PromotionalReel } from '../../types/promotional';
+import { TimelineConfigEntry } from '../../types/timeline';
 
 export interface FAQItem {
   question: string;
@@ -157,6 +158,12 @@ export interface ContactConfig {
   storeInfo: ContactStoreInfoConfig;
 }
 
+export interface JourneyConfig {
+  title: string;
+  subtitle: string;
+  entries: TimelineConfigEntry[];
+}
+
 export interface SiteConfig {
   shopName: string;
   hero: HeroConfig;
@@ -171,6 +178,7 @@ export interface SiteConfig {
   navigation?: NavigationItem[];
   navbar?: NavbarConfig;
   contact?: ContactConfig;
+  journey?: JourneyConfig;
 }
 
 const defaultConfig: SiteConfig = {
