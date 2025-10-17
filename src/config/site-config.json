@@ -1,5 +1,5 @@
 {
-  "shopName": "Minimal Commerce",
+  "shopName": "Baie des Parfums Leather Co.",
   "storeOwner": {
     "name": "Sourav",
     "email": "sourav@gmail.com",
@@ -7,36 +7,50 @@
     "address": "123 Main St, Anytown, USA"
   },
   "hero": {
-    "title": "Modern Essentials",
-    "subtitle": "Timeless pieces for everyday",
+    "title": "Timeless Leather Jackets",
+    "subtitle": "Handcrafted. Durable. Iconic.",
     "slides": [
       {
-        "image": "https://images.unsplash.com/photo-1506152983158-b4a74a01c721?q=80&w=2073&auto=format&fit=crop",
-        "heading": "Minimal Luxury",
-        "subtext": "Timeless essentials for the modern wardrobe.",
-        "tag": "New"
+        "image": "https://images.unsplash.com/photo-1551028719-00167b16eac5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=735",
+        "heading": "Premium Leather Craftsmanship",
+        "subtext": "Experience unmatched comfort and timeless style.",
+        "tag": "New Collection"
       },
       {
-        "image": "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop",
-        "heading": "Modern Silhouettes",
-        "subtext": "Effortless style, elevated basics.",
-        "tag": "Sale"
+        "image": "https://images.unsplash.com/photo-1489286696299-aa7486820bd5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1171",
+        "heading": "Urban Rebel Styles",
+        "subtext": "Make a statement with bold, rugged leather pieces.",
+        "tag": "Best Seller"
       },
       {
-        "image": "https://images.unsplash.com/photo-1508427953056-b00b8d78ebf5?q=80&w=2070&auto=format&fit=crop",
-        "heading": "Sustainable Craft",
-        "subtext": "Responsibly sourced, beautifully made.",
-        "tag": "Featured"
+        "image": "https://plus.unsplash.com/premium_photo-1698749257193-e881163207d6?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687",
+        "heading": "Heritage Meets Modernity",
+        "subtext": "Classic designs refined for the modern wardrobe.",
+        "tag": "Limited Edition"
       }
     ]
   },
   "featured": {
     "enabled": true,
-    "take": 3
+    "take": 4
   },
   "faq": [
-    { "question": "What is your return policy?", "answer": "30-day returns on unworn items." },
-    { "question": "Do you ship internationally?", "answer": "Yes, we ship worldwide." }
+    {
+      "question": "Are your jackets made from genuine leather?",
+      "answer": "Yes, all our jackets are made from 100% premium full-grain leather."
+    },
+    {
+      "question": "How should I care for my leather jacket?",
+      "answer": "Use a leather conditioner once every 3 months and avoid direct sunlight for long periods."
+    },
+    {
+      "question": "Do you ship internationally?",
+      "answer": "Yes, we ship globally with reliable courier partners."
+    },
+    {
+      "question": "Can I return a product if it doesn’t fit?",
+      "answer": "Yes, we offer hassle-free exchanges and returns within 14 days."
+    }
   ],
   "animations": {
     "enabled": true,
@@ -45,109 +59,112 @@
   },
   "reels": [
     {
-      "name": "FW Launch",
-      "media": "https://images.unsplash.com/photo-1520975661595-6453be3f7070?w=400&q=80&fit=crop",
+      "name": "The Legacy Edit",
+      "media": "https://hips.hearstapps.com/hmg-prod/images/gettyimages-2213609302-681946354e805.jpg",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop",
-          "title": "Lookbook 1",
-          "description": "Monochrome layers and clean silhouettes.",
-          "link": "https://example.com/fw-launch"
+          "url": "https://hips.hearstapps.com/hmg-prod/images/gettyimages-2213053153-681943cecbeef.jpg?resize=980:*",
+          "title": "The Classic Rider Miley",
+          "description": "Our heritage biker jacket, redefined for today.",
+          "link": "https://www.harpersbazaar.com/celebrity/latest/a64674042/miley-cyrus-red-carpet-photos-met-gala-2025/"
         },
         {
-          "url": "https://images.unsplash.com/photo-1520975661595-6453be3f7070?q=80&w=2069&auto=format&fit=crop",
-          "title": "Lookbook 2",
-          "description": "Textures and structure.",
-          "link": "https://example.com/fw-launch-2"
+          "url": "https://hips.hearstapps.com/hmg-prod/images/miley-cyrus-leather-look-680fa2537de41.jpg?crop=1.00xw:1.00xh;0,0",
+          "title": "The Modern Aviator Miley Slutty Cyrus",
+          "description": "Inspired by aviation, made for adventure.",
+          "link": "https://www.elle.com/uk/fashion/celebrity-style/a64606334/miley-cyrus-leather-look/"
         }
       ]
     },
     {
-      "name": "Studio",
-      "media": "https://images.unsplash.com/photo-1520975916090-3105956dac38?w=400&q=80&fit=crop",
+      "name": "In the Workshop",
+      "media": "https://media-photos.depop.com/b1/23650457/2595269740_7f6961bea89f4be495b54c6a9545293c/P0.jpg",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop",
-          "title": "Behind the scenes",
-          "description": "Crafting the collection.",
-          "link": "https://example.com/studio"
+          "url": "https://media-photos.depop.com/b1/23650457/2595266825_5cd43c588c6b49468b78e281f3943d9e/P0.jpg",
+          "title": "Handcrafted with Precision",
+          "description": "Each jacket is made by artisans with years of expertise.",
+          "link": "https://example.com/workshop"
         }
       ]
     }
   ],
   "parallax": [
     {
-      "title": "Modern Essentials",
-      "bgImage": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&q=80&fit=crop",
-      "fgImage": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80&fit=crop",
-      "text": "Discover our curated selection of timeless, minimal pieces.",
+      "title": "The Art of Leather",
+      "bgImage": "https://images.unsplash.com/photo-1700168077358-692db90c8b7f?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1470",
+      "fgImage": "https://images.unsplash.com/flagged/photo-1553077212-5be90b05a4de?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687",
+      "text": "Discover leather jackets that age beautifully with you.",
       "cta": { "text": "Shop Now", "href": "/products" }
     },
     {
-      "title": "Sculpted Accessories",
-      "bgImage": "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1200&q=80&fit=crop",
-      "fgImage": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&q=80&fit=crop",
-      "text": "Elevate your look with sculpted bags and refined details."
+      "title": "Every Stitch Matters",
+      "bgImage": "https://images.unsplash.com/photo-1525428262024-54ab5fbe3b5c?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1881",
+      "fgImage": "https://images.unsplash.com/photo-1533050443280-349591143e3b?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=735",
+      "text": "Crafted with precision, designed for durability."
     }
   ],
   "stats": [
-    { "label": "Happy Customers", "value": "150+" },
-    { "label": "Products", "value": "10+" },
-    { "label": "Cities", "value": "Pan India" },
-    { "label": "% Satisfaction", "value": "97" }
+    { "label": "Satisfied Customers", "value": "80+" },
+    { "label": "Jacket Styles", "value": "5+" },
+    { "label": "Shipping", "value": "Pan India" },
+    { "label": "Leather Quality", "value": "100% Genuine" }
   ],
   "features": [
     {
-      "icon": "ShoppingCart",
-      "title": "Easy Shopping",
-      "description": "Browse and purchase products with our intuitive shopping experience"
+      "icon": "ShoppingBag",
+      "title": "Handcrafted Jackets",
+      "description": "Each jacket is meticulously handcrafted by skilled artisans."
     },
     {
-      "icon": "Shield",
-      "title": "Secure Payments",
-      "description": "Your transactions are protected with industry-standard security"
+      "icon": "ShieldCheck",
+      "title": "Genuine Leather Guarantee",
+      "description": "Authentic leather with a lifetime guarantee of durability."
     },
     {
       "icon": "Truck",
-      "title": "Fast Delivery",
-      "description": "Quick and reliable shipping across India with tracking"
+      "title": "Worldwide Shipping",
+      "description": "Reliable, trackable, and fast international shipping."
     },
     {
       "icon": "Headphones",
-      "title": "24/7 Support",
-      "description": "Get help anytime with our dedicated customer support team"
+      "title": "Dedicated Support",
+      "description": "24/7 assistance for your queries and orders."
     },
     {
       "icon": "RotateCcw",
       "title": "Easy Returns",
-      "description": "Hassle-free returns and exchanges within 30 days"
+      "description": "Exchange or return within 14 days — hassle-free."
     },
     {
       "icon": "Star",
-      "title": "Quality Products",
-      "description": "Curated selection of high-quality products from trusted brands"
+      "title": "Luxury Experience",
+      "description": "From packaging to fit — luxury in every detail."
     }
   ],
   "categories": [
-    { "label": "Electronics", "path": "/products?category=electronics" },
-    { "label": "Fashion", "path": "/products?category=fashion" },
-    { "label": "Beauty", "path": "/products?category=beauty" }
+    { "label": "Men’s Jackets", "path": "/products?category=men" },
+    { "label": "Women’s Jackets", "path": "/products?category=women" },
+    { "label": "Biker Collection", "path": "/products?category=biker" },
+    { "label": "Aviator Series", "path": "/products?category=aviator" },
+    { "label": "Limited Editions", "path": "/products?category=limited" }
   ],
   "navigation": [
-    { "path": "/", "label": "All", "icon": "Menu" },
-    { "path": "/products", "label": "Products", "icon": "Package" },
-    { "path": "/about", "label": "About", "icon": "Star" },
-    { "path": "/policies", "label": "Policies", "icon": "Shield" }
+    { "path": "/", "label": "Home", "icon": "Home" },
+    { "path": "/products", "label": "Shop", "icon": "ShoppingBag" },
+    { "path": "/about", "label": "About", "icon": "Info" },
+    { "path": "/contact", "label": "Contact", "icon": "Mail" },
+    { "path": "/policies", "label": "Policies", "icon": "ShieldCheck" }
   ],
   "navbar": {
-    "searchPlaceholder": "Search products...",
+    "searchPlaceholder": "Search leather jackets...",
     "searchPlaceholderMobile": "Search...",
-    "categoryDropdownLabel": "All"
+    "categoryDropdownLabel": "All Jackets"
   },
   "contact": {
     "hero": {
-      "title": "Hey There!",
-      "subtitle": "We'd love to hear from you. Send us a message and we'll respond as soon as possible, and thats a MANs word."
+      "title": "We’d Love to Hear from You",
+      "subtitle": "Reach out to us for product inquiries, sizing help, or feedback — we respond quickly."
     },
     "store": {
       "name": "Nrix7 Store",
@@ -172,28 +189,28 @@
         "enabled": true,
         "type": "google_maps",
         "embedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.1234567890!2d88.4223455!3d22.6429924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f89e43db853bc5%3A0x762f48fc15d259c5!2sRajbari%2C%20Dum%20Dum%2C%20Kolkata%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1234567890123!5m2!1sen!2sin",
-        "linkUrl": "https://www.google.com/maps/place/Rajbari,+Dum+Dum,+Kolkata,+West+Bengal/@22.64253,88.4143218,15z/data=!3m1!4b1!4m6!3m5!1s0x39f89e43db853bc5:0x762f48fc15d259c5!8m2!3d22.6429924!4d88.4223455!16s%2Fg%2F1ttdww36?entry=ttu&g_ep=EgoyMDI1MTAwOC4wIKXMDSoASAFQAw%3D%3D",
+        "linkUrl": "https://www.google.com/maps/place/Rajbari,+Dum+Dum,+Kolkata,+West+Bengal/@22.64253,88.4143218,15z/data=!3m1!4b1!4m6!3m5!1s0x39f89e43db853bc5:0x762f48fc15d259c5!8m2!3d22.6429924!4d88.4223455!16s%2Fg%2F1ttdww36",
         "coordinates": {
           "lat": 22.6429924,
           "lng": 88.4223455
         },
         "placeId": "ChIJ1234567890",
         "placeholder": "Google Maps Placeholder",
-        "description": "Interactive Google Maps showing our store location in Rajbari, Dum Dum, Kolkata.",
+        "description": "Find our Kolkata studio where every leather jacket is crafted.",
         "overlay": {
-          "title": "Visit Our Store",
-          "description": "We're located in Rajbari, Dum Dum, Kolkata. Easy access by metro, bus, or car with parking available.",
+          "title": "Visit Our Workshop",
+          "description": "Stop by to feel the craftsmanship behind every piece.",
           "hours": "Open 10 AM - 9 PM (Mon-Sat)"
         }
       }
     },
     "form": {
-      "title": "Send us a Message",
+      "title": "Send Us a Message",
       "types": [
-        { "value": "inquiry", "label": "General Inquiry" },
-        { "value": "order_problem", "label": "Order Problem" },
+        { "value": "inquiry", "label": "Product Inquiry" },
+        { "value": "custom_order", "label": "Custom Jacket Order" },
         { "value": "return_exchange", "label": "Return/Exchange" },
-        { "value": "bug_report", "label": "Bug Report" }
+        { "value": "support", "label": "Support Request" }
       ],
       "fields": {
         "name": {
@@ -212,7 +229,7 @@
           "required": false
         },
         "type": {
-          "label": "How can we help?",
+          "label": "Inquiry Type",
           "required": true
         },
         "message": {
@@ -232,7 +249,7 @@
       "sections": [
         {
           "icon": "MapPin",
-          "title": "Visit Our Store",
+          "title": "Visit Our Workshop",
           "details": ["Rajbari, Dum Dum", "Kolkata, West Bengal 700028", "India"]
         },
         {
@@ -253,4 +270,4 @@
       ]
     }
   }
-} 
+}
