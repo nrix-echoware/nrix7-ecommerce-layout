@@ -76,7 +76,7 @@ const Products = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 md:pt-16 pb-16 bg-white">
+    <div className="min-h-screen pb-16 bg-white">
       <div className="container mx-auto px-6">
         <div className="text-center mb-8 sm:mb-16">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-light mb-4 text-neutral-900">
@@ -108,10 +108,10 @@ const Products = () => {
 
         <div 
           ref={gridRef}
-          className="max-w-6xl w-full px-1 sm:px-0 mx-auto"
+          className="max-w-6xl w-full px-4 sm:px-0 mx-auto"
         >
-          <div className="hidden sm:block text-sm text-neutral-500 mb-2">{filtered.length} results</div>
-          <div className="divide-y divide-neutral-200">
+          <div className="text-sm text-neutral-500 mb-4 text-center sm:text-left">{filtered.length} results</div>
+          <div className="space-y-6 sm:space-y-0 sm:divide-y sm:divide-neutral-200">
             {filtered.map((product, index) => (
               <div key={`${product.id}-${index}`}>
                 <ProductListItem product={product} />

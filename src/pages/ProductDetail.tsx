@@ -133,7 +133,7 @@ const ProductDetail = () => {
   const uniqueImages = Array.from(allImages);
 
   return (
-    <div className="min-h-screen pt-20 md:pt-16 pb-16 bg-white">
+    <div className="min-h-screen pb-16 bg-white">
       <div className="container mx-auto px-6">
         <Link
           to="/products"
@@ -143,7 +143,7 @@ const ProductDetail = () => {
           Back to Products
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 max-w-6xl mx-auto">
           <div className="space-y-4">
             <div className="relative">
               <img
@@ -154,12 +154,12 @@ const ProductDetail = () => {
               />
             </div>
             {uniqueImages.length > 1 && (
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap justify-center md:justify-start">
                 {uniqueImages.map((image, index) => (
                   <button
                     key={`thumb-${image}`}
                     onClick={() => { setImageOverrideUrl(image); }}
-                    className={`w-16 h-16 rounded overflow-hidden border-2 transition-colors ${imageOverrideUrl === image || (displayImage === image && !imageOverrideUrl)
+                    className={`w-12 h-12 md:w-16 md:h-16 rounded overflow-hidden border-2 transition-colors ${imageOverrideUrl === image || (displayImage === image && !imageOverrideUrl)
                       ? 'border-neutral-900'
                       : 'border-neutral-200 hover:border-neutral-400'
                       }`}
@@ -177,23 +177,25 @@ const ProductDetail = () => {
 
           <div
             ref={contentRef}
-            className="space-y-8"
+            className="space-y-6 md:space-y-8 px-4 md:px-0"
           >
-            <div>
-              <span className="text-sm text-neutral-500 uppercase tracking-wider">
+            <div className="text-center md:text-left space-y-3">
+              <span className="text-sm text-neutral-500 uppercase tracking-wider block">
                 {product.category}
               </span>
-              <h1 className="text-4xl md:text-5xl font-light mt-2 mb-4 text-neutral-900">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-light text-neutral-900 leading-tight">
                 {product.name}
               </h1>
-              <p className="text-3xl font-light text-neutral-900">
+              <p className="text-xl md:text-3xl font-light text-neutral-900">
                 {displayPrice}
               </p>
             </div>
 
-            <p className="text-neutral-600 leading-relaxed">
-              {product.description}
-            </p>
+            <div className="text-center md:text-left">
+              <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
+                {product.description}
+              </p>
+            </div>
 
             {product.variants && product.variants.length > 0 && (
               <VariantSelector
@@ -205,11 +207,11 @@ const ProductDetail = () => {
               />
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-4 text-center md:text-left">
               <button
                 onClick={handleAddToCart}
                 disabled={!canAddToCart}
-                className={`w-full py-4 rounded font-medium transition-all duration-200 ${canAddToCart
+                className={`w-full py-3 md:py-4 rounded font-medium transition-all duration-200 text-sm md:text-base ${canAddToCart
                   ? 'bg-neutral-900 text-white hover:bg-neutral-800'
                   : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
                   }`}
@@ -217,7 +219,7 @@ const ProductDetail = () => {
                 {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
               </button>
 
-              <p className="text-sm text-neutral-500 text-center">
+              <p className="text-xs md:text-sm text-neutral-500">
                 Free shipping on orders over ₹500
               </p>
             </div>

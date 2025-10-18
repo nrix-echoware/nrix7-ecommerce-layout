@@ -28,7 +28,7 @@ const Cart = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen pt-20 md:pt-16 pb-16 bg-white">
+      <div className="min-h-screen pb-16 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center py-16 max-w-md mx-auto">
             <h1 className="text-3xl font-light mb-4 text-neutral-900">Your Cart is Empty</h1>
@@ -48,7 +48,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 md:pt-16 pb-16 bg-white">
+    <div className="min-h-screen pb-16 bg-white">
       <div className="container mx-auto px-6">
         <Link
           to="/products"

@@ -34,6 +34,8 @@ const Navigation = () => {
   const navRef = useRef<HTMLElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const [contactOpen, setContactOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategories, setShowCategories] = useState(false);
@@ -64,14 +66,32 @@ const Navigation = () => {
     if (navRef.current) {
       AnimationController.navbarScrollEffect(navRef.current);
     }
-    // Custom scroll effect for background
+    
+    // Custom scroll effect for background and visibility
     const handleScroll = () => {
-      setScrolled(window.scrollY > 8);
+      const currentScrollY = window.scrollY;
+      const isAtBottom = window.innerHeight + currentScrollY >= document.documentElement.scrollHeight - 100;
+      
+      setScrolled(currentScrollY > 8);
+      
+      // Show navbar when at bottom and scrolling up, or when at top
+      if (isAtBottom && currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      } else if (currentScrollY < 100) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 200) {
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
     };
+    
     window.addEventListener('scroll', handleScroll);
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -94,7 +114,9 @@ const Navigation = () => {
       {/* Main Navigation Bar */}
       <nav
         ref={navRef}
-        className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200"
+        className={`relative z-50 bg-white shadow-sm border-b border-gray-200 transition-transform duration-300 ease-in-out ${
+          isVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
       >
         {/* Top Bar - Commented out to reduce navbar height */}
         {/* <div className="bg-gray-900 text-white py-1">

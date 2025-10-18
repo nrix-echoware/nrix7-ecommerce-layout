@@ -102,7 +102,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-20 md:pt-16">
+    <div className="min-h-screen bg-white">
       <HeroSlider />
 
       {/* Stats Section */}
