@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"nrix7-ecommerce-layout/backend/internal/config"
+	"ecommerce-backend/internal/config"
 )
 
 type AudioContactController struct {
