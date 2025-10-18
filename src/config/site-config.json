@@ -60,7 +60,7 @@
   "loader": {
     "duration": 2.5,
     "particleCount": 20,
-    "animationSpeed": 1.0,
+    "animationSpeed": 3.0,
     "name": " Echoware ",
     "description": "Formerly Nrix | Opensource Ecommerce Platform"
   },

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { gsap } from 'gsap';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 interface TransitionWrapperProps {
   children: React.ReactNode;
@@ -13,6 +15,8 @@ const TransitionWrapper: React.FC<TransitionWrapperProps> = ({ children }) => {
   const [displayLocation, setDisplayLocation] = useState(location);
   const [pendingLocation, setPendingLocation] = useState<typeof location | null>(null);
   const transitionRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<gsap.core.Timeline | null>(null);
+  const loaderConfig = useSelector((state: RootState) => state.siteConfig.config.loader);
 
   // Safety check for initial render
   if (!location || !displayLocation) {
@@ -20,205 +24,126 @@ const TransitionWrapper: React.FC<TransitionWrapperProps> = ({ children }) => {
   }
 
   useEffect(() => {
-    if (location !== displayLocation && !isTransitioning) {
+    if (location !== displayLocation && !isTransitioning && !animationRef.current) {
       // Store the pending location but don't update display yet
       setPendingLocation(location);
       setIsTransitioning(true);
       
-      // Create transition overlay that covers everything
+      // Create glassy broken glass overlay
       const overlay = document.createElement('div');
-      overlay.className = 'fixed inset-0 z-[9999] bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 transform translate-x-full';
-      document.body.appendChild(overlay);
-
-      const panel = document.createElement('div');
-      panel.className = 'fixed inset-0 z-[9998] bg-gradient-to-br from-white via-orange-50 to-white transform translate-x-full';
-      document.body.appendChild(panel);
-
-      // Generate beautiful mathematical patterns
-      const createTransitionPatterns = () => {
-        const patterns = [
-          { type: 'spiral', color: '#f97316', opacity: 0.3 },
-          { type: 'sine', color: '#ea580c', opacity: 0.4 },
-          { type: 'fibonacci', color: '#dc2626', opacity: 0.2 },
-          { type: 'golden', color: '#b91c1c', opacity: 0.3 }
-        ];
-
-        let svgContent = '';
-        patterns.forEach((pattern, index) => {
-          let pathData = '';
+      overlay.className = 'fixed inset-0 z-[9999] opacity-0';
+      overlay.innerHTML = `
+        <div class="absolute inset-0 bg-gradient-to-br from-white/20 via-orange-50/30 to-white/20 backdrop-blur-md">
+          <!-- Broken glass pattern -->
+          <div class="absolute inset-0 opacity-30">
+            <svg width="100%" height="100%" viewBox="0 0 1000 1000" class="absolute inset-0">
+              <defs>
+                <pattern id="brokenGlass" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+                  <path d="M0 0 L200 50 L180 200 L50 180 Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                  <path d="M50 0 L200 100 L150 200 L0 150 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+                  <path d="M100 0 L200 150 L100 200 L0 100 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#brokenGlass)"/>
+            </svg>
+          </div>
           
-          switch (pattern.type) {
-            case 'spiral':
-              // Archimedean spiral
-              pathData = 'M 200 200 ';
-              for (let t = 0; t < 20; t += 0.1) {
-                const r = 5 * t;
-                const x = 200 + r * Math.cos(t);
-                const y = 200 + r * Math.sin(t);
-                pathData += `L ${x} ${y} `;
-              }
-              break;
-            
-            case 'sine':
-              // Sine wave pattern
-              pathData = 'M 0 200 ';
-              for (let x = 0; x <= 400; x += 2) {
-                const y = 200 + 50 * Math.sin(x * 0.02);
-                pathData += `L ${x} ${y} `;
-              }
-              break;
-            
-            case 'fibonacci':
-              // Fibonacci spiral approximation
-              pathData = 'M 200 200 ';
-              let a = 0, b = 1;
-              for (let i = 0; i < 20; i++) {
-                const temp = a + b;
-                a = b;
-                b = temp;
-                const angle = i * 0.5;
-                const radius = a * 2;
-                const x = 200 + radius * Math.cos(angle);
-                const y = 200 + radius * Math.sin(angle);
-                pathData += `L ${x} ${y} `;
-              }
-              break;
-            
-            case 'golden':
-              // Golden ratio rectangles
-              const phi = (1 + Math.sqrt(5)) / 2;
-              pathData = 'M 200 200 ';
-              for (let i = 0; i < 10; i++) {
-                const size = 20 * Math.pow(phi, i);
-                const x = 200 - size / 2;
-                const y = 200 - size / 2;
-                pathData += `M ${x} ${y} L ${x + size} ${y} L ${x + size} ${y + size} L ${x} ${y + size} Z `;
-              }
-              break;
-          }
-
-          svgContent += `<path d="${pathData}" fill="none" stroke="${pattern.color}" stroke-width="1" opacity="${pattern.opacity}" style="animation: drawPath 3s ease-in-out infinite; animation-delay: ${index * 0.5}s;"></path>`;
-        });
-
-        return svgContent;
-      };
-
-      // Add beautiful mathematical patterns to panel
-      panel.innerHTML = `
-        <div class="absolute inset-0 overflow-hidden">
-          <svg width="100%" height="100%" viewBox="0 0 400 400" class="absolute inset-0 opacity-20">
-            ${createTransitionPatterns()}
-          </svg>
+          <!-- Glass shards effect -->
+          <div class="absolute inset-0">
+            <div class="absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-lg transform rotate-12 border border-white/20"></div>
+            <div class="absolute top-1/3 right-1/3 w-24 h-24 bg-white/15 rounded-lg transform -rotate-6 border border-white/25"></div>
+            <div class="absolute bottom-1/4 left-1/3 w-28 h-28 bg-white/8 rounded-lg transform rotate-45 border border-white/15"></div>
+            <div class="absolute bottom-1/3 right-1/4 w-20 h-20 bg-white/12 rounded-lg transform -rotate-12 border border-white/20"></div>
+            <div class="absolute top-1/2 left-1/2 w-16 h-16 bg-white/18 rounded-lg transform rotate-30 border border-white/30"></div>
+          </div>
         </div>
-        <div class="absolute inset-0 bg-gradient-to-br from-orange-100/30 via-white/50 to-orange-100/30"></div>
+        
+        <!-- Content -->
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-2xl flex items-center justify-center transform rotate-3 animate-pulse">
-            <div class="w-10 h-10 bg-white/90 rounded-xl flex items-center justify-center backdrop-blur-sm">
-              <div class="w-5 h-5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-inner"></div>
+          <div class="text-center">
+            <!-- Logo -->
+            <div class="mb-8">
+              <div class="relative">
+                <div class="w-20 h-20 mx-auto bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-2xl flex items-center justify-center transform rotate-3">
+                  <div class="w-12 h-12 bg-white/90 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <div class="w-6 h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-inner"></div>
+                  </div>
+                </div>
+                <div class="absolute inset-0 w-20 h-20 mx-auto bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl blur-xl opacity-50 -z-10"></div>
+              </div>
+            </div>
+            
+            <!-- Text -->
+            <div class="mb-6">
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 bg-clip-text text-transparent mb-2">
+                ${loaderConfig.name}
+              </h1>
+              <p class="text-gray-700 text-base font-light tracking-wide">
+                ${loaderConfig.description}
+              </p>
+            </div>
+            
+            <!-- Simple loading text -->
+            <div class="w-48 mx-auto">
             </div>
           </div>
         </div>
       `;
+      document.body.appendChild(overlay);
 
-      // Add CSS animation for mathematical patterns
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes drawPath {
-          0% { stroke-dasharray: 0 1000; }
-          100% { stroke-dasharray: 1000 0; }
-        }
-      `;
-      document.head.appendChild(style);
-
-      // Animate transition
+      // Animate transition with glassy effect
       const tl = gsap.timeline({
         onComplete: () => {
           // Update the displayed location only after animation completes
-          if (pendingLocation) {
-            setDisplayLocation(pendingLocation);
-            setPendingLocation(null);
-          }
+          setDisplayLocation(location);
+          setPendingLocation(null);
           setIsTransitioning(false);
+          animationRef.current = null;
           
           // Cleanup
           document.body.removeChild(overlay);
-          document.body.removeChild(panel);
-          document.head.removeChild(style);
         }
       });
 
-      tl.to(panel, {
-        x: '0%',
+      // Store animation reference to prevent multiple animations
+      animationRef.current = tl;
+
+      // Simple fade in → fade out
+      tl.to(overlay, {
+        opacity: 1,
         duration: 0.3,
         ease: "power2.inOut"
       })
       .to(overlay, {
-        x: '0%',
-        duration: 0.2,
-        ease: "power2.inOut"
-      }, "-=0.1")
-      .to(overlay, {
-        x: '100%',
-        duration: 0.2,
-        ease: "power2.inOut"
-      })
-      .to(panel, {
-        x: '100%',
+        opacity: 0,
         duration: 0.3,
         ease: "power2.inOut"
-      }, "-=0.1");
+      }, "+=0.5");
     }
-  }, [location, displayLocation, isTransitioning, pendingLocation]);
+  }, [location, displayLocation, isTransitioning, loaderConfig]);
 
   // Show transition overlay when transitioning
     if (isTransitioning) {
-      return (
-        <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-white via-orange-50 to-white">
-          <div className="absolute inset-0 overflow-hidden">
-            <svg width="100%" height="100%" viewBox="0 0 400 400" className="absolute inset-0 opacity-20">
-              <path d="M 200 200 L 200 200 " fill="none" stroke="#f97316" strokeWidth="1" opacity="0.3" style={{animation: 'drawPath 3s ease-in-out infinite', animationDelay: '0s'}}></path>
-              <path d="M 0 200 L 0 200 " fill="none" stroke="#ea580c" strokeWidth="1" opacity="0.4" style={{animation: 'drawPath 3s ease-in-out infinite', animationDelay: '0.5s'}}></path>
-              <path d="M 200 200 L 200 200 " fill="none" stroke="#dc2626" strokeWidth="1" opacity="0.2" style={{animation: 'drawPath 3s ease-in-out infinite', animationDelay: '1s'}}></path>
-              <path d="M 200 200 L 200 200 " fill="none" stroke="#b91c1c" strokeWidth="1" opacity="0.3" style={{animation: 'drawPath 3s ease-in-out infinite', animationDelay: '1.5s'}}></path>
-            </svg>
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-100/30 via-white/50 to-orange-100/30"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-2xl flex items-center justify-center transform rotate-3 animate-pulse">
-              <div className="w-10 h-10 bg-white/90 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <div className="w-5 h-5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-inner"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+      return <div className="fixed inset-0 z-[9999] pointer-events-none"></div>;
     }
 
   return (
-    <>
-      <style>{`
-        @keyframes drawPath {
-          0% { stroke-dasharray: 0 1000; }
-          100% { stroke-dasharray: 1000 0; }
-        }
-      `}</style>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={displayLocation?.pathname || 'default'}
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -30 }}
-          transition={{ 
-            duration: 0.2, 
-            ease: "easeInOut"
-          }}
-          className="relative"
-          ref={transitionRef}
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
-    </>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={displayLocation?.pathname || 'default'}
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -30 }}
+        transition={{ 
+          duration: 0.2, 
+          ease: "easeInOut"
+        }}
+        className="relative"
+        ref={transitionRef}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
