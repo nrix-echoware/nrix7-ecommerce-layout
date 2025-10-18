@@ -57,6 +57,13 @@
     "parallax": true,
     "scrollReveal": true
   },
+  "loader": {
+    "duration": 2.5,
+    "particleCount": 20,
+    "animationSpeed": 1.0,
+    "name": " Echoware ",
+    "description": "Formerly Nrix | Opensource Ecommerce Platform"
+  },
   "reels": [
     {
       "name": "The Legacy Edit",
@@ -271,7 +278,7 @@
     }
   },
   "journey": {
-    "title": "2025 Updates",
+    "title": "Who the fuck are we?",
     "subtitle": "Our Journey from Chayan's MCA Project to the present day. ://echoware.co.in [Multi Tenant Ecommerce (Industry Grade)] | this one [opensource]",
     "entries": [
       {

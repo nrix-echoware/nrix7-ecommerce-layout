@@ -8,9 +8,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimationController } from './utils/animations';
-import LoadingScreen from './components/LoadingScreen';
+import AestheticLoader from './components/AestheticLoader';
+import TransitionWrapper from './components/TransitionWrapper';
 import Navigation from './components/Navigation';
 import CartOverlay from './components/CartOverlay';
+import { useScrollToTop } from './hooks/useScrollToTop';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -46,6 +48,9 @@ function AppContent() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
+  // Scroll to top on route change
+  useScrollToTop();
+
   // Initialize WebSocket connection
   useEffect(() => {
     // WebSocket service is already initialized as a singleton
@@ -62,24 +67,26 @@ function AppContent() {
     <div className="relative">
       {!isAdminPage && <Navigation />}
       <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/voice-contact" element={<VoiceContact />} />
-          <Route path="/policies" element={<Policies />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin/*" element={<AdminPanel />} />
-          <Route path="/admin-panel" element={<AdminPanel />} />
-          <Route path="/how-we-work" element={<DeliveryVisualization />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <TransitionWrapper>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/voice-contact" element={<VoiceContact />} />
+            <Route path="/policies" element={<Policies />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin/*" element={<AdminPanel />} />
+            <Route path="/admin-panel" element={<AdminPanel />} />
+            <Route path="/how-we-work" element={<DeliveryVisualization />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TransitionWrapper>
       </main>
       {!isAdminPage && <CartOverlay />}
     </div>
@@ -110,7 +117,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
+              {isLoading && <AestheticLoader onComplete={handleLoadingComplete} />}
               <AnalyticsTracker />
               <CartHashValidator />
               <AppContent />

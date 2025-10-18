@@ -62,6 +62,38 @@ const About = () => {
 
   useEffect(() => {
     const fetchGitHubData = async () => {
+      const sessionKey = `github_data_${GITHUB_USER}`;
+      
+      // Check if data exists in session storage
+      const cachedData = sessionStorage.getItem(sessionKey);
+      if (cachedData) {
+        try {
+          const { user: cachedUser, repos: cachedRepos, commits: cachedCommits } = JSON.parse(cachedData);
+          setUser(cachedUser);
+          setRepos(cachedRepos);
+          setCommits(cachedCommits);
+          setLoading(false);
+          
+          // Trigger animations for cached data
+          if (reposRef.current) {
+            setTimeout(() => {
+              AnimationController.staggerFadeIn(
+                Array.from(reposRef.current!.children) as HTMLElement[],
+                0.1
+              );
+            }, 300);
+          }
+          if (profileRef.current) {
+            AnimationController.staggerFadeIn([profileRef.current], 0.1);
+          }
+          return;
+        } catch (error) {
+          console.error('Error parsing cached GitHub data:', error);
+          // Continue to fetch fresh data if cache is corrupted
+        }
+      }
+
+      // Fetch fresh data from API
       try {
         const userRes = await fetch(`https://api.github.com/users/${GITHUB_USER}`);
         if (!userRes.ok) {
@@ -94,6 +126,15 @@ const About = () => {
             })
           );
           setCommits(commitsObj);
+          
+          // Cache the data in session storage
+          const dataToCache = {
+            user: userData,
+            repos: data,
+            commits: commitsObj,
+            timestamp: Date.now()
+          };
+          sessionStorage.setItem(sessionKey, JSON.stringify(dataToCache));
         } else {
           setRepos([]);
         }

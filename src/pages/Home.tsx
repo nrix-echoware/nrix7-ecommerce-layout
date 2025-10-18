@@ -221,7 +221,7 @@ const Home: React.FC = () => {
           <div className="container mx-auto max-w-4xl px-4 sm:px-6">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-light text-neutral-900 mb-4 sm:mb-6 md:mb-8">FAQs</h2>
             <div className="space-y-3 sm:space-y-4">
-              {config.faq.map((item, i) => (
+              {config.faq.slice(0, 3).map((item, i) => (
                 <div key={i} className="border rounded p-3 sm:p-4 bg-white">
                   <h3 className="font-medium text-neutral-900 text-sm sm:text-base">{item.question}</h3>
                   <p className="text-neutral-700 mt-1 text-xs sm:text-sm md:text-base">{item.answer}</p>

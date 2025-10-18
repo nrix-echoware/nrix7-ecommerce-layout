@@ -31,6 +31,14 @@ export interface AnimationConfig {
   scrollReveal: boolean;
 }
 
+export interface LoaderConfig {
+  duration: number;
+  particleCount: number;
+  animationSpeed: number;
+  name: string;
+  description: string;
+}
+
 export interface ParallaxSectionConfig {
   title: string;
   bgImage: string;
@@ -170,6 +178,7 @@ export interface SiteConfig {
   featured: FeaturedSectionConfig;
   faq: FAQItem[];
   animations: AnimationConfig;
+  loader: LoaderConfig;
   reels: PromotionalReel[];
   parallax: ParallaxSectionConfig[];
   storeOwner?: StoreOwnerConfig;
@@ -197,6 +206,13 @@ const defaultConfig: SiteConfig = {
     enabled: true,
     parallax: true,
     scrollReveal: true,
+  },
+  loader: {
+    duration: 4.5,
+    particleCount: 15,
+    animationSpeed: 1.2,
+    name: '',
+    description: ''
   },
   reels: [],
   parallax: [],
