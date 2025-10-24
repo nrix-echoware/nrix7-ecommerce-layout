@@ -1,14 +1,2 @@
-# .github/FUNDING.yml
-github: [b33lz3bubTH, souravahmed1]  # GitHub Sponsors usernames
-patreon: souravahmed                # Your Patreon username (optional)
-open_collective:                    # Your Open Collective slug (optional)
-ko_fi: souravahmed                  # Ko-fi username (optional)
-tidelift:                           # For package maintainers (npm/pypi)
-community_bridge:                   # For open source foundations
-liberapay:                          # For Liberapay
-issuehunt:                          # For IssueHunt
-lfx_crowdfunding:                   # For LFX
-polar:                              # For Polar.sh
-buy_me_a_coffee: souravahmed        # For Buy Me a Coffee username
-thanks_dev:                         # For thanks.dev
+github: b33lz3bubTH
 custom: ['https://echoware.co.in', 'https://souravahmed.vercel.app']
