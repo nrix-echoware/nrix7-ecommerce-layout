@@ -4,6 +4,7 @@ import (
     "context"
     "ecommerce-backend/core/products"
     "errors"
+    "github.com/sirupsen/logrus"
 )
 
 type OrderService interface {
@@ -34,21 +35,123 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
     }
     backendTotal := 0
     for _, it := range items {
-        // Prefer variant price if available; otherwise product price
+        // Always use database price - never trust frontend price
         p, err := s.productRepo.GetByID(ctx, it.ProductID)
         if err != nil {
             return "", 0, err
         }
-        unit := p.Price
-        if it.VariantID != "" {
-            for _, v := range p.Variants {
-                if v.ID == it.VariantID {
-                    unit = v.Price
-                    break
+        
+        var unit int
+        var variantMatched bool
+        var matchedVariantID string
+        
+        // Case 1: Product has variants
+        if len(p.Variants) > 0 {
+            if it.VariantID != "" {
+                // Explicit variant ID provided - use it
+                variantMatched = false
+                for _, v := range p.Variants {
+                    if v.ID == it.VariantID {
+                        unit = v.Price
+                        variantMatched = true
+                        matchedVariantID = v.ID
+                        logrus.WithFields(logrus.Fields{
+                            "order_item": it.ProductID,
+                            "variant_id": it.VariantID,
+                            "variant_price": unit,
+                            "quantity": it.Quantity,
+                            "match_type": "explicit_variant_id",
+                        }).Info("Variant matched by explicit ID")
+                        break
+                    }
+                }
+                if !variantMatched {
+                    logrus.WithFields(logrus.Fields{
+                        "order_item": it.ProductID,
+                        "variant_id": it.VariantID,
+                        "available_variants": len(p.Variants),
+                    }).Error("Variant ID not found, falling back to price matching")
+                    // Fall through to price matching
                 }
             }
+            // If VariantSKU provided, try to match by SKU
+            if !variantMatched && it.VariantSKU != "" {
+                for _, v := range p.Variants {
+                    if v.SKU == it.VariantSKU {
+                        unit = v.Price
+                        variantMatched = true
+                        matchedVariantID = v.ID
+                        logrus.WithFields(logrus.Fields{
+                            "order_item": it.ProductID,
+                            "variant_sku": it.VariantSKU,
+                            "matched_variant_id": v.ID,
+                            "variant_price": unit,
+                            "quantity": it.Quantity,
+                            "match_type": "sku_match",
+                        }).Info("Variant matched by SKU")
+                        break
+                    }
+                }
+            }
+            
+            // Case 2: No variant ID but variants exist - match by price
+            if it.VariantID == "" || !variantMatched {
+                variantMatched = false
+                for _, v := range p.Variants {
+                    if v.Price == it.Price {
+                        unit = v.Price
+                        variantMatched = true
+                        matchedVariantID = v.ID
+                        logrus.WithFields(logrus.Fields{
+                            "order_item": it.ProductID,
+                            "frontend_price": it.Price,
+                            "matched_variant_id": v.ID,
+                            "variant_price": unit,
+                            "quantity": it.Quantity,
+                            "match_type": "price_match",
+                        }).Info("Variant matched by price")
+                        break
+                    }
+                }
+                if !variantMatched {
+                    prices := make([]int, len(p.Variants))
+                    for i, v := range p.Variants {
+                        prices[i] = v.Price
+                    }
+                    logrus.WithFields(logrus.Fields{
+                        "order_item": it.ProductID,
+                        "frontend_price": it.Price,
+                        "available_variants": len(p.Variants),
+                        "available_variant_prices": prices,
+                    }).Error("No variant matched by price, using product base price")
+                    unit = p.Price
+                }
+            }
+        } else {
+            // Case 3: Product has no variants - use product base price
+            unit = p.Price
+            logrus.WithFields(logrus.Fields{
+                "order_item": it.ProductID,
+                "product_price": unit,
+                "quantity": it.Quantity,
+                "match_type": "no_variants",
+            }).Info("Product has no variants, using base price")
         }
+        
         backendTotal += unit * it.Quantity
+        
+        // Log price mismatch for audit
+        if it.Price != unit {
+            logrus.WithFields(logrus.Fields{
+                "order_item": it.ProductID,
+                "variant_id_sent": it.VariantID,
+                "variant_id_matched": matchedVariantID,
+                "frontend_price": it.Price,
+                "db_price": unit,
+                "quantity": it.Quantity,
+                "has_variants": len(p.Variants) > 0,
+            }).Warn("Price mismatch: frontend price differs from database price")
+        }
     }
 
     o := &Order{UserID: userID, FrontendTotal: frontendTotal, BackendTotal: backendTotal, CurrentStatus: "pending"}

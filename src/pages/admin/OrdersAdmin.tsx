@@ -103,8 +103,8 @@ export default function OrdersAdmin() {
                     </Link>
                   </td>
                   <td className="p-3">{o.user_id}</td>
-                  <td className="p-3 text-right">₹{(o.frontend_total/100).toFixed(2)}</td>
-                  <td className="p-3 text-right">₹{(o.backend_total/100).toFixed(2)}</td>
+                  <td className="p-3 text-right">₹{o.frontend_total.toFixed(2)}</td>
+                  <td className="p-3 text-right">₹{o.backend_total.toFixed(2)}</td>
                   <td className="p-3">{o.current_status}</td>
                   <td className="p-3">{new Date(o.created_at).toLocaleString()}</td>
                 </tr>

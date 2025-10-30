@@ -67,6 +67,14 @@ export async function listOrders(skip = 0, take = 10, adminKey?: string) {
   return res.json();
 }
 
+export async function getOrder(id: string, adminKey?: string) {
+  const res = await fetch(`${API_BASE}/orders/${id}`, {
+    headers: adminKey ? { "X-Admin-API-Key": adminKey } : undefined,
+  });
+  if (!res.ok) throw new Error(`getOrder failed: ${res.status}`);
+  return res.json();
+}
+
 export async function listMyOrders(skip = 0, take = 10) {
   const token = TokenManager.getAccessToken();
   const res = await fetch(`${API_BASE}/user/orders?skip=${skip}&take=${take}`, {
@@ -120,9 +128,9 @@ export async function requestRefund(orderId: string) {
 export function cartToOrderItems(cart: CartItem[]): CreateOrderItemReq[] {
   return cart.map((c) => ({
     product_id: c.productId || c.id,
-    // variant id not tracked explicitly in cart; leave undefined
+    variant_id: c.productId && c.id && c.id !== c.productId ? c.id : undefined,
     quantity: c.quantity,
-    price: c.price,
+    price: Math.round(c.price), // Price in rupees as integer
   }));
 }
 

@@ -103,7 +103,7 @@ const Checkout = () => {
         phone: formData.phone,
         postal_code: formData.zipCode,
       };
-      await createUserOrder({ items: itemsReq, shipping, total });
+      await createUserOrder({ items: itemsReq, shipping, total: Math.round(total) });
       setShowSuccess(true);
       if (successRef.current) {
         AnimationController.staggerFadeIn([successRef.current], 0.1);

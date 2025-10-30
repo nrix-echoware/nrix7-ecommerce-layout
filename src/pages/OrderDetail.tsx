@@ -26,8 +26,8 @@ interface ShippingAddress {
 interface Order {
   id: string;
   user_id: string;
-  items_json: string;
-  shipping_json: string;
+  items_json: string | OrderItem[] | any;
+  shipping_json: string | ShippingAddress | any;
   frontend_total: number;
   backend_total: number;
   current_status: string;
@@ -125,8 +125,22 @@ export default function OrderDetail() {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-600">{error}</div>;
   if (!order) return null;
 
-  const items: OrderItem[] = JSON.parse(order.items_json || '[]');
-  const shipping: ShippingAddress = JSON.parse(order.shipping_json || '{}');
+  const parseJsonField = <T,>(field: any, defaultValue: T): T => {
+    if (!field) return defaultValue;
+    if (typeof field === 'string') {
+      try {
+        return JSON.parse(field) as T;
+      } catch {
+        return defaultValue;
+      }
+    }
+    return field as T;
+  };
+
+  const items: OrderItem[] = Array.isArray(order.items_json) 
+    ? order.items_json 
+    : parseJsonField<OrderItem[]>(order.items_json, []);
+  const shipping: ShippingAddress = parseJsonField(order.shipping_json, {} as ShippingAddress);
   const canCancel = order.current_status !== 'order_delivered' && order.current_status !== 'agent_out_for_delivery' && order.current_status !== 'user_cancelled';
   const deliveredEvent = events.find(e => e.status === 'order_delivered');
   const canRefund = deliveredEvent && (() => {
@@ -176,8 +190,8 @@ export default function OrderDetail() {
                       <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">₹{(item.price * item.quantity / 100).toFixed(2)}</div>
-                      <div className="text-sm text-gray-600">₹{(item.price / 100).toFixed(2)} each</div>
+                      <div className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</div>
+                      <div className="text-sm text-gray-600">₹{item.price.toFixed(2)} each</div>
                     </div>
                   </div>
                 ))}
@@ -207,7 +221,7 @@ export default function OrderDetail() {
               <div className="text-right space-y-2">
                 <div className="text-sm text-gray-600">Total</div>
                 <div className="text-3xl font-semibold text-neutral-900">
-                  ₹{(order.backend_total / 100).toFixed(2)}
+                  ₹{order.backend_total.toFixed(2)}
                 </div>
               </div>
             </div>

@@ -25,6 +25,7 @@ func NewController(s OrderService, authMW gin.HandlerFunc) *Controller {
 type createOrderItem struct {
     ProductID string `json:"product_id" validate:"required"`
     VariantID string `json:"variant_id"`
+    VariantSKU string `json:"variant_sku"`
     Quantity  int    `json:"quantity" validate:"gt=0"`
     Price     int    `json:"price" validate:"gte=0"`
 }
@@ -80,7 +81,7 @@ func (c *Controller) Create(ctx *gin.Context) {
     }
     items := make([]OrderItem, len(req.Items))
     for i, it := range req.Items {
-        items[i] = OrderItem{ProductID: it.ProductID, VariantID: it.VariantID, Quantity: it.Quantity, Price: it.Price}
+        items[i] = OrderItem{ProductID: it.ProductID, VariantID: it.VariantID, VariantSKU: it.VariantSKU, Quantity: it.Quantity, Price: it.Price}
     }
     id, backendTotal, err := c.svc.Create(context.Background(), req.UserID, items, req.Shipping, req.FrontendTotal)
     if err != nil {
@@ -123,7 +124,7 @@ func (c *Controller) CreateForUser(ctx *gin.Context) {
     }
     items := make([]OrderItem, len(req.Items))
     for i, it := range req.Items {
-        items[i] = OrderItem{ProductID: it.ProductID, VariantID: it.VariantID, Quantity: it.Quantity, Price: it.Price}
+        items[i] = OrderItem{ProductID: it.ProductID, VariantID: it.VariantID, VariantSKU: it.VariantSKU, Quantity: it.Quantity, Price: it.Price}
     }
     id, backendTotal, err := c.svc.Create(context.Background(), userUUID.String(), items, req.Shipping, req.FrontendTotal)
     if err != nil {

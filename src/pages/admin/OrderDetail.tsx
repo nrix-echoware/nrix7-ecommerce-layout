@@ -39,7 +39,7 @@ export default function OrderDetail() {
       setLoading(true);
       setError(null);
       try {
-        const o = await getOrder(id);
+        const o = await getOrder(id, ADMIN_API_KEY);
         const s = await listOrderStatus(id, ADMIN_API_KEY);
         if (!mounted) return;
         setOrder(o as Order);
@@ -79,8 +79,8 @@ export default function OrderDetail() {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div><span className="text-gray-600">ID:</span> {order.id}</div>
               <div><span className="text-gray-600">User:</span> {order.user_id}</div>
-              <div><span className="text-gray-600">Frontend Total:</span> ₹{(order.frontend_total/100).toFixed(2)}</div>
-              <div><span className="text-gray-600">Backend Total:</span> ₹{(order.backend_total/100).toFixed(2)}</div>
+              <div><span className="text-gray-600">Frontend Total:</span> ₹{order.frontend_total.toFixed(2)}</div>
+              <div><span className="text-gray-600">Backend Total:</span> ₹{order.backend_total.toFixed(2)}</div>
               <div><span className="text-gray-600">Status:</span> {order.current_status}</div>
               <div><span className="text-gray-600">Created:</span> {new Date(order.created_at).toLocaleString()}</div>
             </div>

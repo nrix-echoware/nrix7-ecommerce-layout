@@ -11,6 +11,7 @@ import (
 type OrderItem struct {
     ProductID string `json:"product_id"`
     VariantID string `json:"variant_id"`
+    VariantSKU string `json:"variant_sku"`
     Quantity  int    `json:"quantity"`
     Price     int    `json:"price"` // price per unit from frontend for audit
 }

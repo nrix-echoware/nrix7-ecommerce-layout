@@ -2,7 +2,7 @@
 FROM golang:1.25-alpine AS builder
 
 # Install dependencies
-RUN apk add --no-cache git build-base sqlite-dev openssl nss-tools
+RUN apk add git build-base sqlite-dev openssl nss-tools
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo \
 # ---------- Runtime stage ----------
 FROM alpine:latest
 
-RUN apk add --no-cache ca-certificates sqlite-libs nss-tools
+RUN apk add ca-certificates sqlite-libs nss-tools
 RUN addgroup -g 1001 -S appuser && adduser -u 1001 -S appuser -G appuser
 
 WORKDIR /app

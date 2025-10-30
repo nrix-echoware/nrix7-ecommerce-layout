@@ -11,6 +11,7 @@ interface Order {
   backend_total: number;
   current_status: string;
   created_at: string;
+  items_json?: string | any[];
 }
 
 export default function Orders() {
@@ -99,9 +100,21 @@ export default function Orders() {
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-semibold text-neutral-900">
-                          ₹{(order.backend_total / 100).toFixed(2)}
+                          ₹{order.backend_total.toFixed(2)}
                         </div>
-                        <div className="text-sm text-gray-600">{order.items_json ? JSON.parse(order.items_json).length : 0} items</div>
+                        <div className="text-sm text-gray-600">
+                          {(() => {
+                            if (!order.items_json) return '0 items';
+                            try {
+                              const items = typeof order.items_json === 'string' 
+                                ? JSON.parse(order.items_json) 
+                                : order.items_json;
+                              return Array.isArray(items) ? `${items.length} items` : '0 items';
+                            } catch {
+                              return '0 items';
+                            }
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </Link>
