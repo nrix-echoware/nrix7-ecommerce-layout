@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Package, MessageSquare, LogOut, Mail, Bell, Volume2 } from 'lucide-react';
+import { Package, MessageSquare, LogOut, Mail, Bell, Volume2, ShoppingCart } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -12,6 +12,7 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
 
   const navItems = [
     { path: '/admin/products', label: 'Products', icon: Package },
+    { path: '/admin/orders', label: 'Orders', icon: ShoppingCart },
     { path: '/admin/comments', label: 'Comments', icon: MessageSquare },
     { path: '/admin/contacts', label: 'Contact Us', icon: Mail },
     { path: '/admin/audio-contacts', label: 'Audio Contacts', icon: Volume2 },

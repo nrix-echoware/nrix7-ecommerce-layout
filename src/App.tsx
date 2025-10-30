@@ -27,6 +27,8 @@ import AdminPanel from './pages/AdminPanel';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
+import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
 import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
 import { CartHashValidator } from './components/CartHashValidator';
@@ -81,6 +83,8 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/:id" element={<OrderDetail />} />
             <Route path="/admin/*" element={<AdminPanel />} />
             <Route path="/admin-panel" element={<AdminPanel />} />
             <Route path="/how-we-work" element={<DeliveryVisualization />} />

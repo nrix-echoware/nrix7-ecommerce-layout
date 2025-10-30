@@ -7,6 +7,7 @@ import { CheckoutForm } from '../types/checkout';
 import { AnimationController } from '../utils/animations';
 import { ArrowLeft, Check, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { cartToOrderItems, createUserOrder } from '../api/ordersApi';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -89,16 +90,31 @@ const Checkout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setShowSuccess(true);
-    if (successRef.current) {
-      AnimationController.staggerFadeIn([successRef.current], 0.1);
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
     }
-    setTimeout(() => {
-      dispatch(clearCart());
-      navigate('/');
-    }, 3000);
+    setIsSubmitting(true);
+    try {
+      const itemsReq = cartToOrderItems(items);
+      const shipping = {
+        full_name: formData.fullName,
+        line1: formData.address,
+        phone: formData.phone,
+        postal_code: formData.zipCode,
+      };
+      await createUserOrder({ items: itemsReq, shipping, total });
+      setShowSuccess(true);
+      if (successRef.current) {
+        AnimationController.staggerFadeIn([successRef.current], 0.1);
+      }
+      setTimeout(() => {
+        dispatch(clearCart());
+        navigate('/');
+      }, 2000);
+    } catch (err) {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: keyof CheckoutForm, value: string) => {

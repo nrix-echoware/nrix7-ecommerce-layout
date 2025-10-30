@@ -262,6 +262,14 @@ const Navigation = () => {
                                 My Profile
                               </Link>
                               <Link
+                                to="/orders"
+                                onClick={() => setShowAccountMenu(false)}
+                                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                              >
+                                <Package className="h-4 w-4" />
+                                My Orders
+                              </Link>
+                              <Link
                                 to="/settings"
                                 onClick={() => setShowAccountMenu(false)}
                                 className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -546,6 +554,14 @@ const Navigation = () => {
                       >
                         <User size={20} />
                         <span className="font-medium">My Profile</span>
+                      </Link>
+                      <Link
+                        to="/orders"
+                        className="flex items-center space-x-3 text-gray-700 hover:text-orange-500"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Package size={20} />
+                        <span className="font-medium">My Orders</span>
                       </Link>
                       <Link
                         to="/settings"
