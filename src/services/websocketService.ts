@@ -58,7 +58,7 @@ class WebSocketService {
         ? (window.location.protocol === 'https:' ? 'wss:' : 'ws:')
         : 'wss:';
       const host = window.location.hostname;
-      const port = process.env.NODE_ENV === 'production' ? '' : ':9997';
+      const port = process.env.NODE_ENV === 'production' ? '' : ':6660';
       const wsUrl = `${protocol}//${host}${port}/ws`;
       console.log('WebSocket connecting to:', wsUrl);
 

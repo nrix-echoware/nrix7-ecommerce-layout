@@ -6,7 +6,8 @@ import {
   getAudioContactsByStatus, 
   updateAudioContactStatus, 
   deleteAudioContact, 
-  getAudioContactStats 
+  getAudioContactStats,
+  API_BASE_URL
 } from '../../api/audioContactApi';
 
 interface AudioContact {
@@ -129,7 +130,8 @@ export default function AudioContactManagement({ onAuthError }: AudioContactMana
       }
 
       // Play new audio
-      const audio = new Audio(audioContact.audio_url);
+      const audioUrl = API_BASE_URL + "/" + audioContact.audio_url.split("/").splice(-3).join("/"); 
+      const audio = new Audio(audioUrl);
       audio.addEventListener('ended', () => {
         setCurrentPlayingId(null);
         setAudioElement(null);

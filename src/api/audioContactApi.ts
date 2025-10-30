@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:9997';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:9997';
 
 export interface AudioContactRequest {
   email: string;
