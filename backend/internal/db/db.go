@@ -4,6 +4,7 @@ import (
 	"context"
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
+	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
@@ -43,6 +44,9 @@ func InitDB() {
 	}
 	if err := DB.AutoMigrate(&audiocontact.AudioContact{}); err != nil {
 		logrus.Fatalf("failed to migrate audio contact tables: %v", err)
+	}
+	if err := DB.AutoMigrate(&orders.Order{}, &orders.OrderStatusEvent{}); err != nil {
+		logrus.Fatalf("failed to migrate orders tables: %v", err)
 	}
 
 	// Initialize cart invalidation hash if not exists

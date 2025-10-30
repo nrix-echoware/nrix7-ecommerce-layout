@@ -78,6 +78,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   return (
     <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-[100dvw] bg-gradient-to-br from-gray-50 to-blue-50">
@@ -120,10 +121,23 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 </GlassInputWrapper>
               </div>
 
-              <div className="animate-element animate-delay-600 flex items-center text-sm">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" name="agreeTerms" className="custom-checkbox" />
-                  <span className="text-gray-700">I agree to the <a href="/policies" target="_blank" className="text-violet-600 hover:underline">Terms of Service</a> and <a href="/policies" target="_blank" className="text-violet-600 hover:underline">Privacy Policy</a></span>
+              <div className="animate-element animate-delay-600 flex items-center text-sm gap-3">
+                <input
+                  id="agreeTerms"
+                  type="checkbox"
+                  name="agreeTerms"
+                  className="h-4 w-4 rounded border-gray-300 accent-violet-600"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                />
+                <label htmlFor="agreeTerms" className="cursor-pointer text-gray-700 select-none">
+                  I agree to the{' '}
+                  <a href="/policies" target="_blank" className="text-violet-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                    Terms of Service
+                  </a>{' '}and{' '}
+                  <a href="/policies" target="_blank" className="text-violet-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                    Privacy Policy
+                  </a>
                 </label>
               </div>
 

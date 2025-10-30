@@ -4,6 +4,7 @@ import (
 	"ecommerce-backend/common/security"
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
+	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
@@ -62,6 +63,17 @@ func main() {
 	productSvc := products.NewProductService(productRepo, cartInvalidationRepo)
 	productCtrl := products.NewProductController(productSvc)
 
+    // Initialize Users module (before orders to inject auth)
+    userRepo := users.NewUserRepository(db.DB)
+    userSvc := users.NewUserService(userRepo)
+    userCtrl := users.NewUserController(userSvc)
+
+    // Initialize Orders module
+    orderRepo := orders.NewOrderRepository(db.DB)
+    orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
+    orderSvc := orders.NewOrderService(orderRepo, orderStatusRepo, productRepo)
+    orderCtrl := orders.NewController(orderSvc, userCtrl.AuthMiddleware(), productRepo, userRepo)
+
 	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)
 	commentRateLimiter := security.NewCommentRateLimiter(db.DB)
 	defer commentRateLimiter.Stop() // Cleanup on shutdown
@@ -74,10 +86,7 @@ func main() {
 	analyticsSvc := analytics.NewService(analyticsRepo)
 	analyticsCtrl := analytics.NewController(analyticsSvc)
 
-	// Initialize Users module
-	userRepo := users.NewUserRepository(db.DB)
-	userSvc := users.NewUserService(userRepo)
-	userCtrl := users.NewUserController(userSvc)
+    // Users already initialized above
 
 	// Initialize Newsletter module
 	newsletterRepo := newsletter.NewNewsletterRepository(db.DB)
@@ -117,6 +126,7 @@ func main() {
 
 	ctrl.RegisterRoutes(r)
 	productCtrl.RegisterRoutes(r)
+	orderCtrl.RegisterRoutes(r)
 	commentCtrl.RegisterRoutes(r)
 	analyticsCtrl.RegisterRoutes(r)
 	userCtrl.RegisterRoutes(r)
@@ -128,7 +138,10 @@ func main() {
 
 	// Start server
 	logrus.Info("Server running on :9997")
-	if err := r.RunTLS(":9997", "cert/cert.pem", "cert/key.pem"); err != nil {
+	// if err := r.RunTLS(":9997", "cert/cert.pem", "cert/key.pem"); err != nil {
+	// 	logrus.Fatal(err)
+	// }
+	if err := r.Run(":9997"); err != nil {
 		logrus.Fatal(err)
 	}
 }

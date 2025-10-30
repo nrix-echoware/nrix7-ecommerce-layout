@@ -86,6 +86,19 @@ func RateLimitMiddleware(controllerName string) gin.HandlerFunc {
 		setting = cfg.RateLimit.Default
 	}
 	limiter := newRateLimiter(setting.Post, setting.Get, time.Minute)
+    // path prefixes to scope limiter to this controller only
+    var prefixes []string
+    switch controllerName {
+    case "contactus":
+        prefixes = []string{"/contactus"}
+    case "products":
+        prefixes = []string{"/products"}
+    case "audiocontact":
+        prefixes = []string{"/api/audio-contact", "/api/audio", "/api/admin/audio-contacts"}
+    default:
+        // If unknown, apply to all paths (fallback)
+        prefixes = nil
+    }
 	// Clean up old visitors periodically
 	go func() {
 		for {
@@ -99,7 +112,22 @@ func RateLimitMiddleware(controllerName string) gin.HandlerFunc {
 			limiter.mu.Unlock()
 		}
 	}()
-	return func(c *gin.Context) {
+    return func(c *gin.Context) {
+        // If prefixes specified, only enforce for matching paths
+        if len(prefixes) > 0 {
+            path := c.Request.URL.Path
+            matched := false
+            for _, p := range prefixes {
+                if len(path) >= len(p) && path[:len(p)] == p {
+                    matched = true
+                    break
+                }
+            }
+            if !matched {
+                c.Next()
+                return
+            }
+        }
 		ip := clientIP(c)
 		v := limiter.getVisitor(ip)
 		var allowed bool
