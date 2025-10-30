@@ -72,7 +72,7 @@ func main() {
     orderRepo := orders.NewOrderRepository(db.DB)
     orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
     orderSvc := orders.NewOrderService(orderRepo, orderStatusRepo, productRepo)
-    orderCtrl := orders.NewController(orderSvc, userCtrl.AuthMiddleware())
+    orderCtrl := orders.NewController(orderSvc, userCtrl.AuthMiddleware(), productRepo, userRepo)
 
 	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)
 	commentRateLimiter := security.NewCommentRateLimiter(db.DB)

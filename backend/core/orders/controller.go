@@ -4,22 +4,27 @@ import (
     "context"
     "encoding/json"
     "ecommerce-backend/internal/config"
+    "ecommerce-backend/core/products"
+    "ecommerce-backend/core/users"
     "github.com/gin-gonic/gin"
     "github.com/go-playground/validator/v10"
     "github.com/google/uuid"
     "github.com/sirupsen/logrus"
     "net/http"
     "strconv"
+    "time"
 )
 
 type Controller struct {
-    svc       OrderService
-    validate  *validator.Validate
-    authMW    gin.HandlerFunc
+    svc         OrderService
+    validate    *validator.Validate
+    authMW      gin.HandlerFunc
+    productRepo products.ProductRepository
+    userRepo    users.UserRepository
 }
 
-func NewController(s OrderService, authMW gin.HandlerFunc) *Controller {
-    return &Controller{svc: s, validate: validator.New(), authMW: authMW}
+func NewController(s OrderService, authMW gin.HandlerFunc, pr products.ProductRepository, ur users.UserRepository) *Controller {
+    return &Controller{svc: s, validate: validator.New(), authMW: authMW, productRepo: pr, userRepo: ur}
 }
 
 type createOrderItem struct {
@@ -248,7 +253,72 @@ func (c *Controller) Get(ctx *gin.Context) {
         ctx.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
         return
     }
-    ctx.JSON(http.StatusOK, o)
+    type enrichedItem struct {
+        ProductID   string            `json:"product_id"`
+        VariantID   string            `json:"variant_id"`
+        VariantSKU  string            `json:"variant_sku"`
+        Quantity    int               `json:"quantity"`
+        Price       int               `json:"price"`
+        ProductName string            `json:"product_name"`
+        VariantPrice int              `json:"variant_price"`
+        VariantAttrs map[string]string `json:"variant_attributes"`
+    }
+    type adminDetail struct {
+        ID            string         `json:"id"`
+        UserID        string         `json:"user_id"`
+        BackendTotal  int            `json:"backend_total"`
+        FrontendTotal int            `json:"frontend_total"`
+        CurrentStatus string         `json:"current_status"`
+        CreatedAt     string         `json:"created_at"`
+        Items         []enrichedItem `json:"items"`
+        Shipping      any            `json:"shipping"`
+    }
+    var items []OrderItem
+    _ = json.Unmarshal(o.ItemsJSON, &items)
+    enriched := make([]enrichedItem, 0, len(items))
+    for _, it := range items {
+        ei := enrichedItem{
+            ProductID: it.ProductID,
+            VariantID: it.VariantID,
+            VariantSKU: it.VariantSKU,
+            Quantity: it.Quantity,
+            Price: it.Price,
+        }
+        if p, err := c.productRepo.GetByID(context.Background(), it.ProductID); err == nil {
+            ei.ProductName = p.Name
+            if it.VariantID != "" {
+                for _, v := range p.Variants {
+                    if v.ID == it.VariantID {
+                        ei.VariantPrice = v.Price
+                        var attrsArr []map[string]string
+                        _ = json.Unmarshal(v.Attributes, &attrsArr)
+                        attrs := make(map[string]string)
+                        for _, kv := range attrsArr {
+                            if name, ok := kv["name"]; ok {
+                                attrs[name] = kv["value"]
+                            }
+                        }
+                        ei.VariantAttrs = attrs
+                        break
+                    }
+                }
+            }
+        }
+        enriched = append(enriched, ei)
+    }
+    var shipping any
+    _ = json.Unmarshal(o.ShippingJSON, &shipping)
+    resp := adminDetail{
+        ID: o.ID,
+        UserID: o.UserID,
+        BackendTotal: o.BackendTotal,
+        FrontendTotal: o.FrontendTotal,
+        CurrentStatus: o.CurrentStatus,
+        CreatedAt: o.CreatedAt.Format(time.RFC3339),
+        Items: enriched,
+        Shipping: shipping,
+    }
+    ctx.JSON(http.StatusOK, resp)
 }
 
 func (c *Controller) List(ctx *gin.Context) {
@@ -259,7 +329,36 @@ func (c *Controller) List(ctx *gin.Context) {
         ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
-    ctx.JSON(http.StatusOK, list)
+    type adminListItem struct {
+        ID           string `json:"id"`
+        UserEmail    string `json:"user_email"`
+        BackendTotal int    `json:"backend_total"`
+        CurrentStatus string `json:"current_status"`
+        CreatedAt    string `json:"created_at"`
+        TotalItems   int    `json:"total_items"`
+    }
+    resp := make([]adminListItem, 0, len(list))
+    for _, o := range list {
+        userEmail := ""
+        if u, err := c.userRepo.GetByID(context.Background(), uuid.MustParse(o.UserID)); err == nil {
+            userEmail = u.Email
+        }
+        var items []OrderItem
+        _ = json.Unmarshal(o.ItemsJSON, &items)
+        totalQty := 0
+        for _, it := range items {
+            totalQty += it.Quantity
+        }
+        resp = append(resp, adminListItem{
+            ID: o.ID,
+            UserEmail: userEmail,
+            BackendTotal: o.BackendTotal,
+            CurrentStatus: o.CurrentStatus,
+            CreatedAt: o.CreatedAt.Format(time.RFC3339),
+            TotalItems: totalQty,
+        })
+    }
+    ctx.JSON(http.StatusOK, resp)
 }
 
 type statusReq struct {

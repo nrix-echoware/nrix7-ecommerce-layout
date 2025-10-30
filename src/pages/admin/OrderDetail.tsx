@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { appendOrderStatus, getOrder, listOrderStatus } from '../../api/ordersApi';
+import { fetchProductById } from '../../api/productsApi';
 import { useParams, Link } from 'react-router-dom';
 
-const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
+const ADMIN_KEY_STORAGE = 'admin_api_key';
 
 interface Order {
   id: string;
@@ -11,8 +12,17 @@ interface Order {
   backend_total: number;
   current_status: string;
   created_at: string;
-  items_json?: string;
-  shipping_json?: string;
+  items?: Array<{
+    product_id: string;
+    variant_id?: string;
+    variant_sku?: string;
+    quantity: number;
+    price: number;
+    product_name?: string;
+    variant_price?: number;
+    variant_attributes?: Record<string,string> | null;
+  }>;
+  shipping?: any;
 }
 
 interface StatusEvent {
@@ -31,6 +41,7 @@ export default function OrderDetail() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState('');
   const [reason, setReason] = useState('');
+  const [productsMap, setProductsMap] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (!id) return;
@@ -39,11 +50,27 @@ export default function OrderDetail() {
       setLoading(true);
       setError(null);
       try {
-        const o = await getOrder(id, ADMIN_API_KEY);
-        const s = await listOrderStatus(id, ADMIN_API_KEY);
+        const adminKey = sessionStorage.getItem(ADMIN_KEY_STORAGE) || undefined;
+        const o = await getOrder(id, adminKey || undefined);
+        const s = await listOrderStatus(id, adminKey || undefined);
         if (!mounted) return;
         setOrder(o as Order);
         setEvents(s as StatusEvent[]);
+        const items = (o as any).items as Order['items'] | undefined;
+        if (items && items.length > 0) {
+          const uniqueIds = Array.from(new Set(items.map(i => i.product_id)));
+          const entries = await Promise.all(uniqueIds.map(async pid => {
+            try {
+              const p = await fetchProductById(pid);
+              return [pid, p] as const;
+            } catch {
+              return [pid, null] as const;
+            }
+          }));
+          const map: Record<string, any> = {};
+          for (const [pid, p] of entries) map[pid] = p;
+          setProductsMap(map);
+        }
       } catch (e: any) {
         if (!mounted) return;
         setError(e?.message || 'Failed to load');
@@ -58,8 +85,9 @@ export default function OrderDetail() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !status) return;
-    await appendOrderStatus(id, status, reason || undefined, ADMIN_API_KEY);
-    const s = await listOrderStatus(id, ADMIN_API_KEY);
+    const adminKey = sessionStorage.getItem(ADMIN_KEY_STORAGE) || undefined;
+    await appendOrderStatus(id, status, reason || undefined, adminKey || undefined);
+    const s = await listOrderStatus(id, adminKey || undefined);
     setEvents(s as StatusEvent[]);
     setStatus('');
     setReason('');
@@ -83,6 +111,45 @@ export default function OrderDetail() {
               <div><span className="text-gray-600">Backend Total:</span> ₹{order.backend_total.toFixed(2)}</div>
               <div><span className="text-gray-600">Status:</span> {order.current_status}</div>
               <div><span className="text-gray-600">Created:</span> {new Date(order.created_at).toLocaleString()}</div>
+            </div>
+          </div>
+
+          <div className="border rounded p-4">
+            <h2 className="font-semibold text-lg mb-2">Products</h2>
+            <div className="space-y-3">
+              {order.items?.map((it, idx) => {
+                const p = productsMap[it.product_id];
+                let image = '';
+                let currentPrice = p?.price;
+                if (p?.variants && p.variants.length > 0) {
+                  const v = p.variants.find((vv: any) => vv.id === it.variant_id);
+                  if (v) {
+                    currentPrice = v.price;
+                    image = v.image;
+                  }
+                }
+                if (!image && p?.images && p.images.length > 0) image = p.images[0];
+                return (
+                  <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border">
+                    {image ? <img src={image} className="w-16 h-16 object-cover rounded" /> : <div className="w-16 h-16 bg-gray-200 rounded" />}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{(it as any).product_name || p?.name || it.product_id}</div>
+                      {it.variant_attributes && (
+                        <div className="text-xs text-gray-600 mt-1">
+                          {Object.entries(it.variant_attributes).map(([k,v]) => `${k}: ${v}`).join(', ')}
+                        </div>
+                      )}
+                      <div className="text-sm text-gray-600 mt-1">Qty: {it.quantity}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600">Ordered price</div>
+                      <div className="font-semibold">₹{(it.price * it.quantity).toFixed(2)}</div>
+                      <div className="text-xs text-gray-500 mt-1">Current price: ₹{Number(currentPrice ?? 0).toFixed(2)}</div>
+                    </div>
+                  </div>
+                );
+              })}
+              {!order.items?.length && <div className="text-gray-500 text-sm">No items</div>}
             </div>
           </div>
 

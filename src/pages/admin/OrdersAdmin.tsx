@@ -2,15 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { listOrders, listOrderStatus } from '../../api/ordersApi';
 import { Link } from 'react-router-dom';
 
-const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
+const ADMIN_KEY_STORAGE = 'admin_api_key';
 
 interface OrderRow {
   id: string;
-  user_id: string;
-  frontend_total: number;
+  user_email: string;
   backend_total: number;
   current_status: string;
   created_at: string;
+  total_items: number;
 }
 
 export default function OrdersAdmin() {
@@ -27,7 +27,8 @@ export default function OrdersAdmin() {
       setLoading(true);
       setError(null);
       try {
-        const data = await listOrders(skip, take, ADMIN_API_KEY);
+        const adminKey = sessionStorage.getItem(ADMIN_KEY_STORAGE) || undefined;
+        const data = await listOrders(skip, take, adminKey || undefined);
         if (!mounted) return;
         setOrders(data as OrderRow[]);
       } catch (e: any) {
@@ -88,8 +89,8 @@ export default function OrdersAdmin() {
               <tr>
                 <th className="text-left p-3">ID</th>
                 <th className="text-left p-3">User</th>
-                <th className="text-right p-3">Frontend Total</th>
                 <th className="text-right p-3">Backend Total</th>
+                <th className="text-right p-3">Items</th>
                 <th className="text-left p-3">Status</th>
                 <th className="text-left p-3">Created</th>
               </tr>
@@ -102,9 +103,9 @@ export default function OrdersAdmin() {
                       {o.id.slice(0, 8)}...
                     </Link>
                   </td>
-                  <td className="p-3">{o.user_id}</td>
-                  <td className="p-3 text-right">₹{o.frontend_total.toFixed(2)}</td>
-                  <td className="p-3 text-right">₹{o.backend_total.toFixed(2)}</td>
+                  <td className="p-3">{o.user_email}</td>
+                  <td className="p-3 text-right">₹{o.backend_total?.toFixed ? o.backend_total.toFixed(2) : Number(o.backend_total).toFixed(2)}</td>
+                  <td className="p-3 text-right">{o.total_items}</td>
                   <td className="p-3">{o.current_status}</td>
                   <td className="p-3">{new Date(o.created_at).toLocaleString()}</td>
                 </tr>
