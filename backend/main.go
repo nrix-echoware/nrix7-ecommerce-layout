@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"ecommerce-backend/common/security"
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
@@ -13,6 +14,9 @@ import (
 	"ecommerce-backend/core/websocket"
 	"ecommerce-backend/internal/config"
 	"ecommerce-backend/internal/db"
+	"ecommerce-backend/internal/plugin_manager"
+	orderHandlers "ecommerce-backend/internal/plugin_manager/handlers/orders"
+	productHandlers "ecommerce-backend/internal/plugin_manager/handlers/products"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -68,10 +72,28 @@ func main() {
     userSvc := users.NewUserService(userRepo)
     userCtrl := users.NewUserController(userSvc)
 
+	// Initialize Plugin Manager
+	pm := plugin_manager.NewManager(100)
+	plugin_manager.AutoRegister(pm, []plugin_manager.Plugin{
+		orderHandlers.NewDiscordPlugin(""),
+		orderHandlers.NewTelegramPlugin("", ""),
+		productHandlers.NewDiscordPlugin(""),
+	})
+	pm.SetHooks(plugin_manager.Hooks{
+		BeforeEmit: func(event plugin_manager.Event) {
+			logrus.Infof("[PluginManager] Emitting event: %s -> %s", event.Name, event.Target)
+		},
+	})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go pm.RunForever(ctx)
+
+	eventAdapter := plugin_manager.NewEventEmitterAdapter(pm)
+
     // Initialize Orders module
     orderRepo := orders.NewOrderRepository(db.DB)
     orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
-    orderSvc := orders.NewOrderService(orderRepo, orderStatusRepo, productRepo)
+    orderSvc := orders.NewOrderServiceWithEvents(orderRepo, orderStatusRepo, productRepo, eventAdapter)
     orderCtrl := orders.NewController(orderSvc, userCtrl.AuthMiddleware(), productRepo, userRepo)
 
 	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)

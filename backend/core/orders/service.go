@@ -7,6 +7,10 @@ import (
     "github.com/sirupsen/logrus"
 )
 
+type EventEmitter interface {
+    Emit(event interface{})
+}
+
 type OrderService interface {
     Create(ctx context.Context, userID string, items []OrderItem, ship ShippingAddress, frontendTotal int) (string, int, error)
     Get(ctx context.Context, id string) (*Order, error)
@@ -20,13 +24,18 @@ type OrderService interface {
 }
 
 type orderService struct {
-    ordersRepo  OrderRepository
-    statusRepo  OrderStatusRepository
-    productRepo products.ProductRepository
+    ordersRepo   OrderRepository
+    statusRepo   OrderStatusRepository
+    productRepo  products.ProductRepository
+    eventEmitter EventEmitter
 }
 
 func NewOrderService(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository) OrderService {
-    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr}
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: nil}
+}
+
+func NewOrderServiceWithEvents(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository, emitter EventEmitter) OrderService {
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter}
 }
 
 func (s *orderService) Create(ctx context.Context, userID string, items []OrderItem, ship ShippingAddress, frontendTotal int) (string, int, error) {
@@ -162,6 +171,20 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
     }
     // initial status event
     _ = s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: o.ID, Status: o.CurrentStatus, Reason: "order created"})
+    
+    // Emit plugin event
+    if s.eventEmitter != nil {
+        s.eventEmitter.Emit(map[string]interface{}{
+            "name":   "order.created",
+            "target": "discord-orders",
+            "data": map[string]interface{}{
+                "order_id": o.ID,
+                "user_id":  userID,
+                "total":    backendTotal,
+            },
+        })
+    }
+    
     return o.ID, backendTotal, nil
 }
 
@@ -188,7 +211,24 @@ func (s *orderService) AppendStatus(ctx context.Context, id string, status, reas
     if err := s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: id, Status: status, Reason: reason}); err != nil {
         return err
     }
-    return s.ordersRepo.UpdateCurrentStatus(ctx, id, status)
+    if err := s.ordersRepo.UpdateCurrentStatus(ctx, id, status); err != nil {
+        return err
+    }
+    
+    // Emit plugin event
+    if s.eventEmitter != nil {
+        s.eventEmitter.Emit(map[string]interface{}{
+            "name":   "order.updated",
+            "target": "discord-orders",
+            "data": map[string]interface{}{
+                "order_id": id,
+                "status":   status,
+                "reason":   reason,
+            },
+        })
+    }
+    
+    return nil
 }
 
 func (s *orderService) ListStatuses(ctx context.Context, id string) ([]OrderStatusEvent, error) {

@@ -10,7 +10,9 @@ fix issues then update the todo and run again the cycle of coding, when everythi
 make sure this frontend app is following all the best practice
 
 ## in progress
-
+- [ ] Write Unit Tests: For Manager, Plugin, and Event flow
+- [ ] Add Logging Middleware: Wrap plugins with decorator for centralized logging
+- [ ] Refactor to SOLID: Ensure each plugin follows SRP and OCP
 
 ## in progress fixes
 - []
