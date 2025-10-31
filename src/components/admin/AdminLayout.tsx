@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Package, MessageSquare, LogOut, Mail, Bell, Volume2, ShoppingCart } from 'lucide-react';
+import { Package, MessageSquare, LogOut, Mail, Bell, Volume2, ShoppingCart, KeyRound } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -17,6 +17,7 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
     { path: '/admin/contacts', label: 'Contact Us', icon: Mail },
     { path: '/admin/audio-contacts', label: 'Audio Contacts', icon: Volume2 },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
+    { path: '/admin/password-reset', label: 'Password Reset', icon: KeyRound },
   ];
 
   return (

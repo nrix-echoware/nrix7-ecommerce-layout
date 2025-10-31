@@ -37,6 +37,13 @@ type UserRepository interface {
 	DeleteSession(ctx context.Context, sessionToken string) error
 	DeleteAllUserSessions(ctx context.Context, userID uuid.UUID) error
 	CleanupExpiredSessions(ctx context.Context) error
+
+	// Password reset token operations
+	CreatePasswordResetToken(ctx context.Context, token *PasswordResetToken) error
+	GetPasswordResetToken(ctx context.Context, token string) (*PasswordResetToken, error)
+	MarkPasswordResetTokenAsUsed(ctx context.Context, token string) error
+	RevokeUnusedTokensForUser(ctx context.Context, userID uuid.UUID) error
+	CleanupExpiredPasswordResetTokens(ctx context.Context) error
 }
 
 type userRepository struct {
@@ -202,4 +209,39 @@ func (r *userRepository) DeleteAllUserSessions(ctx context.Context, userID uuid.
 func (r *userRepository) CleanupExpiredSessions(ctx context.Context) error {
 	return r.db.WithContext(ctx).Where("expires_at < ?", time.Now()).
 		Delete(&UserSession{}).Error
+}
+
+// Password reset token operations
+
+func (r *userRepository) CreatePasswordResetToken(ctx context.Context, token *PasswordResetToken) error {
+	return r.db.WithContext(ctx).Create(token).Error
+}
+
+func (r *userRepository) GetPasswordResetToken(ctx context.Context, token string) (*PasswordResetToken, error) {
+	var resetToken PasswordResetToken
+	err := r.db.WithContext(ctx).
+		Where("token = ? AND is_used = ? AND expires_at > ?", token, false, time.Now()).
+		Preload("User").
+		First(&resetToken).Error
+	if err != nil {
+		return nil, err
+	}
+	return &resetToken, nil
+}
+
+func (r *userRepository) MarkPasswordResetTokenAsUsed(ctx context.Context, token string) error {
+	return r.db.WithContext(ctx).Model(&PasswordResetToken{}).
+		Where("token = ?", token).
+		Update("is_used", true).Error
+}
+
+func (r *userRepository) RevokeUnusedTokensForUser(ctx context.Context, userID uuid.UUID) error {
+	return r.db.WithContext(ctx).Model(&PasswordResetToken{}).
+		Where("user_id = ? AND is_used = ?", userID, false).
+		Update("is_used", true).Error
+}
+
+func (r *userRepository) CleanupExpiredPasswordResetTokens(ctx context.Context) error {
+	return r.db.WithContext(ctx).Where("expires_at < ? OR is_used = ?", time.Now(), true).
+		Delete(&PasswordResetToken{}).Error
 }

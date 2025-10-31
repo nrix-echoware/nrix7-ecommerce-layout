@@ -29,6 +29,7 @@ import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
+import ForgetPassword from './pages/ForgetPassword';
 import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
 import { CartHashValidator } from './components/CartHashValidator';
@@ -85,6 +86,7 @@ function AppContent() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/:id" element={<OrderDetail />} />
+            <Route path="/forgetpassword" element={<ForgetPassword />} />
             <Route path="/admin/*" element={<AdminPanel />} />
             <Route path="/admin-panel" element={<AdminPanel />} />
             <Route path="/how-we-work" element={<DeliveryVisualization />} />

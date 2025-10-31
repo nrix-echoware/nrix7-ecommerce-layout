@@ -2,10 +2,12 @@ package users
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
 
+	"ecommerce-backend/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -247,6 +249,62 @@ func (c *UserController) ChangePassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
 }
 
+func (c *UserController) GeneratePasswordResetToken(ctx *gin.Context) {
+	var req GeneratePasswordResetTokenRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	response, err := c.service.GeneratePasswordResetToken(context.Background(), req.Email)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get current domain from request
+	protocol := "http"
+	if ctx.Request.TLS != nil {
+		protocol = "https"
+	}
+	host := ctx.Request.Host
+	if host == "" {
+		host = "localhost:8080" // fallback
+	}
+	resetLink := fmt.Sprintf("%s://%s/forgetpassword?token=%s", protocol, host, response.Token)
+	response.ResetLink = resetLink
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (c *UserController) ResetPassword(ctx *gin.Context) {
+	var req ResetPasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := c.service.ResetPassword(context.Background(), &req)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+func adminKeyMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		expected := config.Get().AdminAPIKey
+		provided := c.GetHeader("X-Admin-API-Key")
+		if expected == "" || provided == "" || provided != expected {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+		c.Next()
+	}
+}
+
 // Auth me endpoint - get current user info from token
 func (c *UserController) AuthMe(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
@@ -276,6 +334,14 @@ func (c *UserController) RegisterRoutes(r *gin.Engine) {
 	r.POST("/auth/signup", c.SignUp)
 	r.POST("/auth/signin", c.SignIn)
 	r.POST("/auth/refresh", c.RefreshToken)
+	r.POST("/api/reset-password", c.ResetPassword)
+
+	// Admin routes (require admin API key)
+	admin := r.Group("/admin")
+	admin.Use(adminKeyMiddleware())
+	{
+		admin.POST("/password-reset/generate", c.GeneratePasswordResetToken)
+	}
 
 	// Protected routes (require authentication)
 	auth := r.Group("/auth")
