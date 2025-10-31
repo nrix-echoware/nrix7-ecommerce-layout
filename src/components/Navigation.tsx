@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import ContactUsModal from './ContactUsModal';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationBell from './NotificationBell';
 
 const Navigation = () => {
   const location = useLocation();
@@ -312,6 +313,9 @@ const Navigation = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Notifications */}
+                {isAuthenticated && <NotificationBell isAdmin={false} />}
 
                 {/* Cart */}
                 <button

@@ -12,6 +12,10 @@ type EventEmitter interface {
     Emit(event interface{})
 }
 
+type ThreadCreator interface {
+    CreateThreadForOrder(ctx context.Context, orderID string) error
+}
+
 type OrderService interface {
     Create(ctx context.Context, userID string, items []OrderItem, ship ShippingAddress, frontendTotal int) (string, int, error)
     Get(ctx context.Context, id string) (*Order, error)
@@ -25,18 +29,23 @@ type OrderService interface {
 }
 
 type orderService struct {
-    ordersRepo   OrderRepository
-    statusRepo   OrderStatusRepository
-    productRepo  products.ProductRepository
-    eventEmitter EventEmitter
+    ordersRepo    OrderRepository
+    statusRepo    OrderStatusRepository
+    productRepo   products.ProductRepository
+    eventEmitter  EventEmitter
+    threadCreator ThreadCreator
 }
 
 func NewOrderService(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository) OrderService {
-    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: nil}
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: nil, threadCreator: nil}
 }
 
 func NewOrderServiceWithEvents(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository, emitter EventEmitter) OrderService {
-    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter}
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter, threadCreator: nil}
+}
+
+func NewOrderServiceWithChat(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository, emitter EventEmitter, tc ThreadCreator) OrderService {
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter, threadCreator: tc}
 }
 
 func (s *orderService) Create(ctx context.Context, userID string, items []OrderItem, ship ShippingAddress, frontendTotal int) (string, int, error) {
@@ -71,7 +80,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                             "variant_price": unit,
                             "quantity": it.Quantity,
                             "match_type": "explicit_variant_id",
-                        }).Info("Variant matched by explicit ID")
+                        }).Info("variant matched by explicit ID")
                         break
                     }
                 }
@@ -80,7 +89,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                         "order_item": it.ProductID,
                         "variant_id": it.VariantID,
                         "available_variants": len(p.Variants),
-                    }).Error("Variant ID not found, falling back to price matching")
+                    }).Error("variant ID not found, falling back to price matching")
                     // Fall through to price matching
                 }
             }
@@ -98,7 +107,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                             "variant_price": unit,
                             "quantity": it.Quantity,
                             "match_type": "sku_match",
-                        }).Info("Variant matched by SKU")
+                        }).Info("variant matched by SKU")
                         break
                     }
                 }
@@ -119,7 +128,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                             "variant_price": unit,
                             "quantity": it.Quantity,
                             "match_type": "price_match",
-                        }).Info("Variant matched by price")
+                        }).Info("variant matched by price")
                         break
                     }
                 }
@@ -133,7 +142,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                         "frontend_price": it.Price,
                         "available_variants": len(p.Variants),
                         "available_variant_prices": prices,
-                    }).Error("No variant matched by price, using product base price")
+                    }).Error("no variant matched by price, using product base price")
                     unit = p.Price
                 }
             }
@@ -145,7 +154,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                 "product_price": unit,
                 "quantity": it.Quantity,
                 "match_type": "no_variants",
-            }).Info("Product has no variants, using base price")
+            }).Info("product has no variants, using base price")
         }
         
         backendTotal += unit * it.Quantity
@@ -160,7 +169,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                 "db_price": unit,
                 "quantity": it.Quantity,
                 "has_variants": len(p.Variants) > 0,
-            }).Warn("Price mismatch: frontend price differs from database price")
+            }).Warn("price mismatch: frontend price differs from database price")
         }
     }
 
@@ -172,6 +181,11 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
     }
     // initial status event
     _ = s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: o.ID, Status: o.CurrentStatus, Reason: "order created"})
+    
+    // Auto-create chat thread
+    if s.threadCreator != nil {
+        _ = s.threadCreator.CreateThreadForOrder(ctx, o.ID)
+    }
     
     // Emit plugin event
     if s.eventEmitter != nil {

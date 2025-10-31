@@ -10,11 +10,25 @@ fix issues then update the todo and run again the cycle of coding, when everythi
 make sure this frontend app is following all the best practice
 
 ## in progress
+- [ ] the media in messages, doesnt store a mimetype, so restrict in endpoint for only pictures, and for uploading also restrict it to be just picture. so that doesnt matter what kind of picture <img src=blob> will render it.
+- [ ] very huge problem, in controllers, for all resources, there is custom and repetative implementation of jwt extraction and jwt validation for users, and rootkey validation for routes. everything is fine, but these things needs to be unified, so it needs to be fixed.
 
 ## in progress fixes
 - []
 
 ## complete
+- [x] Create Thread and Message models in core/chat module
+- [x] Create ThreadRepository and MessageRepository with CRUD operations
+- [x] Create ThreadService and MessageService with business logic
+- [x] Integrate auto-thread creation in orders service when order is created
+- [x] Create SSE hub for admin and user event streaming
+- [x] Implement Admin SSE endpoint (GET /admin/sse)
+- [x] Implement User SSE endpoint (GET /users/sse/notification/:user_id)
+- [x] Create ChatController with thread and message endpoints
+- [x] Add file upload support for messages (≤5MB)
+- [x] Integrate SSE event emissions on message creation and thread closure
+- [x] Add thread closure endpoint (admin only)
+- [x] Integrate chat routes in main.go
 - [x] Create constants for order status codes, event names, and plugin targets in common/constants
 - [x] Replace all direct string uses with constants throughout the codebase for order statuses, events, and plugin targets
 - [x] users can view there orders based on jwt, extract user id from jwt and send there own order data in a paginated way

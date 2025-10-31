@@ -5,6 +5,7 @@ import (
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
 	"ecommerce-backend/core/orders"
+	chat "ecommerce-backend/core/chat"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
@@ -47,6 +48,10 @@ func InitDB() {
 	}
 	if err := DB.AutoMigrate(&orders.Order{}, &orders.OrderStatusEvent{}); err != nil {
 		logrus.Fatalf("failed to migrate orders tables: %v", err)
+	}
+	
+	if err := DB.AutoMigrate(&chat.Thread{}, &chat.Message{}); err != nil {
+		logrus.Fatalf("failed to migrate chat tables: %v", err)
 	}
 
 	// Initialize cart invalidation hash if not exists

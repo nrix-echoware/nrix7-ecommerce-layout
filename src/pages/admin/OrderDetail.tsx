@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { appendOrderStatus, getOrder, listOrderStatus } from '../../api/ordersApi';
 import { fetchProductById } from '../../api/productsApi';
 import { useParams, Link } from 'react-router-dom';
+import OrderChatWidget from '../../components/OrderChatWidget';
 
 const ADMIN_KEY_STORAGE = 'admin_api_key';
 
@@ -197,6 +198,7 @@ export default function OrderDetail() {
           </div>
         </div>
       )}
+      {id && <OrderChatWidget orderId={id} isAdmin={true} />}
     </div>
   );
 }

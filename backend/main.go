@@ -6,6 +6,7 @@ import (
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
 	"ecommerce-backend/core/orders"
+	chat "ecommerce-backend/core/chat"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
@@ -90,11 +91,23 @@ func main() {
 
 	eventAdapter := plugin_manager.NewEventEmitterAdapter(pm)
 
-    // Initialize Orders module
+    // Initialize Orders module (needed for chat)
     orderRepo := orders.NewOrderRepository(db.DB)
     orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
-    orderSvc := orders.NewOrderServiceWithEvents(orderRepo, orderStatusRepo, productRepo, eventAdapter)
+
+	// Initialize Chat module
+	sseHub := chat.NewSSEHub()
+	sseEmitter := chat.NewSSEEventEmitter(sseHub)
+	threadRepo := chat.NewThreadRepository(db.DB)
+	messageRepo := chat.NewMessageRepository(db.DB)
+	threadSvc := chat.NewThreadService(threadRepo, sseEmitter)
+	messageSvc := chat.NewMessageService(messageRepo, threadRepo, orderRepo, sseEmitter)
+	threadCreatorAdapter := chat.NewThreadCreatorAdapter(threadSvc)
+
+	orderSvc := orders.NewOrderServiceWithChat(orderRepo, orderStatusRepo, productRepo, eventAdapter, threadCreatorAdapter)
     orderCtrl := orders.NewController(orderSvc, userCtrl.AuthMiddleware(), productRepo, userRepo)
+	
+	chatCtrl := chat.NewChatController(threadSvc, messageSvc, orderRepo, userRepo, userCtrl.AuthMiddleware(), sseHub)
 
 	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)
 	commentRateLimiter := security.NewCommentRateLimiter(db.DB)
@@ -154,6 +167,7 @@ func main() {
 	userCtrl.RegisterRoutes(r)
 	newsletterCtrl.RegisterRoutes(r)
 	wsCtrl.RegisterRoutes(r)
+	chatCtrl.RegisterRoutes(r)
 	
 	// Register audio contact routes
 	audioContactCtrl.RegisterRoutes(r)

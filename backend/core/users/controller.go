@@ -25,25 +25,40 @@ func NewUserController(service UserService) *UserController {
 // Middleware to extract and validate JWT token
 func (c *UserController) AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		var tokenString string
+		
+		// Try header first (for regular requests)
 		authHeader := ctx.GetHeader("Authorization")
-		if authHeader == "" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+		if authHeader != "" {
+			// Extract token from "Bearer <token>"
+			tokenParts := strings.Split(authHeader, " ")
+			if len(tokenParts) == 2 && tokenParts[0] == "Bearer" {
+				tokenString = tokenParts[1]
+			}
+		}
+		
+		// Fallback to query parameter (for SSE)
+		if tokenString == "" {
+			tokenString = ctx.Query("token")
+			if tokenString != "" {
+				// Log that we're using query parameter (only log for SSE endpoints to avoid spam)
+				if strings.Contains(ctx.Request.URL.Path, "/sse") {
+					fmt.Printf("[AuthMiddleware] Using token from query parameter for SSE: %s\n", ctx.Request.URL.Path)
+				}
+			}
+		}
+		
+		if tokenString == "" {
+			fmt.Printf("[AuthMiddleware] No token found for path: %s\n", ctx.Request.URL.Path)
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization required"})
 			ctx.Abort()
 			return
 		}
 
-		// Extract token from "Bearer <token>"
-		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
-			ctx.Abort()
-			return
-		}
-
-		tokenString := tokenParts[1]
 		claims, err := c.service.ValidateToken(context.Background(), tokenString)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			fmt.Printf("[AuthMiddleware] Token validation failed for path %s: %v\n", ctx.Request.URL.Path, err)
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token", "details": err.Error()})
 			ctx.Abort()
 			return
 		}
