@@ -33,8 +33,9 @@ import ForgetPassword from './pages/ForgetPassword';
 import DeliveryVisualization from './components/DeliveryVisualization';
 import { logVisitor } from './api/analyticsApi';
 import { CartHashValidator } from './components/CartHashValidator';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { websocketService } from './services/websocketService';
+import { sseService } from './services/sseService';
 import axios from 'axios';
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ function AnalyticsTracker() {
 
 function AppContent() {
   const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
   const isAdminPage = location.pathname.startsWith('/admin');
 
   // Scroll to top on route change
@@ -65,6 +67,24 @@ function AppContent() {
       websocketService.disconnect();
     };
   }, []);
+
+  // Initialize SSE connections
+  useEffect(() => {
+    if (isAdminPage) {
+      sseService.connectAdmin();
+      return () => sseService.disconnectAdmin();
+    }
+    
+    if (isAuthenticated && user?.id) {
+      sseService.connectUser(user.id);
+      return () => sseService.disconnectUser();
+    }
+    
+    return () => {
+      sseService.disconnectAdmin();
+      sseService.disconnectUser();
+    };
+  }, [location.pathname, isAuthenticated, user?.id, isAdminPage]);
 
   return (
     <div className="relative">
