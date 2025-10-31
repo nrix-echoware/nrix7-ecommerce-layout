@@ -2,6 +2,7 @@ package orders
 
 import (
     "encoding/json"
+    "ecommerce-backend/common/constants"
     "github.com/google/uuid"
     "gorm.io/datatypes"
     "gorm.io/gorm"
@@ -65,31 +66,26 @@ type OrderStatusEvent struct {
 
 // Allowed statuses for validation
 var AllowedStatuses = map[string]struct{}{
-    // ORDER PLACED
-    "pending":               {},
-    "canceled":              {},
-    "rejected":              {},
-    "rejected_by_user":      {},
-    // SELLER DISPATCH
-    "seller_notified":       {},
-    "seller_processing":     {},
-    "seller_waiting_dispatch": {},
-    "seller_dispatched":     {},
-    // SHIPPING AGENT
-    "agent_picked":          {},
-    "agent_transporting":    {},
-    "agent_out_for_delivery": {},
-    "order_delivered":       {},
-    // USERS
-    "user_cancelled_on_arrival": {},
-    "user_cancelled":           {},
-    "user_returned":            {},
-    // PAYMENT DISPUTE / REFUND FLOW
-    "user_returning":        {},
-    "user_return_received":  {},
-    "user_refund_initiated": {},
-    "user_refund_failed":    {},
-    "user_refund_processed": {},
+    constants.ORDER_STATUS_PENDING:                  {},
+    constants.ORDER_STATUS_CANCELED:                 {},
+    constants.ORDER_STATUS_REJECTED:                 {},
+    constants.ORDER_STATUS_REJECTED_BY_USER:         {},
+    constants.ORDER_STATUS_SELLER_NOTIFIED:          {},
+    constants.ORDER_STATUS_SELLER_PROCESSING:        {},
+    constants.ORDER_STATUS_SELLER_WAITING_DISPATCH:  {},
+    constants.ORDER_STATUS_SELLER_DISPATCHED:        {},
+    constants.ORDER_STATUS_AGENT_PICKED:             {},
+    constants.ORDER_STATUS_AGENT_TRANSPORTING:      {},
+    constants.ORDER_STATUS_AGENT_OUT_FOR_DELIVERY:   {},
+    constants.ORDER_STATUS_ORDER_DELIVERED:           {},
+    constants.ORDER_STATUS_USER_CANCELLED_ON_ARRIVAL: {},
+    constants.ORDER_STATUS_USER_CANCELLED:           {},
+    constants.ORDER_STATUS_USER_RETURNED:            {},
+    constants.ORDER_STATUS_USER_RETURNING:           {},
+    constants.ORDER_STATUS_USER_RETURN_RECEIVED:     {},
+    constants.ORDER_STATUS_USER_REFUND_INITIATED:    {},
+    constants.ORDER_STATUS_USER_REFUND_FAILED:       {},
+    constants.ORDER_STATUS_USER_REFUND_PROCESSED:     {},
 }
 
 

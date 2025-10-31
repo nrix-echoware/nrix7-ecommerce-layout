@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"ecommerce-backend/common/constants"
 	"ecommerce-backend/internal/plugin_manager"
 )
 
@@ -18,14 +19,14 @@ func NewDiscordPlugin(botKey string) *DiscordPlugin {
 }
 
 func (d *DiscordPlugin) Name() string {
-	return "discord-products"
+	return constants.PLUGIN_TARGET_DISCORD_PRODUCTS
 }
 
 func (d *DiscordPlugin) HandleEvent(ctx context.Context, event plugin_manager.Event) error {
 	switch event.Name {
-	case "product.created":
+	case constants.EVENT_PRODUCT_CREATED:
 		return d.onProductCreated(ctx, event)
-	case "product.deleted":
+	case constants.EVENT_PRODUCT_DELETED:
 		return d.onProductDeleted(ctx, event)
 	default:
 		return nil

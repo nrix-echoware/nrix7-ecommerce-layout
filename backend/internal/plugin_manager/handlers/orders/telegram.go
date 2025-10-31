@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"ecommerce-backend/common/constants"
 	"ecommerce-backend/internal/plugin_manager"
 )
 
@@ -20,14 +21,14 @@ func NewTelegramPlugin(botToken, chatID string) *TelegramPlugin {
 }
 
 func (t *TelegramPlugin) Name() string {
-	return "telegram-orders"
+	return constants.PLUGIN_TARGET_TELEGRAM_ORDERS
 }
 
 func (t *TelegramPlugin) HandleEvent(ctx context.Context, event plugin_manager.Event) error {
 	switch event.Name {
-	case "order.created":
+	case constants.EVENT_ORDER_CREATED:
 		return t.onOrderCreated(ctx, event)
-	case "order.updated":
+	case constants.EVENT_ORDER_UPDATED:
 		return t.onOrderUpdated(ctx, event)
 	default:
 		return nil
