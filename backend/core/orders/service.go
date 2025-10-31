@@ -2,10 +2,15 @@ package orders
 
 import (
     "context"
+    "ecommerce-backend/common/constants"
     "ecommerce-backend/core/products"
     "errors"
     "github.com/sirupsen/logrus"
 )
+
+type EventEmitter interface {
+    Emit(event interface{})
+}
 
 type OrderService interface {
     Create(ctx context.Context, userID string, items []OrderItem, ship ShippingAddress, frontendTotal int) (string, int, error)
@@ -20,13 +25,18 @@ type OrderService interface {
 }
 
 type orderService struct {
-    ordersRepo  OrderRepository
-    statusRepo  OrderStatusRepository
-    productRepo products.ProductRepository
+    ordersRepo   OrderRepository
+    statusRepo   OrderStatusRepository
+    productRepo  products.ProductRepository
+    eventEmitter EventEmitter
 }
 
 func NewOrderService(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository) OrderService {
-    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr}
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: nil}
+}
+
+func NewOrderServiceWithEvents(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository, emitter EventEmitter) OrderService {
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter}
 }
 
 func (s *orderService) Create(ctx context.Context, userID string, items []OrderItem, ship ShippingAddress, frontendTotal int) (string, int, error) {
@@ -154,7 +164,7 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
         }
     }
 
-    o := &Order{UserID: userID, FrontendTotal: frontendTotal, BackendTotal: backendTotal, CurrentStatus: "pending"}
+    o := &Order{UserID: userID, FrontendTotal: frontendTotal, BackendTotal: backendTotal, CurrentStatus: constants.ORDER_STATUS_PENDING}
     o.SetItems(items)
     o.SetShipping(ship)
     if err := s.ordersRepo.Create(ctx, o); err != nil {
@@ -162,6 +172,20 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
     }
     // initial status event
     _ = s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: o.ID, Status: o.CurrentStatus, Reason: "order created"})
+    
+    // Emit plugin event
+    if s.eventEmitter != nil {
+        s.eventEmitter.Emit(map[string]interface{}{
+            "name":   constants.EVENT_ORDER_CREATED,
+            "target": constants.PLUGIN_TARGET_DISCORD_ORDERS,
+            "data": map[string]interface{}{
+                "order_id": o.ID,
+                "user_id":  userID,
+                "total":    backendTotal,
+            },
+        })
+    }
+    
     return o.ID, backendTotal, nil
 }
 
@@ -188,7 +212,24 @@ func (s *orderService) AppendStatus(ctx context.Context, id string, status, reas
     if err := s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: id, Status: status, Reason: reason}); err != nil {
         return err
     }
-    return s.ordersRepo.UpdateCurrentStatus(ctx, id, status)
+    if err := s.ordersRepo.UpdateCurrentStatus(ctx, id, status); err != nil {
+        return err
+    }
+    
+    // Emit plugin event
+    if s.eventEmitter != nil {
+        s.eventEmitter.Emit(map[string]interface{}{
+            "name":   constants.EVENT_ORDER_UPDATED,
+            "target": constants.PLUGIN_TARGET_DISCORD_ORDERS,
+            "data": map[string]interface{}{
+                "order_id": id,
+                "status":   status,
+                "reason":   reason,
+            },
+        })
+    }
+    
+    return nil
 }
 
 func (s *orderService) ListStatuses(ctx context.Context, id string) ([]OrderStatusEvent, error) {
@@ -201,13 +242,13 @@ func (s *orderService) UserCancel(ctx context.Context, id, userID string) error 
         return err
     }
     // disallow cancel after delivery initiated
-    if o.CurrentStatus == "order_delivered" || o.CurrentStatus == "agent_out_for_delivery" {
+    if o.CurrentStatus == constants.ORDER_STATUS_ORDER_DELIVERED || o.CurrentStatus == constants.ORDER_STATUS_AGENT_OUT_FOR_DELIVERY {
         return errors.New("cannot cancel after out for delivery")
     }
-    if err := s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: id, Status: "user_cancelled", Reason: "cancelled by user"}); err != nil {
+    if err := s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: id, Status: constants.ORDER_STATUS_USER_CANCELLED, Reason: "cancelled by user"}); err != nil {
         return err
     }
-    return s.ordersRepo.UpdateCurrentStatus(ctx, id, "user_cancelled")
+    return s.ordersRepo.UpdateCurrentStatus(ctx, id, constants.ORDER_STATUS_USER_CANCELLED)
 }
 
 func (s *orderService) RequestRefund(ctx context.Context, id, userID string) error {
@@ -222,7 +263,7 @@ func (s *orderService) RequestRefund(ctx context.Context, id, userID string) err
     }
     deliveredAt := int64(0)
     for _, ev := range events {
-        if ev.Status == "order_delivered" {
+        if ev.Status == constants.ORDER_STATUS_ORDER_DELIVERED {
             deliveredAt = ev.CreatedAt.Unix()
         }
     }
@@ -235,10 +276,10 @@ func (s *orderService) RequestRefund(ctx context.Context, id, userID string) err
     if now-deliveredAt > 172800 {
         return errors.New("refund window expired")
     }
-    if err := s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: id, Status: "user_returning", Reason: "refund requested by user"}); err != nil {
+    if err := s.statusRepo.Append(ctx, &OrderStatusEvent{OrderID: id, Status: constants.ORDER_STATUS_USER_RETURNING, Reason: "refund requested by user"}); err != nil {
         return err
     }
-    return s.ordersRepo.UpdateCurrentStatus(ctx, id, "user_returning")
+    return s.ordersRepo.UpdateCurrentStatus(ctx, id, constants.ORDER_STATUS_USER_RETURNING)
 }
 
 

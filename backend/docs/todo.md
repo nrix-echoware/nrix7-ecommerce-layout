@@ -11,11 +11,12 @@ make sure this frontend app is following all the best practice
 
 ## in progress
 
-
 ## in progress fixes
 - []
 
 ## complete
+- [x] Create constants for order status codes, event names, and plugin targets in common/constants
+- [x] Replace all direct string uses with constants throughout the codebase for order statuses, events, and plugin targets
 - [x] users can view there orders based on jwt, extract user id from jwt and send there own order data in a paginated way
 - [x] users can create order, view there order, view order history this will be for there own order data from jwt. need these endpoints
 - [x] admin can view any order, update to any status, view all the order items.
