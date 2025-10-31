@@ -26,19 +26,32 @@ RUN mkdir -p cert && \
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo \
     -ldflags='-w -s -extldflags "-static"' -o main .
 
+# Build cleanup_tokens binary
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo \
+    -ldflags='-w -s -extldflags "-static"' -o cleanup_tokens ./scripts/cleanup_tokens.go
+
 # ---------- Runtime stage ----------
 FROM alpine:latest
 
-RUN apk add ca-certificates sqlite-libs nss-tools
+RUN apk add ca-certificates sqlite-libs nss-tools dcron
 RUN addgroup -g 1001 -S appuser && adduser -u 1001 -S appuser -G appuser
 
 WORKDIR /app
 
-# Copy binary and certs
+# Copy binaries and certs
 COPY --from=builder --chown=appuser:appuser /app/main .
+COPY --from=builder --chown=appuser:appuser /app/cleanup_tokens .
 COPY --from=builder --chown=appuser:appuser /app/cert ./cert
 
-USER appuser
+# Create cron directory
+RUN mkdir -p /var/spool/cron/crontabs && \
+    chmod 755 /var/spool/cron/crontabs
+
+# Copy and set up entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 9997
 
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
 CMD ["./main"]
