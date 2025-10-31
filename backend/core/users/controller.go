@@ -25,22 +25,29 @@ func NewUserController(service UserService) *UserController {
 // Middleware to extract and validate JWT token
 func (c *UserController) AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		var tokenString string
+		
+		// Try header first (for regular requests)
 		authHeader := ctx.GetHeader("Authorization")
-		if authHeader == "" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+		if authHeader != "" {
+			// Extract token from "Bearer <token>"
+			tokenParts := strings.Split(authHeader, " ")
+			if len(tokenParts) == 2 && tokenParts[0] == "Bearer" {
+				tokenString = tokenParts[1]
+			}
+		}
+		
+		// Fallback to query parameter (for SSE)
+		if tokenString == "" {
+			tokenString = ctx.Query("token")
+		}
+		
+		if tokenString == "" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization required"})
 			ctx.Abort()
 			return
 		}
 
-		// Extract token from "Bearer <token>"
-		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
-			ctx.Abort()
-			return
-		}
-
-		tokenString := tokenParts[1]
 		claims, err := c.service.ValidateToken(context.Background(), tokenString)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})

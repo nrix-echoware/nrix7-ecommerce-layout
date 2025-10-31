@@ -41,7 +41,7 @@ class SSEService {
       return;
     }
 
-    const url = `${API_BASE}/admin/sse`;
+    const url = `${API_BASE}/admin/sse?admin_key=${encodeURIComponent(adminKey)}`;
     this.adminConnection = new EventSource(url);
 
     this.adminConnection.addEventListener('message', (e) => {
@@ -79,7 +79,8 @@ class SSEService {
       return;
     }
 
-    const url = `${API_BASE}/user/sse/notification/${userId}`;
+    const url = `${API_BASE}/user/sse/notification/${userId}?token=${encodeURIComponent(token)}`;
+    console.log('Connecting to user SSE:', url.replace(token, '***'));
     this.userConnection = new EventSource(url);
 
     this.userConnection.addEventListener('message', (e) => {

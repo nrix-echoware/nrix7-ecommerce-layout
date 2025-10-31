@@ -36,7 +36,12 @@ func NewChatController(ts ThreadService, ms MessageService, or orders.OrderRepos
 func adminKeyMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		expected := config.Get().AdminAPIKey
+		// Check header first (for regular requests)
 		provided := c.GetHeader("X-Admin-API-Key")
+		// Fallback to query parameter (for SSE)
+		if provided == "" {
+			provided = c.Query("admin_key")
+		}
 		if expected == "" || provided == "" || provided != expected {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
