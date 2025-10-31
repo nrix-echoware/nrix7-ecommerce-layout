@@ -64,6 +64,19 @@ type UserSession struct {
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user,omitempty"`
 }
 
+// PasswordResetToken represents a password reset token
+type PasswordResetToken struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null;index" json:"user_id"`
+	Token     string    `gorm:"type:text;not null;uniqueIndex" json:"token"`
+	ExpiresAt time.Time `gorm:"not null" json:"expires_at"`
+	IsUsed    bool      `gorm:"default:false" json:"is_used"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+
+	// Foreign key relationship
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user,omitempty"`
+}
+
 // Request/Response DTOs
 
 type SignUpRequest struct {
@@ -107,6 +120,21 @@ type ChangePasswordRequest struct {
 	NewPassword     string `json:"new_password" binding:"required,min=6"`
 }
 
+type GeneratePasswordResetTokenRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type GeneratePasswordResetTokenResponse struct {
+	Token     string `json:"token"`
+	ResetLink string `json:"reset_link"`
+	ExpiresAt string `json:"expires_at"`
+}
+
+type ResetPasswordRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"newpassword" binding:"required,min=6"`
+}
+
 // GORM hooks
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if u.ID == uuid.Nil {
@@ -125,6 +153,13 @@ func (r *RefreshToken) BeforeCreate(tx *gorm.DB) (err error) {
 func (s *UserSession) BeforeCreate(tx *gorm.DB) (err error) {
 	if s.ID == uuid.Nil {
 		s.ID = uuid.New()
+	}
+	return
+}
+
+func (p *PasswordResetToken) BeforeCreate(tx *gorm.DB) (err error) {
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
 	}
 	return
 }

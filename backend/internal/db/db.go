@@ -36,7 +36,7 @@ func InitDB() {
 	if err := DB.AutoMigrate(&analytics.VisitorEvent{}); err != nil {
 		logrus.Fatalf("failed to migrate analytics tables: %v", err)
 	}
-	if err := DB.AutoMigrate(&users.User{}, &users.RefreshToken{}, &users.UserSession{}); err != nil {
+	if err := DB.AutoMigrate(&users.User{}, &users.RefreshToken{}, &users.UserSession{}, &users.PasswordResetToken{}); err != nil {
 		logrus.Fatalf("failed to migrate users tables: %v", err)
 	}
 	if err := DB.AutoMigrate(&newsletter.NewsletterSubscription{}); err != nil {

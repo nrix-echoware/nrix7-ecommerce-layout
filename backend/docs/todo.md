@@ -10,11 +10,6 @@ fix issues then update the todo and run again the cycle of coding, when everythi
 make sure this frontend app is following all the best practice
 
 ## in progress
-- []
- - [x] similar to the backend do the admin panel, for orders, show orders tables, recent orders first and recent order status updates. if a order status updates, also update the order feild, that is order_current_status: <refer to the recent status>
- - [x] keep filters, paginate it
- - [x] when clicked on order, take to particular order status page, show all details, from status changes event, order create to order delivered.
- - [x] create a form to manually update the status of the order, to update the status, (orderid, new_status, reason) admin endpoint only admin can do this.
 
 
 ## in progress fixes
@@ -30,6 +25,11 @@ make sure this frontend app is following all the best practice
 - [x] create event driven orders table, so that there are n steps of orders, in future there will be more, so make sure its dynamic, for now the states are (ORDER PLACED (pending, canceled, rejected, rejected by user), SELLER DISPATCH (seller notified, seller processing, seller waiting for dispatch, seller dispatched), shipping agent(agent picked from seller, agent transporting, agent out for delivery, order delivered), users (user cancelled on arrival, user cancled the order, user returned), payment dispute(user returning the order, users returned order recieved, users refund initiated, users refund failed, users refund processed))
 - [x] create multiple modules for this, order is separate, order status are separately managed, use solid principals and good coding techniques
 - [x] follow cartSlice.ts to see how it looks in cart, same way the order will be saved, dont use references for order, store the actual data in json, because order is atomic once done it wont go. product ids can be reference, but also keep a copy of the json data for persistance.
+- [x] similar to the backend do the admin panel, for orders, show orders tables, recent orders first and recent order status updates. if a order status updates, also update the order feild, that is order_current_status: <refer to the recent status>
+- [x] keep filters, paginate it
+- [x] when clicked on order, take to particular order status page, show all details, from status changes event, order create to order delivered.
+- [x] create a form to manually update the status of the order, to update the status, (orderid, new_status, reason) admin endpoint only admin can do this.
+- [x] i want a users reset password section thats works manually. users will mail from there official mail to admin, that they want password reset, so from admin panel, there will be a section, where admin will generate a token with frontend link, that will look like <currentdomaim>/forgetpassword?token=<oldpasswordhash>, so users can click this link and go to a page a new page, that will hit a route /api/reset-password with data { token: "", newpassword: "" }, verify that this is done properly. for both api end, admin panel section and frontend page
 
 
 

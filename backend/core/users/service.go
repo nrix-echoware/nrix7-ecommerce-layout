@@ -34,6 +34,10 @@ type UserService interface {
 	// Cleanup
 	CleanupExpiredTokens(ctx context.Context) error
 	CleanupExpiredSessions(ctx context.Context) error
+
+	// Password reset
+	GeneratePasswordResetToken(ctx context.Context, email string) (*GeneratePasswordResetTokenResponse, error)
+	ResetPassword(ctx context.Context, req *ResetPasswordRequest) error
 }
 
 type userService struct {
@@ -383,5 +387,100 @@ func (s *userService) DeleteSession(ctx context.Context, sessionToken string) er
 
 func (s *userService) CleanupExpiredSessions(ctx context.Context) error {
 	return s.repo.CleanupExpiredSessions(ctx)
+}
+
+// Password reset methods
+
+func (s *userService) GeneratePasswordResetToken(ctx context.Context, email string) (*GeneratePasswordResetTokenResponse, error) {
+	// Get user by email
+	user, err := s.repo.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	// Revoke any existing unused tokens for this user
+	if err := s.repo.RevokeUnusedTokensForUser(ctx, user.ID); err != nil {
+		return nil, fmt.Errorf("failed to revoke existing tokens: %v", err)
+	}
+
+	// Generate unique alphanumeric token based on password hash
+	// Hash the password hash with timestamp to create a unique alphanumeric token
+	timestamp := time.Now().UnixNano()
+	
+	// Generate random alphanumeric suffix (using hex which is alphanumeric)
+	randomSuffix, err := GenerateToken(16) // 16 bytes = 32 hex chars
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token suffix: %v", err)
+	}
+	
+	// Create a hash-like string from password hash + timestamp + random
+	// This ensures it's alphanumeric and unique
+	// Take first 16 chars of password hash (if available), combine with timestamp and random
+	passwordHashPart := user.Password
+	if len(passwordHashPart) > 16 {
+		passwordHashPart = passwordHashPart[:16]
+	}
+	// If password hash is empty or all zeros, use a fallback
+	if passwordHashPart == "" || passwordHashPart == "00000000000000" {
+		passwordHashPart, _ = GenerateToken(8) // Generate 8 bytes = 16 hex chars as fallback
+	}
+	
+	// Combine into alphanumeric token: passwordHashPart + timestamp(hex) + randomSuffix
+	timestampHex := fmt.Sprintf("%x", timestamp) // Convert to hex (alphanumeric)
+	if len(timestampHex) > 16 {
+		timestampHex = timestampHex[:16]
+	}
+	token := fmt.Sprintf("%s%s%s", passwordHashPart, timestampHex, randomSuffix)
+	
+	// Ensure minimum length and alphanumeric only (hex is already alphanumeric)
+	if len(token) < 32 {
+		// Pad with more random if needed
+		extraRandom, _ := GenerateToken(8)
+		token = token + extraRandom
+	}
+
+	// Create reset token record
+	resetToken := &PasswordResetToken{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(24 * time.Hour), // 24 hour expiry
+		IsUsed:    false,
+	}
+
+	if err := s.repo.CreatePasswordResetToken(ctx, resetToken); err != nil {
+		return nil, fmt.Errorf("failed to create reset token: %v", err)
+	}
+
+	return &GeneratePasswordResetTokenResponse{
+		Token:     token,
+		ExpiresAt: resetToken.ExpiresAt.Format(time.RFC3339),
+	}, nil
+}
+
+func (s *userService) ResetPassword(ctx context.Context, req *ResetPasswordRequest) error {
+	// Get reset token
+	resetToken, err := s.repo.GetPasswordResetToken(ctx, req.Token)
+	if err != nil {
+		return errors.New("invalid or expired reset token")
+	}
+
+	// Get user
+	user, err := s.repo.GetByID(ctx, resetToken.UserID)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	// Update password
+	user.Password = HashPassword(req.NewPassword)
+	if err := s.repo.Update(ctx, user); err != nil {
+		return fmt.Errorf("failed to update password: %v", err)
+	}
+
+	// Mark token as used
+	if err := s.repo.MarkPasswordResetTokenAsUsed(ctx, req.Token); err != nil {
+		return fmt.Errorf("failed to mark token as used: %v", err)
+	}
+
+	return nil
 }
 
