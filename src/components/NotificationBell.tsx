@@ -90,7 +90,7 @@ export default function NotificationBell({ isAdmin = false }: NotificationBellPr
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 p-0 bg-white text-black" align="end">
         <div className="p-4 border-b">
           <h3 className="font-semibold">Notifications</h3>
         </div>

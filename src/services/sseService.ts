@@ -79,9 +79,26 @@ class SSEService {
       return;
     }
 
+    // Validate token isn't empty or just whitespace
+    if (!token.trim()) {
+      console.warn('Token is empty or whitespace');
+      return;
+    }
+
     const url = `${API_BASE}/user/sse/notification/${userId}?token=${encodeURIComponent(token)}`;
-    console.log('Connecting to user SSE:', url.replace(token, '***'));
-    this.userConnection = new EventSource(url);
+    console.log('Connecting to user SSE:', {
+      userId,
+      url: url.replace(/token=[^&]*/, 'token=***'),
+      hasToken: !!token,
+      tokenLength: token.length
+    });
+    
+    try {
+      this.userConnection = new EventSource(url);
+    } catch (error) {
+      console.error('Failed to create EventSource:', error);
+      return;
+    }
 
     this.userConnection.addEventListener('message', (e) => {
       try {
@@ -103,6 +120,19 @@ class SSEService {
 
     this.userConnection.addEventListener('error', (err) => {
       console.error('User SSE error:', err);
+      const event = err as Event & { target?: EventSource };
+      if (event.target) {
+        const es = event.target as EventSource;
+        console.error('EventSource readyState:', es.readyState);
+        console.error('EventSource URL:', es.url.replace(/token=[^&]*/, 'token=***'));
+        if (es.readyState === EventSource.CLOSED) {
+          console.warn('SSE connection closed, will attempt to reconnect...');
+        }
+      }
+    });
+
+    this.userConnection.addEventListener('open', () => {
+      console.log('User SSE connection opened successfully');
     });
   }
 
