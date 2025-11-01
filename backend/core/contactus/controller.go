@@ -2,7 +2,7 @@ package contactus
 
 import (
 	"context"
-	"ecommerce-backend/internal/config"
+	"ecommerce-backend/common/middleware"
 	"encoding/json"
 	"net"
 	"strconv"
@@ -102,17 +102,6 @@ type ContactUsRequest struct {
 	Extras  map[string]interface{} `json:"extras"`
 }
 
-func adminKeyMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		expected := config.Get().AdminAPIKey
-		provided := c.GetHeader("X-Admin-API-Key")
-		if expected == "" || provided == "" || provided != expected {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			return
-		}
-		c.Next()
-	}
-}
 
 func getClientIP(ctx *gin.Context) string {
 	ip := ctx.ClientIP()
@@ -147,8 +136,8 @@ func (c *ContactUsController) getEmailFromJWT(ctx *gin.Context) string {
 
 func (c *ContactUsController) RegisterRoutes(r *gin.Engine) {
 	r.POST("/contactus", c.CreateContactUs)
-	r.GET("/contactus", adminKeyMiddleware(), c.GetAllContactUs)
-	r.PATCH("/contactus/:id/status", adminKeyMiddleware(), c.UpdateContactUsStatus)
+	r.GET("/contactus", middleware.AdminKeyMiddleware(), c.GetAllContactUs)
+	r.PATCH("/contactus/:id/status", middleware.AdminKeyMiddleware(), c.UpdateContactUsStatus)
 }
 
 func (c *ContactUsController) CreateContactUs(ctx *gin.Context) {

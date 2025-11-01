@@ -12,6 +12,10 @@ type EventEmitter interface {
     Emit(event interface{})
 }
 
+type SSEEventEmitter interface {
+    EmitAdminEvent(event interface{})
+}
+
 type ThreadCreator interface {
     CreateThreadForOrder(ctx context.Context, orderID string) error
 }
@@ -33,19 +37,20 @@ type orderService struct {
     statusRepo    OrderStatusRepository
     productRepo   products.ProductRepository
     eventEmitter  EventEmitter
+    sseEmitter    SSEEventEmitter
     threadCreator ThreadCreator
 }
 
 func NewOrderService(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository) OrderService {
-    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: nil, threadCreator: nil}
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: nil, sseEmitter: nil, threadCreator: nil}
 }
 
 func NewOrderServiceWithEvents(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository, emitter EventEmitter) OrderService {
-    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter, threadCreator: nil}
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter, sseEmitter: nil, threadCreator: nil}
 }
 
-func NewOrderServiceWithChat(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository, emitter EventEmitter, tc ThreadCreator) OrderService {
-    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter, threadCreator: tc}
+func NewOrderServiceWithChat(or OrderRepository, sr OrderStatusRepository, pr products.ProductRepository, emitter EventEmitter, sse SSEEventEmitter, tc ThreadCreator) OrderService {
+    return &orderService{ordersRepo: or, statusRepo: sr, productRepo: pr, eventEmitter: emitter, sseEmitter: sse, threadCreator: tc}
 }
 
 func (s *orderService) Create(ctx context.Context, userID string, items []OrderItem, ship ShippingAddress, frontendTotal int) (string, int, error) {
@@ -196,6 +201,20 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                 "order_id": o.ID,
                 "user_id":  userID,
                 "total":    backendTotal,
+            },
+        })
+    }
+    
+    // Emit SSE notification to admin
+    if s.sseEmitter != nil {
+        s.sseEmitter.EmitAdminEvent(map[string]interface{}{
+            "resource":      constants.CHAT_RESOURCE_ORDERS,
+            "resource_type": constants.EVENT_ORDER_CREATED,
+            "data": map[string]interface{}{
+                "order_id": o.ID,
+                "user_id":  userID,
+                "total":    backendTotal,
+                "status":   o.CurrentStatus,
             },
         })
     }

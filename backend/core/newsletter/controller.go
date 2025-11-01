@@ -2,7 +2,7 @@ package newsletter
 
 import (
 	"context"
-	"ecommerce-backend/internal/config"
+	"ecommerce-backend/common/middleware"
 	"ecommerce-backend/core/users"
 	"errors"
 	"net/http"
@@ -23,29 +23,12 @@ func NewNewsletterController(service NewsletterService) *NewsletterController {
 	}
 }
 
-func adminKeyMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		expected := config.Get().AdminAPIKey
-		provided := c.GetHeader("X-Admin-API-Key")
-		
-		if provided == "" || provided != expected {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid admin API key"})
-			c.Abort()
-			return
-		}
-		
-		c.Next()
-	}
-}
-
-// Helper function to extract JWT email from Authorization header
 func (c *NewsletterController) getEmailFromJWT(ctx *gin.Context) (string, error) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
 		return "", errors.New("authorization header required")
 	}
 
-	// Extract token from "Bearer <token>"
 	tokenParts := strings.Split(authHeader, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 		return "", errors.New("invalid authorization header format")
@@ -53,7 +36,6 @@ func (c *NewsletterController) getEmailFromJWT(ctx *gin.Context) (string, error)
 
 	tokenString := tokenParts[1]
 
-	// Validate the JWT token
 	jwtManager := users.NewJWTManager()
 	claims, err := jwtManager.ValidateAccessToken(tokenString)
 	if err != nil {
@@ -70,11 +52,10 @@ func (c *NewsletterController) RegisterRoutes(r *gin.Engine) {
 	r.GET("/newsletter/status", c.GetSubscriptionStatus)
 	
 	// Admin routes
-	r.GET("/newsletter/subscriptions", adminKeyMiddleware(), c.GetAllSubscriptions)
+	r.GET("/newsletter/subscriptions", middleware.AdminKeyMiddleware(), c.GetAllSubscriptions)
 }
 
 func (c *NewsletterController) Subscribe(ctx *gin.Context) {
-	// Get email from JWT token
 	email, err := c.getEmailFromJWT(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})

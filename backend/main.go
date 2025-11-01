@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"ecommerce-backend/common/middleware"
 	"ecommerce-backend/common/security"
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
@@ -15,9 +15,9 @@ import (
 	"ecommerce-backend/core/websocket"
 	"ecommerce-backend/internal/config"
 	"ecommerce-backend/internal/db"
-	"ecommerce-backend/internal/plugin_manager"
-	orderHandlers "ecommerce-backend/internal/plugin_manager/handlers/orders"
-	productHandlers "ecommerce-backend/internal/plugin_manager/handlers/products"
+	// "ecommerce-backend/internal/plugin_manager"
+	// orderHandlers "ecommerce-backend/internal/plugin_manager/handlers/orders"
+	// productHandlers "ecommerce-backend/internal/plugin_manager/handlers/products"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -72,24 +72,28 @@ func main() {
     userRepo := users.NewUserRepository(db.DB)
     userSvc := users.NewUserService(userRepo)
     userCtrl := users.NewUserController(userSvc)
+    
+    // Create unified auth middleware
+    authMW := middleware.AuthMiddleware(userSvc)
 
-	// Initialize Plugin Manager
-	pm := plugin_manager.NewManager(100)
-	plugin_manager.AutoRegister(pm, []plugin_manager.Plugin{
-		orderHandlers.NewDiscordPlugin(""),
-		orderHandlers.NewTelegramPlugin("", ""),
-		productHandlers.NewDiscordPlugin(""),
-	})
-	pm.SetHooks(plugin_manager.Hooks{
-		BeforeEmit: func(event plugin_manager.Event) {
-			logrus.Infof("[PluginManager] Emitting event: %s -> %s", event.Name, event.Target)
-		},
-	})
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go pm.RunForever(ctx)
+	// Initialize Plugin Manager (disabled for now)
+	// pm := plugin_manager.NewManager(100)
+	// plugin_manager.AutoRegister(pm, []plugin_manager.Plugin{
+	// 	orderHandlers.NewDiscordPlugin(""),
+	// 	orderHandlers.NewTelegramPlugin("", ""),
+	// 	productHandlers.NewDiscordPlugin(""),
+	// })
+	// pm.SetHooks(plugin_manager.Hooks{
+	// 	BeforeEmit: func(event plugin_manager.Event) {
+	// 		logrus.Infof("[PluginManager] Emitting event: %s -> %s", event.Name, event.Target)
+	// 	},
+	// })
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
+	// go pm.RunForever(ctx)
 
-	eventAdapter := plugin_manager.NewEventEmitterAdapter(pm)
+	// eventAdapter := plugin_manager.NewEventEmitterAdapter(pm)
+	var eventAdapter orders.EventEmitter = nil
 
     // Initialize Orders module (needed for chat)
     orderRepo := orders.NewOrderRepository(db.DB)
@@ -104,10 +108,10 @@ func main() {
 	messageSvc := chat.NewMessageService(messageRepo, threadRepo, orderRepo, sseEmitter)
 	threadCreatorAdapter := chat.NewThreadCreatorAdapter(threadSvc)
 
-	orderSvc := orders.NewOrderServiceWithChat(orderRepo, orderStatusRepo, productRepo, eventAdapter, threadCreatorAdapter)
-    orderCtrl := orders.NewController(orderSvc, userCtrl.AuthMiddleware(), productRepo, userRepo)
+	orderSvc := orders.NewOrderServiceWithChat(orderRepo, orderStatusRepo, productRepo, eventAdapter, sseEmitter, threadCreatorAdapter)
+    orderCtrl := orders.NewController(orderSvc, authMW, productRepo, userRepo)
 	
-	chatCtrl := chat.NewChatController(threadSvc, messageSvc, orderRepo, userRepo, userCtrl.AuthMiddleware(), sseHub)
+	chatCtrl := chat.NewChatController(threadSvc, messageSvc, orderRepo, userRepo, authMW, sseHub)
 
 	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)
 	commentRateLimiter := security.NewCommentRateLimiter(db.DB)

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"ecommerce-backend/common/middleware"
 	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/users"
-	"ecommerce-backend/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -33,26 +33,9 @@ func NewChatController(ts ThreadService, ms MessageService, or orders.OrderRepos
 	}
 }
 
-func adminKeyMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		expected := config.Get().AdminAPIKey
-		// Check header first (for regular requests)
-		provided := c.GetHeader("X-Admin-API-Key")
-		// Fallback to query parameter (for SSE)
-		if provided == "" {
-			provided = c.Query("admin_key")
-		}
-		if expected == "" || provided == "" || provided != expected {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			return
-		}
-		c.Next()
-	}
-}
-
 func (ctrl *ChatController) RegisterRoutes(r *gin.Engine) {
 	adminRoutes := r.Group("/admin")
-	adminRoutes.Use(adminKeyMiddleware())
+	adminRoutes.Use(middleware.AdminKeyMiddleware())
 	{
 		adminRoutes.GET("/sse", ctrl.AdminSSE)
 		adminRoutes.GET("/threads/:order_id", ctrl.GetThreadByOrderID)
@@ -208,6 +191,22 @@ func (ctrl *ChatController) CreateMessage(c *gin.Context) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "file too large, max 5MB"})
 				return
 			}
+			
+			mimeType := header.Header.Get("Content-Type")
+			allowedTypes := map[string]bool{
+				"image/jpeg":      true,
+				"image/jpg":       true,
+				"image/png":       true,
+				"image/gif":       true,
+				"image/webp":      true,
+				"image/bmp":       true,
+				"image/svg+xml":   true,
+			}
+			if mimeType == "" || !allowedTypes[mimeType] {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "only image files are allowed (jpeg, jpg, png, gif, webp, bmp, svg)"})
+				return
+			}
+			
 			mediaData, _ = io.ReadAll(file)
 		}
 	} else {

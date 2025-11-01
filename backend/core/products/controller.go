@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"ecommerce-backend/internal/config"
+	"ecommerce-backend/common/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -43,25 +43,13 @@ type ProductVariantReq struct {
 	InStock    bool                `json:"in_stock"`
 }
 
-func adminKeyMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		expected := config.Get().AdminAPIKey
-		provided := c.GetHeader("X-Admin-API-Key")
-		if expected == "" || provided == "" || provided != expected {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			return
-		}
-		c.Next()
-	}
-}
-
 func (c *ProductController) RegisterRoutes(r *gin.Engine) {
 	group := r.Group("/products")
 	// Register specific routes before parameterized routes to avoid conflicts
 	group.GET("/cart/hash", c.GetCartHash)
-	group.POST("", adminKeyMiddleware(), c.CreateProduct)
-	group.PUT(":id", adminKeyMiddleware(), c.UpdateProduct)
-	group.DELETE(":id", adminKeyMiddleware(), c.DeleteProduct)
+	group.POST("", middleware.AdminKeyMiddleware(), c.CreateProduct)
+	group.PUT(":id", middleware.AdminKeyMiddleware(), c.UpdateProduct)
+	group.DELETE(":id", middleware.AdminKeyMiddleware(), c.DeleteProduct)
 	group.GET(":id", c.GetProduct)
 	group.GET("", c.ListProducts)
 }
