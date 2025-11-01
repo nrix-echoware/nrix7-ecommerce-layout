@@ -65,6 +65,11 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
             return "", 0, err
         }
         
+        // Check if product is active
+        if !p.IsActive {
+            return "", 0, errors.New("product is not active")
+        }
+        
         var unit int
         var variantMatched bool
         var matchedVariantID string
@@ -76,6 +81,9 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                 variantMatched = false
                 for _, v := range p.Variants {
                     if v.ID == it.VariantID {
+                        if !v.IsActive {
+                            return "", 0, errors.New("variant is not active")
+                        }
                         unit = v.Price
                         variantMatched = true
                         matchedVariantID = v.ID
@@ -102,6 +110,9 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
             if !variantMatched && it.VariantSKU != "" {
                 for _, v := range p.Variants {
                     if v.SKU == it.VariantSKU {
+                        if !v.IsActive {
+                            return "", 0, errors.New("variant is not active")
+                        }
                         unit = v.Price
                         variantMatched = true
                         matchedVariantID = v.ID
@@ -123,6 +134,9 @@ func (s *orderService) Create(ctx context.Context, userID string, items []OrderI
                 variantMatched = false
                 for _, v := range p.Variants {
                     if v.Price == it.Price {
+                        if !v.IsActive {
+                            return "", 0, errors.New("variant is not active")
+                        }
                         unit = v.Price
                         variantMatched = true
                         matchedVariantID = v.ID

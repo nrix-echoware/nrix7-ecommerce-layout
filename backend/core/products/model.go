@@ -15,6 +15,7 @@ type Product struct {
 	Description string           `json:"description"`
 	Price       int              `json:"price"` // price in smallest currency unit
 	Featured    bool             `json:"featured"`
+	IsActive    bool             `gorm:"default:true" json:"is_active"`
 	CreatedAt   time.Time        `gorm:"autoCreateTime" json:"created_at"`
 	Images      []ProductImage   `gorm:"foreignKey:ProductID" json:"images"`
 	Variants    []ProductVariant `gorm:"foreignKey:ProductID" json:"variants"`
@@ -34,6 +35,7 @@ type ProductVariant struct {
 	ImageURL   string         `json:"image_url"`
 	Price      int            `json:"price"`
 	InStock    bool           `json:"in_stock"`
+	IsActive   bool           `gorm:"default:true" json:"is_active"`
 }
 
 // Transformation pipeline for API response
@@ -46,6 +48,7 @@ type ProductResponse struct {
 	Images      []string          `json:"images"`
 	Price       int               `json:"price"`
 	Featured    bool              `json:"featured"`
+	IsActive    bool              `json:"is_active"`
 	Variants    []VariantResponse `json:"variants,omitempty"`
 }
 
@@ -56,6 +59,7 @@ type VariantResponse struct {
 	Image      string            `json:"image"`
 	Price      int               `json:"price"`
 	InStock    bool              `json:"inStock"`
+	IsActive   bool              `json:"is_active"`
 }
 
 func (p *Product) BeforeCreate(tx *gorm.DB) (err error) {
@@ -77,8 +81,14 @@ func TransformProductToResponse(product *Product) ProductResponse {
 	for i, img := range product.Images {
 		images[i] = img.ImageURL
 	}
-	variants := make([]VariantResponse, len(product.Variants))
-	for i, v := range product.Variants {
+	activeVariants := make([]ProductVariant, 0)
+	for _, v := range product.Variants {
+		if v.IsActive {
+			activeVariants = append(activeVariants, v)
+		}
+	}
+	variants := make([]VariantResponse, len(activeVariants))
+	for i, v := range activeVariants {
 		var attrsArr []map[string]string
 		attrMap := make(map[string]string)
 		if len(v.Attributes) > 0 {
@@ -96,6 +106,7 @@ func TransformProductToResponse(product *Product) ProductResponse {
 			Image:      v.ImageURL,
 			Price:      v.Price,
 			InStock:    v.InStock,
+			IsActive:   v.IsActive,
 		}
 	}
 	return ProductResponse{
@@ -106,6 +117,7 @@ func TransformProductToResponse(product *Product) ProductResponse {
 		Images:      images,
 		Price:       product.Price,
 		Featured:    product.Featured,
+		IsActive:    product.IsActive,
 		Variants:    variants,
 	}
 }

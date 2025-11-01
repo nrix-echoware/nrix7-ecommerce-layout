@@ -17,6 +17,7 @@ export default function ProductTable({ products, onEdit, onDelete }: Props) {
             <th className="py-3 px-4 text-neutral-700">Category</th>
             <th className="py-3 px-4 text-neutral-700">Price</th>
             <th className="py-3 px-4 text-neutral-700">Variants</th>
+            <th className="py-3 px-4 text-neutral-700">Status</th>
             <th className="py-3 px-4 text-neutral-700">Actions</th>
           </tr>
         </thead>
@@ -34,6 +35,15 @@ export default function ProductTable({ products, onEdit, onDelete }: Props) {
               <td className="py-3 px-4">{p.category}</td>
               <td className="py-3 px-4">{p.price}</td>
               <td className="py-3 px-4">{p.variants?.length || 0}</td>
+              <td className="py-3 px-4">
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  p.is_active !== false 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {p.is_active !== false ? 'Active' : 'Inactive'}
+                </span>
+              </td>
               <td className="py-3 px-4">
                 <div className="flex gap-2">
                   <button className="px-3 py-1 border rounded" onClick={() => onEdit(p)}>Edit</button>

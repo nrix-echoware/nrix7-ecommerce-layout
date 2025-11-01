@@ -56,6 +56,7 @@ function normalizeProduct(p: Product) {
     description: p.description,
     price: p.price,
     featured: !!p.featured,
+    is_active: p.is_active !== false,
     images: p.images,
     variants: (p.variants || []).map(v => ({
       id: v.id,
@@ -64,6 +65,7 @@ function normalizeProduct(p: Product) {
       image_url: v.image,
       price: v.price,
       in_stock: v.inStock,
+      is_active: v.is_active !== false,
     })),
   };
 } 

@@ -15,8 +15,13 @@ make sure this frontend app is following all the best practice
 - [x] when a new order is generated, generate a server side event to notify the admin
 - [x] for now disable the plugin_manager for discord and other, its not needed yet. keep the code, but dont let it reflect on http server in main.go
 - [x] keep the code base clean no documentation needed, docs is manually done. so its not an issue.
+
+
 ## in progress fixes
-- []
+- [x] add is_active to both product and variants, to mark if the product and its variant is active or not
+- [x] make sure is_active for produtcs can be updated via admin section
+- [x] for users view make sure is_active is properly handled when order is placed
+
 
 ## complete
 - [x] Create Thread and Message models in core/chat module
