@@ -12,7 +12,9 @@ make sure this frontend app is following all the best practice
 ## in progress
 - [ ] the media in messages, doesnt store a mimetype, so restrict in endpoint for only pictures, and for uploading also restrict it to be just picture. so that doesnt matter what kind of picture <img src=blob> will render it.
 - [ ] very huge problem, in controllers, for all resources, there is custom and repetative implementation of jwt extraction and jwt validation for users, and rootkey validation for routes. everything is fine, but these things needs to be unified, so it needs to be fixed.
-
+- [ ] when a new order is generated, generate a server side event to notify the admin
+- [ ] for now disable the plugin_manager for discord and other, its not needed yet. keep the code, but dont let it reflect on http server in main.go
+- [ ] keep the code base clean no documentation needed, docs is manually done. so its not an issue.
 ## in progress fixes
 - []
 

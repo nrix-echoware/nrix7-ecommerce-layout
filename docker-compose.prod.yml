@@ -19,7 +19,7 @@ services:
       - prodnet
     restart: unless-stopped
     healthcheck:
-      #test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "https://localhost:9997/healthz"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9997/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3
