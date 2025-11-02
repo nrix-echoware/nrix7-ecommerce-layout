@@ -19,6 +19,7 @@ const emptyProduct = (): Product => ({
   price: 0,
   variants: [],
   featured: false,
+  is_active: true,
 });
 
 export default function ProductFormPage({ onAuthError }: ProductFormPageProps) {

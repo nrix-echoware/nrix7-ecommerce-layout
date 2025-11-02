@@ -83,6 +83,9 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     
+    // Don't add inactive products to cart
+    if (product.is_active === false) return;
+    
     // For products without variants, add directly to cart
     if (!product.variants || product.variants.length === 0) {
       const cartItem: CartItem = {
@@ -123,7 +126,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
           />
           
           {/* Quick add button for non-variant products */}
-          {(!product.variants || product.variants.length === 0) && (
+          {(!product.variants || product.variants.length === 0) && product.is_active !== false && (
             <button
               onClick={handleQuickAdd}
               className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm text-neutral-900 py-2 px-4 rounded text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white border border-neutral-200"

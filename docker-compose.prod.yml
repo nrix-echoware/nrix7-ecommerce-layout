@@ -14,12 +14,12 @@ services:
       - ADMIN_API_KEY=abcd123
     volumes:
       - ./backend-data:/app/data  # host folder bind mount for writable SQLite
-      - /tmp:/tmp  # Mount system temp folder for audio storage
+      - ./backend-data:/tmp  # Mount system temp folder for audio storage
     networks:
       - prodnet
     restart: unless-stopped
     healthcheck:
-      #test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "https://localhost:9997/healthz"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9997/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3

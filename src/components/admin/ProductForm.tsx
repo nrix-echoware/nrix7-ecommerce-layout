@@ -19,6 +19,7 @@ const VariantFormSchema = z.object({
   image: z.string().url('Image must be absolute URL'),
   price: z.number().int().nonnegative('Price must be >= 0'),
   inStock: z.boolean(),
+  isActive: z.boolean(),
 });
 
 const ProductFormSchema = z.object({
@@ -31,6 +32,7 @@ const ProductFormSchema = z.object({
   attributeNames: z.array(z.string().min(1, 'Attribute name required')).default([]),
   variants: z.array(VariantFormSchema).default([]),
   featured: z.boolean().optional().default(false),
+  isActive: z.boolean().optional().default(true),
 }).superRefine((val, ctx) => {
   const names = (val.attributeNames || []).map(n => n.trim()).filter(Boolean);
   // If there are multiple variants, enforce that attributeNames exist
@@ -77,6 +79,7 @@ function mapProductToFormValues(p: Product): ProductFormValues {
     image: v.image,
     price: v.price,
     inStock: v.inStock,
+    isActive: v.is_active ?? true,
   }));
   // Derive attribute names from first variant (or union)
   const attributeNames = variants.length
@@ -92,6 +95,7 @@ function mapProductToFormValues(p: Product): ProductFormValues {
     attributeNames,
     variants,
     featured: !!p.featured,
+    isActive: p.is_active ?? true,
   };
 }
 
@@ -106,6 +110,7 @@ function mapFormValuesToProduct(values: ProductFormValues): Product {
     image: v.image,
     price: v.price,
     inStock: v.inStock,
+    is_active: v.isActive,
   }));
   return {
     id: values.id,
@@ -116,6 +121,7 @@ function mapFormValuesToProduct(values: ProductFormValues): Product {
     price: values.price,
     variants,
     featured: !!values.featured,
+    is_active: values.isActive,
   };
 }
 
@@ -194,6 +200,7 @@ export default function ProductForm({ initial, isEditing, onSubmit }: Props) {
       image: '',
       price: 0,
       inStock: true,
+      isActive: true,
     });
   }
   function removeVariant(idx: number) {
@@ -313,6 +320,11 @@ export default function ProductForm({ initial, isEditing, onSubmit }: Props) {
         <label htmlFor="featured" className="text-sm text-neutral-700">Featured</label>
       </div>
 
+      <div className="flex items-center gap-2">
+        <input id="isActive" type="checkbox" {...form.register('isActive')} />
+        <label htmlFor="isActive" className="text-sm text-neutral-700">Active</label>
+      </div>
+
       <div className="mt-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-medium">Variants</h3>
@@ -354,6 +366,10 @@ export default function ProductForm({ initial, isEditing, onSubmit }: Props) {
               <div className="flex items-center gap-2 mt-6">
                 <input id={`instock-${i}`} type="checkbox" {...form.register(`variants.${i}.inStock` as const)} />
                 <label htmlFor={`instock-${i}`} className="text-sm text-neutral-700">In Stock</label>
+              </div>
+              <div className="flex items-center gap-2 mt-6">
+                <input id={`isactive-${i}`} type="checkbox" {...form.register(`variants.${i}.isActive` as const)} />
+                <label htmlFor={`isactive-${i}`} className="text-sm text-neutral-700">Active</label>
               </div>
             </div>
 

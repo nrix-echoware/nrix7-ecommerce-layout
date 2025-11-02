@@ -115,9 +115,11 @@ const ProductDetail = () => {
     }
   };
 
-  const canAddToCart = product.variants
-    ? selectedVariant?.inStock
-    : true;
+  const canAddToCart = product.is_active !== false && (
+    product.variants
+      ? selectedVariant?.inStock && selectedVariant?.is_active !== false
+      : true
+  );
 
   const displayPrice = selectedVariant ? `₹${selectedVariant.price}` : `₹${product.price}`;
 
@@ -208,6 +210,12 @@ const ProductDetail = () => {
             )}
 
             <div className="space-y-4 text-center md:text-left">
+              {product.is_active === false && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-center">
+                  <p className="text-sm text-yellow-800 font-medium">This product is currently unavailable for purchase.</p>
+                  <p className="text-xs text-yellow-700 mt-1">It is displayed for viewing purposes only.</p>
+                </div>
+              )}
               <button
                 onClick={handleAddToCart}
                 disabled={!canAddToCart}
@@ -216,7 +224,12 @@ const ProductDetail = () => {
                   : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
                   }`}
               >
-                {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
+                {canAddToCart 
+                  ? 'Add to Cart' 
+                  : product.is_active === false 
+                    ? 'Product Unavailable' 
+                    : 'Out of Stock'
+                }
               </button>
 
               <p className="text-xs md:text-sm text-neutral-500">

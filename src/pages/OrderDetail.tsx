@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Package, XCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import OrderChatWidget from '../components/OrderChatWidget';
 
 interface OrderItem {
   product_id: string;
@@ -270,6 +271,7 @@ export default function OrderDetail() {
           </div>
         </div>
       </div>
+      {id && <OrderChatWidget orderId={id} isAdmin={false} />}
     </div>
   );
 }

@@ -113,3 +113,10 @@ var PluginTargets = struct {
 	DISCORD_PRODUCTS: PLUGIN_TARGET_DISCORD_PRODUCTS,
 }
 
+const (
+	CHAT_RESOURCE_ORDERS   = "orders"
+	CHAT_RESOURCE_PRODUCTS = "products"
+	CHAT_RESOURCE_MESSAGES = "messages"
+	CHAT_RESOURCE_THREADS  = "threads"
+)
+

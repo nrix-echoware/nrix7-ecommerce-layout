@@ -6,6 +6,7 @@ export interface Variant {
   image: string;
   price: number;
   inStock: boolean;
+  is_active: boolean;
 }
 
 export interface Product {
@@ -17,6 +18,7 @@ export interface Product {
   price: number; // used only for non-variant products
   variants?: Variant[];
   featured?: boolean;
+  is_active?: boolean;
 }
 
 export interface CartItem {

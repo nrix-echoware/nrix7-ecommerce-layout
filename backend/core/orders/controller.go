@@ -3,7 +3,7 @@ package orders
 import (
     "context"
     "encoding/json"
-    "ecommerce-backend/internal/config"
+    "ecommerce-backend/common/middleware"
     "ecommerce-backend/core/products"
     "ecommerce-backend/core/users"
     "github.com/gin-gonic/gin"
@@ -42,25 +42,13 @@ type createOrderRequest struct {
     FrontendTotal int               `json:"total" validate:"gte=0"`
 }
 
-func adminKeyMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        expected := config.Get().AdminAPIKey
-        provided := c.GetHeader("X-Admin-API-Key")
-        if expected == "" || provided == "" || provided != expected {
-            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-            return
-        }
-        c.Next()
-    }
-}
-
 func (c *Controller) RegisterRoutes(r *gin.Engine) {
     g := r.Group("/orders")
     g.POST("", c.Create)
-    g.GET("", adminKeyMiddleware(), c.List)
-    g.GET(":id", adminKeyMiddleware(), c.Get)
-    g.POST(":id/status", adminKeyMiddleware(), c.AppendStatus)
-    g.GET(":id/status", adminKeyMiddleware(), c.ListStatuses)
+    g.GET("", middleware.AdminKeyMiddleware(), c.List)
+    g.GET(":id", middleware.AdminKeyMiddleware(), c.Get)
+    g.POST(":id/status", middleware.AdminKeyMiddleware(), c.AppendStatus)
+    g.GET(":id/status", middleware.AdminKeyMiddleware(), c.ListStatuses)
 
     ug := r.Group("/user/orders")
     if c.authMW != nil {

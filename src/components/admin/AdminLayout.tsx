@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Package, MessageSquare, LogOut, Mail, Bell, Volume2, ShoppingCart, KeyRound } from 'lucide-react';
+import NotificationBell from '../NotificationBell';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -63,6 +64,9 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
 
       {/* Main Content */}
       <div className="ml-64 flex-1">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-end items-center z-10">
+          <NotificationBell isAdmin={true} />
+        </div>
         <div className="p-8">
           {children}
         </div>

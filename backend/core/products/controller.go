@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"ecommerce-backend/internal/config"
+	"ecommerce-backend/common/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -30,6 +30,7 @@ type ProductRequest struct {
 	Description string              `json:"description"`
 	Price       int                 `json:"price"`
 	Featured    bool                `json:"featured"`
+	IsActive    bool                `json:"is_active"`
 	Images      []string            `json:"images"`
 	Variants    []ProductVariantReq `json:"variants"`
 }
@@ -41,27 +42,16 @@ type ProductVariantReq struct {
 	Image      string              `json:"image_url"`
 	Price      int                 `json:"price"`
 	InStock    bool                `json:"in_stock"`
-}
-
-func adminKeyMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		expected := config.Get().AdminAPIKey
-		provided := c.GetHeader("X-Admin-API-Key")
-		if expected == "" || provided == "" || provided != expected {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			return
-		}
-		c.Next()
-	}
+	IsActive   bool                `json:"is_active"`
 }
 
 func (c *ProductController) RegisterRoutes(r *gin.Engine) {
 	group := r.Group("/products")
 	// Register specific routes before parameterized routes to avoid conflicts
 	group.GET("/cart/hash", c.GetCartHash)
-	group.POST("", adminKeyMiddleware(), c.CreateProduct)
-	group.PUT(":id", adminKeyMiddleware(), c.UpdateProduct)
-	group.DELETE(":id", adminKeyMiddleware(), c.DeleteProduct)
+	group.POST("", middleware.AdminKeyMiddleware(), c.CreateProduct)
+	group.PUT(":id", middleware.AdminKeyMiddleware(), c.UpdateProduct)
+	group.DELETE(":id", middleware.AdminKeyMiddleware(), c.DeleteProduct)
 	group.GET(":id", c.GetProduct)
 	group.GET("", c.ListProducts)
 }
@@ -83,6 +73,7 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 		Description: req.Description,
 		Price:       req.Price,
 		Featured:    req.Featured,
+		IsActive:    req.IsActive,
 	}
 	for _, img := range req.Images {
 		product.Images = append(product.Images, ProductImage{ImageURL: img})
@@ -96,6 +87,7 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 			ImageURL:   v.Image,
 			Price:      v.Price,
 			InStock:    v.InStock,
+			IsActive:   v.IsActive,
 		})
 	}
 	id, err := c.service.CreateProduct(context.Background(), product)
@@ -124,6 +116,7 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 		Description: req.Description,
 		Price:       req.Price,
 		Featured:    req.Featured,
+		IsActive:    req.IsActive,
 	}
 
 	for _, img := range req.Images {
@@ -138,6 +131,7 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 			ImageURL:   v.Image,
 			Price:      v.Price,
 			InStock:    v.InStock,
+			IsActive:   v.IsActive,
 			ProductID:  id,
 		})
 	}
@@ -164,6 +158,13 @@ func (c *ProductController) GetProduct(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
 		return
 	}
+	
+	isAdmin := ctx.GetHeader("X-Admin-API-Key") != "" || ctx.Query("admin_key") != ""
+	if !isAdmin && !product.IsActive {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+		return
+	}
+	
 	resp := TransformProductToResponse(product)
 	ctx.JSON(http.StatusOK, resp)
 }
@@ -176,9 +177,15 @@ func (c *ProductController) ListProducts(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	responses := make([]ProductResponse, len(products))
-	for i, p := range products {
-		responses[i] = TransformProductToResponse(&p)
+	
+	isAdmin := ctx.GetHeader("X-Admin-API-Key") != "" || ctx.Query("admin_key") != ""
+	
+	responses := make([]ProductResponse, 0)
+	for _, p := range products {
+		if !isAdmin && !p.IsActive {
+			continue
+		}
+		responses = append(responses, TransformProductToResponse(&p))
 	}
 	ctx.JSON(http.StatusOK, responses)
 }

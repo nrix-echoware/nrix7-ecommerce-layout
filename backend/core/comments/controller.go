@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"ecommerce-backend/common/middleware"
 	"ecommerce-backend/common/security"
 	"ecommerce-backend/core/users"
 	"github.com/gin-gonic/gin"
@@ -392,7 +393,11 @@ func (ctrl *CommentController) RegisterRoutes(r *gin.Engine) {
 	r.GET("/comments/:id/replies", ctrl.GetReplies)
 
 	// Admin operations
-	r.GET("/comments", ctrl.GetAllComments)
-	r.POST("/comments/:id/approve", ctrl.ApproveComment)
-	r.POST("/comments/:id/reject", ctrl.RejectComment)
+	adminGroup := r.Group("/comments")
+	adminGroup.Use(middleware.AdminKeyMiddleware())
+	{
+		adminGroup.GET("", ctrl.GetAllComments)
+		adminGroup.POST("/:id/approve", ctrl.ApproveComment)
+		adminGroup.POST("/:id/reject", ctrl.RejectComment)
+	}
 }
