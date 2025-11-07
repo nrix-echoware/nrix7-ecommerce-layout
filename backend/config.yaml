@@ -1,7 +1,17 @@
-dbfile: contactus.db
+database:
+  host: postgres
+  port: 5432
+  user: ecommerce
+  password: ecommerce
+  name: ecommerce
+  sslmode: disable
+  timezone: UTC
+  max_open_conns: 50
+  max_idle_conns: 10
+  conn_max_minutes: 5
 admin_api_key: "dev-admin-key-123"
 audio_storage:
-  path: "/tmp/audio_contacts"
+  path: "/app/data/audio_contacts"
   base_url: "https://localhost:9997/api"
   max_payload_size_mb: 10
 ratelimit:

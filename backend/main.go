@@ -7,20 +7,17 @@ import (
 	"ecommerce-backend/core/admin"
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
-	"ecommerce-backend/core/orders"
 	chat "ecommerce-backend/core/chat"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
+	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/products"
 	"ecommerce-backend/core/users"
 	"ecommerce-backend/internal/config"
 	"ecommerce-backend/internal/db"
 	authGrpc "ecommerce-backend/internal/grpc/auth"
 	notificationsGrpc "ecommerce-backend/internal/grpc/notifications"
-	// "ecommerce-backend/internal/plugin_manager"
-	// orderHandlers "ecommerce-backend/internal/plugin_manager/handlers/orders"
-	// productHandlers "ecommerce-backend/internal/plugin_manager/handlers/products"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -74,13 +71,13 @@ func main() {
 	productSvc := products.NewProductService(productRepo, cartInvalidationRepo)
 	productCtrl := products.NewProductController(productSvc)
 
-    // Initialize Users module (before orders to inject auth)
-    userRepo := users.NewUserRepository(db.DB)
-    userSvc := users.NewUserService(userRepo)
-    userCtrl := users.NewUserController(userSvc)
-    
-    // Create unified auth middleware
-    authMW := middleware.AuthMiddleware(userSvc)
+	// Initialize Users module (before orders to inject auth)
+	userRepo := users.NewUserRepository(db.DB)
+	userSvc := users.NewUserService(userRepo)
+	userCtrl := users.NewUserController(userSvc)
+
+	// Create unified auth middleware
+	authMW := middleware.AuthMiddleware(userSvc)
 
 	// Initialize gRPC auth server
 	authGrpcServer := grpc.NewServer()
@@ -123,28 +120,11 @@ func main() {
 		logrus.Info("Ping/pong test completed")
 	}()
 
-	// Initialize Plugin Manager (disabled for now)
-	// pm := plugin_manager.NewManager(100)
-	// plugin_manager.AutoRegister(pm, []plugin_manager.Plugin{
-	// 	orderHandlers.NewDiscordPlugin(""),
-	// 	orderHandlers.NewTelegramPlugin("", ""),
-	// 	productHandlers.NewDiscordPlugin(""),
-	// })
-	// pm.SetHooks(plugin_manager.Hooks{
-	// 	BeforeEmit: func(event plugin_manager.Event) {
-	// 		logrus.Infof("[PluginManager] Emitting event: %s -> %s", event.Name, event.Target)
-	// 	},
-	// })
-	// ctx, cancel := context.WithCancel(context.Background())
-	// defer cancel()
-	// go pm.RunForever(ctx)
+	var eventAdapter orders.EventEmitter
 
-	// eventAdapter := plugin_manager.NewEventEmitterAdapter(pm)
-	var eventAdapter orders.EventEmitter = nil
-
-    // Initialize Orders module (needed for chat)
-    orderRepo := orders.NewOrderRepository(db.DB)
-    orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
+	// Initialize Orders module (needed for chat)
+	orderRepo := orders.NewOrderRepository(db.DB)
+	orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
 
 	// Initialize Chat module - stateless, uses gRPC for notifications
 	sseEmitter := chat.NewGRPCEventEmitter(notificationClient)
@@ -156,8 +136,8 @@ func main() {
 	threadCreatorAdapter := chat.NewThreadCreatorAdapter(threadSvc)
 
 	orderSvc := orders.NewOrderServiceWithChat(orderRepo, orderStatusRepo, productRepo, eventAdapter, sseEmitter, threadCreatorAdapter)
-    orderCtrl := orders.NewController(orderSvc, authMW, productRepo, userRepo)
-	
+	orderCtrl := orders.NewController(orderSvc, authMW, productRepo, userRepo)
+
 	// Chat controller - only handles business logic, no SSE routes
 	chatCtrl := chat.NewChatController(threadSvc, messageSvc, orderRepo, userRepo, authMW)
 	chatCtrl.RegisterRoutes(r)
@@ -174,7 +154,7 @@ func main() {
 	analyticsSvc := analytics.NewService(analyticsRepo)
 	analyticsCtrl := analytics.NewController(analyticsSvc)
 
-    // Users already initialized above
+	// Users already initialized above
 
 	// Initialize Newsletter module
 	newsletterRepo := newsletter.NewNewsletterRepository(db.DB)
@@ -215,7 +195,7 @@ func main() {
 	analyticsCtrl.RegisterRoutes(r)
 	userCtrl.RegisterRoutes(r)
 	newsletterCtrl.RegisterRoutes(r)
-	
+
 	// Register audio contact routes
 	audioContactCtrl.RegisterRoutes(r)
 

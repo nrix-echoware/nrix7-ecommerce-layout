@@ -30,13 +30,13 @@ const (
 )
 
 type Message struct {
-	MessageID     string       `gorm:"primaryKey;type:varchar(36)" json:"message_id"`
-	ThreadID      string       `gorm:"not null;index;type:varchar(36)" json:"thread_id"`
-	MessageContent string     `gorm:"type:text" json:"message_content"`
-	MediaData     []byte       `gorm:"type:blob" json:"-"` // Not exposed in JSON by default
-	Owner         MessageOwner `gorm:"type:varchar(10);check:owner IN ('user','admin')" json:"owner"`
-	CreatedAt     time.Time    `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt     time.Time    `gorm:"autoUpdateTime" json:"updated_at"`
+	MessageID      string       `gorm:"primaryKey;type:varchar(36)" json:"message_id"`
+	ThreadID       string       `gorm:"not null;index;type:varchar(36)" json:"thread_id"`
+	MessageContent string       `gorm:"type:text" json:"message_content"`
+	MediaData      []byte       `gorm:"type:bytea" json:"-"` // Not exposed in JSON by default
+	Owner          MessageOwner `gorm:"type:varchar(10);check:owner IN ('user','admin')" json:"owner"`
+	CreatedAt      time.Time    `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt      time.Time    `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
 func (m *Message) BeforeCreate(tx *gorm.DB) error {
@@ -45,4 +45,3 @@ func (m *Message) BeforeCreate(tx *gorm.DB) error {
 	}
 	return nil
 }
-

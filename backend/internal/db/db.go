@@ -2,40 +2,72 @@ package db
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
-	"ecommerce-backend/core/orders"
 	chat "ecommerce-backend/core/chat"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
+	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/products"
 	"ecommerce-backend/core/users"
 	"ecommerce-backend/internal/config"
 	"github.com/sirupsen/logrus"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+const schemaMigrationLockID int64 = 0x4553434f4d
 
 var DB *gorm.DB
 
 func InitDB() {
-	var err error
-	sqliteDB, err := gorm.Open(sqlite.Open(config.Get().DBFile), &gorm.Config{})
+	cfg := config.Get()
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+		cfg.Database.Host,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Name,
+		cfg.Database.Port,
+		cfg.Database.SSLMode,
+		cfg.Database.TimeZone,
+	)
+
+	pgDB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		logrus.Fatalf("failed to connect database: %v", err)
 	}
-	
-	// Enable WAL mode for concurrent reads and better performance
-	sqlDB, err := sqliteDB.DB()
-	if err == nil {
-		_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
-		if err != nil {
-			logrus.Warnf("failed to enable WAL mode: %v", err)
-		}
+
+	sqlDB, err := pgDB.DB()
+	if err != nil {
+		logrus.Fatalf("failed to get database handle: %v", err)
 	}
-	
-	DB = sqliteDB
+
+	if cfg.Database.MaxOpenConns > 0 {
+		sqlDB.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+	}
+	if cfg.Database.MaxIdleConns > 0 {
+		sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+	}
+	if cfg.Database.ConnMaxMinutes > 0 {
+		sqlDB.SetConnMaxLifetime(time.Duration(cfg.Database.ConnMaxMinutes) * time.Minute)
+	}
+
+	DB = pgDB
+	if _, err := sqlDB.ExecContext(context.Background(), "SELECT pg_advisory_lock($1)", schemaMigrationLockID); err != nil {
+		logrus.Fatalf("failed to acquire schema lock: %v", err)
+	}
+	defer func() {
+		if _, err := sqlDB.ExecContext(context.Background(), "SELECT pg_advisory_unlock($1)", schemaMigrationLockID); err != nil {
+			logrus.Warnf("failed to release schema lock: %v", err)
+		}
+	}()
+
 	if err := DB.AutoMigrate(&contactus.ContactUs{}, &contactus.FAQ{}); err != nil {
 		logrus.Fatalf("failed to migrate database: %v", err)
 	}
@@ -60,7 +92,6 @@ func InitDB() {
 	if err := DB.AutoMigrate(&orders.Order{}, &orders.OrderStatusEvent{}); err != nil {
 		logrus.Fatalf("failed to migrate orders tables: %v", err)
 	}
-	
 	if err := DB.AutoMigrate(&chat.Thread{}, &chat.Message{}); err != nil {
 		logrus.Fatalf("failed to migrate chat tables: %v", err)
 	}

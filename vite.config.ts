@@ -1,16 +1,54 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 import type { Connect } from "vite";
 import type http from "http";
 
+function applyEnvFromFile(filePath: string) {
+  if (!fs.existsSync(filePath)) {
+    return;
+  }
+
+  const contents = fs.readFileSync(filePath, "utf-8");
+  const lines = contents.split(/\r?\n/);
+
+  for (const line of lines) {
+    if (!line.trim() || line.trim().startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = line.substring(0, separatorIndex).trim();
+    if (!key || Object.prototype.hasOwnProperty.call(process.env, key)) {
+      continue;
+    }
+
+    const value = line.substring(separatorIndex + 1).trim();
+    process.env[key] = value;
+  }
+}
+
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 5173,
-    configure: (server: any) => {
+export default defineConfig(({ mode }) => {
+  const fallbackFiles = [
+    path.resolve(__dirname, `config/frontend.env.${mode}`),
+    path.resolve(__dirname, "config/frontend.env"),
+    path.resolve(__dirname, "config/frontend.env.example"),
+  ];
+
+  fallbackFiles.forEach(applyEnvFromFile);
+
+  return {
+    server: {
+      host: "::",
+      port: 5173,
+      configure: (server: any) => {
       server.middlewares.use((req: Connect.IncomingMessage, res: http.ServerResponse, next: Connect.NextFunction) => {
         const url = req.url || '';
         
@@ -166,14 +204,15 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+    plugins: [
+      react(),
+      mode === 'development' &&
+      componentTagger(),
+    ].filter(Boolean),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
-}));
+  };
+});

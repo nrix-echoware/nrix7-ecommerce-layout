@@ -4,23 +4,30 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"ecommerce-backend/core/users"
-	"gorm.io/driver/sqlite"
+	"ecommerce-backend/internal/config"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
-	// Get database path from environment - required
-	dbPath := os.Getenv("DB_FILE")
-	if dbPath == "" {
-		log.Fatal("Failed to start: DB_FILE environment variable is required")
-	}
+	cfg := config.Get()
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+		cfg.Database.Host,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Name,
+		cfg.Database.Port,
+		cfg.Database.SSLMode,
+		cfg.Database.TimeZone,
+	)
 
 	// Connect to database
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -52,13 +59,13 @@ func main() {
 		Count  int64
 		UserID string
 	}
-	
+
 	err = db.WithContext(ctx).Model(&users.RefreshToken{}).
 		Select("token, COUNT(*) as count, user_id").
 		Group("token").
 		Having("COUNT(*) > 1").
 		Scan(&duplicates).Error
-	
+
 	if err != nil {
 		log.Printf("Error checking for duplicates: %v", err)
 	} else if len(duplicates) > 0 {
@@ -66,7 +73,7 @@ func main() {
 		for _, dup := range duplicates {
 			fmt.Printf("  Token: %s (User: %s, Count: %d)\n", dup.Token[:20]+"...", dup.UserID, dup.Count)
 		}
-		
+
 		// Remove duplicates, keeping only the most recent one
 		for _, dup := range duplicates {
 			var tokens []users.RefreshToken
@@ -75,7 +82,7 @@ func main() {
 				log.Printf("Error finding tokens for cleanup: %v", err)
 				continue
 			}
-			
+
 			// Keep the first (most recent) token, delete the rest
 			if len(tokens) > 1 {
 				for i := 1; i < len(tokens); i++ {
@@ -94,15 +101,15 @@ func main() {
 
 	// Report current token statistics
 	var totalTokens, activeTokens, expiredTokens int64
-	
+
 	db.WithContext(ctx).Model(&users.RefreshToken{}).Count(&totalTokens)
 	db.WithContext(ctx).Model(&users.RefreshToken{}).Where("is_active = ?", true).Count(&activeTokens)
 	db.WithContext(ctx).Model(&users.RefreshToken{}).Where("expires_at < ?", time.Now()).Count(&expiredTokens)
-	
+
 	fmt.Printf("\nToken Statistics:\n")
 	fmt.Printf("  Total tokens: %d\n", totalTokens)
 	fmt.Printf("  Active tokens: %d\n", activeTokens)
 	fmt.Printf("  Expired tokens: %d\n", expiredTokens)
-	
+
 	fmt.Println("\nCleanup completed successfully!")
 }
