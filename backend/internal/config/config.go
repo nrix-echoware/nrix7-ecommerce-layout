@@ -43,6 +43,8 @@ type Config struct {
 	AudioStorage        AudioStorageConfig `mapstructure:"audio_storage"`
 	GrpcPort            string             `mapstructure:"grpc_port"`
 	RealtimeServiceAddr string             `mapstructure:"realtime_service_addr"`
+	JWTAccessSecret     string             `mapstructure:"jwt_access_secret"`
+	JWTRefreshSecret    string             `mapstructure:"jwt_refresh_secret"`
 }
 
 var (
@@ -71,6 +73,8 @@ func loadConfig() *Config {
 	_ = v.BindEnv("audio_storage.max_payload_size_mb", "AUDIO_STORAGE_MAX_PAYLOAD_SIZE_MB")
 	_ = v.BindEnv("grpc_port")
 	_ = v.BindEnv("realtime_service_addr")
+	_ = v.BindEnv("jwt_access_secret", "JWT_ACCESS_SECRET")
+	_ = v.BindEnv("jwt_refresh_secret", "JWT_REFRESH_SECRET")
 	v.SetDefault("database.host", "postgres")
 	v.SetDefault("database.port", 5432)
 	v.SetDefault("database.user", "ecommerce")
@@ -89,6 +93,8 @@ func loadConfig() *Config {
 	v.SetDefault("audio_storage.max_payload_size_mb", 10)
 	v.SetDefault("grpc_port", "10000")
 	v.SetDefault("realtime_service_addr", "localhost:9999")
+	v.SetDefault("jwt_access_secret", "")
+	v.SetDefault("jwt_refresh_secret", "")
 	if err := v.ReadInConfig(); err != nil {
 		// fallback to env/defaults
 	}
@@ -98,6 +104,12 @@ func loadConfig() *Config {
 	}
 	if c.AdminAPIKey == "" {
 		c.AdminAPIKey = v.GetString("admin_api_key")
+	}
+	if c.JWTAccessSecret == "" {
+		c.JWTAccessSecret = v.GetString("jwt_access_secret")
+	}
+	if c.JWTRefreshSecret == "" {
+		c.JWTRefreshSecret = v.GetString("jwt_refresh_secret")
 	}
 	return &c
 }

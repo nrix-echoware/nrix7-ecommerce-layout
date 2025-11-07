@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
+	"ecommerce-backend/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -136,9 +136,19 @@ func (j *JWTManager) GetRefreshTokenExpiry() time.Duration {
 
 // getJWTSecret gets JWT secret from environment or generates a default one
 func getJWTSecret(envKey string) string {
-	secret := os.Getenv(envKey)
-	if secret == "" {
-		panic(fmt.Sprintf("%s environment variable is required", envKey))
+	cfg := config.Get()
+	switch envKey {
+	case "JWT_ACCESS_SECRET":
+		if cfg.JWTAccessSecret != "" {
+			return cfg.JWTAccessSecret
+		}
+	case "JWT_REFRESH_SECRET":
+		if cfg.JWTRefreshSecret != "" {
+			return cfg.JWTRefreshSecret
+		}
+	default:
+		panic(fmt.Sprintf("unsupported JWT secret lookup: %s", envKey))
 	}
-	return secret
+
+	panic(fmt.Sprintf("%s configuration is required", envKey))
 }
