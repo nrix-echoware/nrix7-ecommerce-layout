@@ -95,7 +95,7 @@ export default function OrderDetail() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="mb-4">
         <Link to="/admin/orders" className="text-sm text-blue-600">Back</Link>
       </div>
@@ -103,20 +103,20 @@ export default function OrderDetail() {
       {error && <div className="text-red-600">{error}</div>}
       {order && (
         <div className="space-y-6">
-          <div className="border rounded p-4">
-            <h2 className="font-semibold text-lg mb-2">Order</h2>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="border rounded-lg p-4 sm:p-6 bg-white">
+            <h2 className="font-semibold text-lg mb-4">Order</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div><span className="text-gray-600">ID:</span> {order.id}</div>
               <div><span className="text-gray-600">User:</span> {order.user_id}</div>
               <div><span className="text-gray-600">Frontend Total:</span> ₹{order.frontend_total.toFixed(2)}</div>
               <div><span className="text-gray-600">Backend Total:</span> ₹{order.backend_total.toFixed(2)}</div>
-              <div><span className="text-gray-600">Status:</span> {order.current_status}</div>
+              <div className="capitalize"><span className="text-gray-600">Status:</span> {order.current_status.replace(/_/g, ' ')}</div>
               <div><span className="text-gray-600">Created:</span> {new Date(order.created_at).toLocaleString()}</div>
             </div>
           </div>
 
-          <div className="border rounded p-4">
-            <h2 className="font-semibold text-lg mb-2">Products</h2>
+          <div className="border rounded-lg p-4 sm:p-6 bg-white">
+            <h2 className="font-semibold text-lg mb-4">Products</h2>
             <div className="space-y-3">
               {order.items?.map((it, idx) => {
                 const p = productsMap[it.product_id];
@@ -130,22 +130,37 @@ export default function OrderDetail() {
                   }
                 }
                 if (!image && p?.images && p.images.length > 0) image = p.images[0];
+                const name = (it as any).product_name || p?.name || it.product_id;
+                const variantInfo = it.variant_attributes
+                  ? Object.entries(it.variant_attributes).map(([k, v]) => `${k}: ${v}`).join(', ')
+                  : null;
+
                 return (
-                  <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border">
-                    {image ? <img src={image} className="w-16 h-16 object-cover rounded" /> : <div className="w-16 h-16 bg-gray-200 rounded" />}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{(it as any).product_name || p?.name || it.product_id}</div>
-                      {it.variant_attributes && (
-                        <div className="text-xs text-gray-600 mt-1">
-                          {Object.entries(it.variant_attributes).map(([k,v]) => `${k}: ${v}`).join(', ')}
+                  <div key={idx} className="p-3 sm:p-4 bg-gray-50 rounded-lg border">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <div className="flex items-center gap-3">
+                        {image ? (
+                          <img src={image} className="w-16 h-16 object-cover rounded" />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded" />
+                        )}
+                        <div className="sm:hidden">
+                          <div className="font-medium break-words text-sm">{name}</div>
+                          {variantInfo && <div className="text-xs text-gray-600 mt-1 break-words">{variantInfo}</div>}
                         </div>
-                      )}
-                      <div className="text-sm text-gray-600 mt-1">Qty: {it.quantity}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">Ordered price</div>
-                      <div className="font-semibold">₹{(it.price * it.quantity).toFixed(2)}</div>
-                      <div className="text-xs text-gray-500 mt-1">Current price: ₹{Number(currentPrice ?? 0).toFixed(2)}</div>
+                      </div>
+                      <div className="flex-1 min-w-0 hidden sm:block">
+                        <div className="font-medium break-words">{name}</div>
+                        {variantInfo && <div className="text-xs text-gray-600 mt-1 break-words">{variantInfo}</div>}
+                      </div>
+                      <div className="flex sm:flex-col justify-between sm:items-end text-sm text-gray-600">
+                        <div>Qty: {it.quantity}</div>
+                        <div className="text-xs sm:text-sm text-gray-500">Unit: ₹{Number(currentPrice ?? 0).toFixed(2)}</div>
+                      </div>
+                      <div className="text-right text-sm">
+                        <div className="text-gray-600">Ordered price</div>
+                        <div className="font-semibold">₹{(it.price * it.quantity).toFixed(2)}</div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -154,10 +169,10 @@ export default function OrderDetail() {
             </div>
           </div>
 
-          <div className="border rounded p-4">
-            <h2 className="font-semibold text-lg mb-2">Update Status</h2>
-            <form onSubmit={handleUpdate} className="flex items-center gap-3">
-              <select value={status} onChange={(e)=> setStatus(e.target.value)} className="border px-3 py-2 rounded">
+          <div className="border rounded-lg p-4 sm:p-6 bg-white">
+            <h2 className="font-semibold text-lg mb-4">Update Status</h2>
+            <form onSubmit={handleUpdate} className="flex flex-col sm:flex-row gap-3">
+              <select value={status} onChange={(e)=> setStatus(e.target.value)} className="border px-3 py-2 rounded w-full sm:w-auto">
                 <option value="">Select status</option>
                 <option value="pending">pending</option>
                 <option value="seller_notified">seller_notified</option>
@@ -181,16 +196,16 @@ export default function OrderDetail() {
             </form>
           </div>
 
-          <div className="border rounded p-4">
-            <h2 className="font-semibold text-lg mb-2">Status History</h2>
+          <div className="border rounded-lg p-4 sm:p-6 bg-white">
+            <h2 className="font-semibold text-lg mb-4">Status History</h2>
             <div className="divide-y">
               {events.map(ev => (
-                <div key={ev.id} className="py-2 text-sm flex items-center justify-between">
-                  <div>
-                    <div className="font-mono">{ev.status}</div>
-                    {ev.reason && <div className="text-gray-600">{ev.reason}</div>}
+                <div key={ev.id} className="py-2 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="capitalize">
+                    <div className="font-mono break-words">{ev.status.replace(/_/g, ' ')}</div>
+                    {ev.reason && <div className="text-gray-600 break-words">{ev.reason}</div>}
                   </div>
-                  <div className="text-gray-600">{new Date(ev.created_at).toLocaleString()}</div>
+                  <div className="text-gray-600 text-xs sm:text-sm">{new Date(ev.created_at).toLocaleString()}</div>
                 </div>
               ))}
               {events.length === 0 && <div className="text-gray-500">No events</div>}

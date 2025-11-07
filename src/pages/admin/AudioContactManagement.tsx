@@ -184,14 +184,14 @@ export default function AudioContactManagement({ onAuthError }: AudioContactMana
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Audio Contact Management</h1>
-        <p className="text-gray-600">Manage voice messages from customers</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Audio Contact Management</h1>
+        <p className="text-gray-600 text-sm sm:text-base">Manage voice messages from customers</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -242,11 +242,11 @@ export default function AudioContactManagement({ onAuthError }: AudioContactMana
       </div>
 
       {/* Filter */}
-      <div className="mb-4">
+      <div>
         <select
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
@@ -267,109 +267,183 @@ export default function AudioContactManagement({ onAuthError }: AudioContactMana
             No audio contacts found
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact Info
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Audio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {audioContacts.map((contact) => (
-                  <tr key={contact.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{contact.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center mt-1">
-                          <Mail className="w-3 h-3 mr-1" />
-                          {contact.email}
-                        </div>
-                        {contact.phone && (
-                          <div className="text-sm text-gray-500 flex items-center mt-1">
-                            <Phone className="w-3 h-3 mr-1" />
-                            {contact.phone}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => playAudio(contact)}
-                          className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors"
-                        >
-                          {currentPlayingId === contact.id ? (
-                            <Pause className="w-4 h-4 text-blue-600" />
-                          ) : (
-                            <Play className="w-4 h-4 text-blue-600" />
-                          )}
-                        </button>
-                        <div className="text-sm text-gray-600">
-                          <div>{formatDuration(contact.duration)}</div>
-                          <div className="text-xs text-gray-500">{formatFileSize(contact.file_size)}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}>
-                        {getStatusIcon(contact.status)}
-                        <span className="ml-1 capitalize">{contact.status}</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {new Date(contact.created_at).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
-                        <select
-                          value={contact.status}
-                          onChange={(e) => updateStatus(contact.id, e.target.value)}
-                          disabled={updatingStatusId === contact.id}
-                          className={`px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            updatingStatusId === contact.id ? 'opacity-50 cursor-not-allowed' : ''
-                          } ${
-                            contact.status === 'pending' ? 'bg-yellow-50 border-yellow-300' :
-                            contact.status === 'processed' ? 'bg-green-50 border-green-300' :
-                            'bg-gray-50 border-gray-300'
-                          }`}
-                        >
-                          <option value="pending">🟡 Pending</option>
-                          <option value="processed">✅ Processed</option>
-                          <option value="archived">📁 Archived</option>
-                        </select>
-                        {updatingStatusId === contact.id && (
-                          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                        <button
-                          onClick={() => handleDeleteAudioContact(contact.id)}
-                          className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
-                          title="Delete audio contact"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+          <div className="space-y-4">
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact Info
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Audio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {audioContacts.map((contact) => (
+                    <tr key={contact.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+                          <div className="text-sm text-gray-500 flex items-center mt-1">
+                            <Mail className="w-3 h-3 mr-1" />
+                            {contact.email}
+                          </div>
+                          {contact.phone && (
+                            <div className="text-sm text-gray-500 flex items-center mt-1">
+                              <Phone className="w-3 h-3 mr-1" />
+                              {contact.phone}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => playAudio(contact)}
+                            className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors"
+                          >
+                            {currentPlayingId === contact.id ? (
+                              <Pause className="w-4 h-4 text-blue-600" />
+                            ) : (
+                              <Play className="w-4 h-4 text-blue-600" />
+                            )}
+                          </button>
+                          <div className="text-sm text-gray-600">
+                            <div>{formatDuration(contact.duration)}</div>
+                            <div className="text-xs text-gray-500">{formatFileSize(contact.file_size)}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}>
+                          {getStatusIcon(contact.status)}
+                          <span className="ml-1 capitalize">{contact.status}</span>
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {new Date(contact.created_at).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <select
+                            value={contact.status}
+                            onChange={(e) => updateStatus(contact.id, e.target.value)}
+                            disabled={updatingStatusId === contact.id}
+                            className={`px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              updatingStatusId === contact.id ? 'opacity-50 cursor-not-allowed' : ''
+                            } ${
+                              contact.status === 'pending' ? 'bg-yellow-50 border-yellow-300' :
+                              contact.status === 'processed' ? 'bg-green-50 border-green-300' :
+                              'bg-gray-50 border-gray-300'
+                            }`}
+                          >
+                            <option value="pending">🟡 Pending</option>
+                            <option value="processed">✅ Processed</option>
+                            <option value="archived">📁 Archived</option>
+                          </select>
+                          {updatingStatusId === contact.id && (
+                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          )}
+                          <button
+                            onClick={() => handleDeleteAudioContact(contact.id)}
+                            className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                            title="Delete audio contact"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden space-y-3 px-4 pb-4">
+              {audioContacts.map((contact) => (
+                <div key={contact.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 text-sm text-gray-700">
+                      <div className="font-semibold text-gray-900">{contact.name}</div>
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Mail className="w-3 h-3" />
+                        {contact.email}
+                      </div>
+                      {contact.phone && (
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Phone className="w-3 h-3" />
+                          {contact.phone}
+                        </div>
+                      )}
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}>
+                      {getStatusIcon(contact.status)}
+                      <span className="ml-1 capitalize">{contact.status}</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => playAudio(contact)}
+                      className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors"
+                    >
+                      {currentPlayingId === contact.id ? (
+                        <Pause className="w-4 h-4 text-blue-600" />
+                      ) : (
+                        <Play className="w-4 h-4 text-blue-600" />
+                      )}
+                    </button>
+                    <div className="text-sm text-gray-600">
+                      <div>{formatDuration(contact.duration)}</div>
+                      <div className="text-xs text-gray-500">{formatFileSize(contact.file_size)}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <select
+                      value={contact.status}
+                      onChange={(e) => updateStatus(contact.id, e.target.value)}
+                      disabled={updatingStatusId === contact.id}
+                      className={`px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        contact.status === 'pending' ? 'bg-yellow-50 border-yellow-300' :
+                        contact.status === 'processed' ? 'bg-green-50 border-green-300' :
+                        'bg-gray-50 border-gray-300'
+                      } disabled:opacity-50`}
+                    >
+                      <option value="pending">🟡 Pending</option>
+                      <option value="processed">✅ Processed</option>
+                      <option value="archived">📁 Archived</option>
+                    </select>
+                    <button
+                      onClick={() => handleDeleteAudioContact(contact.id)}
+                      className="px-3 py-2 border border-red-300 text-red-600 rounded text-sm flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </div>
+
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(contact.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

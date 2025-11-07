@@ -127,14 +127,14 @@ export default function NotificationManagement({ onAuthError }: NotificationMana
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Notification Management</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Send real-time notifications to users via WebSocket
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-2">
             {isConnected ? (
               <Wifi className="w-5 h-5 text-green-500" />
@@ -170,7 +170,7 @@ export default function NotificationManagement({ onAuthError }: NotificationMana
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {connectionStats.total_connections}
@@ -333,8 +333,8 @@ export default function NotificationManagement({ onAuthError }: NotificationMana
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {connectionStats.connections.map((connection, index) => (
-                <div key={connection.id} className="flex items-center justify-between p-3 border rounded-lg">
+              {connectionStats.connections.map((connection) => (
+                <div key={connection.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                       <Users className="w-4 h-4 text-gray-600" />
@@ -348,7 +348,7 @@ export default function NotificationManagement({ onAuthError }: NotificationMana
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 sm:text-right">
                     {new Date(connection.last_seen).toLocaleTimeString()}
                   </div>
                 </div>

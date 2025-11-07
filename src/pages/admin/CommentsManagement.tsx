@@ -104,17 +104,17 @@ export default function CommentsManagement({ onAuthError }: CommentsManagementPr
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Comments Management</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Review and moderate user comments ({total} total)
           </p>
         </div>
         <button
           onClick={load}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           <RefreshCw size={18} />
           Refresh
@@ -129,12 +129,12 @@ export default function CommentsManagement({ onAuthError }: CommentsManagementPr
       )}
 
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
               {filter === 'all' ? 'All Comments' : filter === 'approved' ? 'Approved Comments' : 'Pending Comments'}
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <button
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                 disabled={page === 0}
@@ -142,7 +142,7 @@ export default function CommentsManagement({ onAuthError }: CommentsManagementPr
               >
                 Previous
               </button>
-              <div className="text-sm text-gray-600 font-medium">
+              <div className="text-sm text-gray-600 font-medium text-center sm:text-left">
                 Page {page + 1} of {totalPages || 1}
               </div>
               <button
@@ -156,38 +156,23 @@ export default function CommentsManagement({ onAuthError }: CommentsManagementPr
           </div>
           
           {/* Filter Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-gray-600 font-medium mr-2">Filter:</span>
-            <button
-              onClick={() => { setFilter('all'); setPage(0); }}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                filter === 'all'
-                  ? 'bg-blue-100 text-blue-700 font-medium'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => { setFilter('approved'); setPage(0); }}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                filter === 'approved'
-                  ? 'bg-green-100 text-green-700 font-medium'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Approved
-            </button>
-            <button
-              onClick={() => { setFilter('pending'); setPage(0); }}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                filter === 'pending'
-                  ? 'bg-gray-100 text-gray-700 font-medium'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Pending
-            </button>
+            {([
+              { key: 'all', label: 'All', active: filter === 'all', activeClass: 'bg-blue-100 text-blue-700 font-medium' },
+              { key: 'approved', label: 'Approved', active: filter === 'approved', activeClass: 'bg-green-100 text-green-700 font-medium' },
+              { key: 'pending', label: 'Pending', active: filter === 'pending', activeClass: 'bg-gray-100 text-gray-700 font-medium' },
+            ] as const).map((item) => (
+              <button
+                key={item.key}
+                onClick={() => { setFilter(item.key); setPage(0); }}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  item.active ? item.activeClass : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -196,99 +181,156 @@ export default function CommentsManagement({ onAuthError }: CommentsManagementPr
         ) : comments.length === 0 ? (
           <div className="text-center py-12 text-gray-500">No comments found</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Comment
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {comments.map((comment) => (
-                  <tr key={comment.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {comment.email}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 max-w-md">
-                      <div className="line-clamp-2">{comment.comment}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                      {comment.product_id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(comment.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+          <div className="space-y-4">
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Comment
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {comments.map((comment) => (
+                    <tr key={comment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {comment.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700 max-w-md">
+                        <div className="line-clamp-2">{comment.comment}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                        {comment.product_id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(comment.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            comment.is_verified
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {comment.is_verified ? 'Verified' : 'Unverified'}
+                        </span>
+                        {comment.replied_to && (
+                          <span className="ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            Reply
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          {!comment.is_verified ? (
+                            <button
+                              onClick={() => handleApprove(comment.id)}
+                              disabled={processingId === comment.id}
+                              className="text-green-600 hover:text-green-900 disabled:opacity-50 inline-flex items-center gap-1 px-2 py-1 border border-green-300 rounded hover:bg-green-50 transition-colors"
+                              title="Approve comment"
+                            >
+                              <CheckCircle size={16} />
+                              {processingId === comment.id ? 'Approving...' : 'Approve'}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleReject(comment.id)}
+                              disabled={processingId === comment.id}
+                              className="text-orange-600 hover:text-orange-900 disabled:opacity-50 inline-flex items-center gap-1 px-2 py-1 border border-orange-300 rounded hover:bg-orange-50 transition-colors"
+                              title="Reject comment"
+                            >
+                              <XCircle size={16} />
+                              {processingId === comment.id ? 'Rejecting...' : 'Reject'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(comment.id)}
+                            disabled={deletingId === comment.id}
+                            className="text-red-600 hover:text-red-900 disabled:opacity-50 inline-flex items-center gap-1 px-2 py-1 border border-red-300 rounded hover:bg-red-50 transition-colors"
+                            title="Delete comment"
+                          >
+                            <Trash2 size={16} />
+                            {deletingId === comment.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden space-y-3 px-4 pb-4">
+              {comments.map((comment) => (
+                <div key={comment.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 break-words">{comment.email}</div>
+                      <div className="text-xs text-gray-500 font-mono break-all mt-1">{comment.product_id}</div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           comment.is_verified
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-100 text-gray-700'
                         }`}
                       >
                         {comment.is_verified ? 'Verified' : 'Unverified'}
                       </span>
                       {comment.replied_to && (
-                        <span className="ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
                           Reply
                         </span>
                       )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        {!comment.is_verified ? (
-                          <button
-                            onClick={() => handleApprove(comment.id)}
-                            disabled={processingId === comment.id}
-                            className="text-green-600 hover:text-green-900 disabled:opacity-50 inline-flex items-center gap-1 px-2 py-1 border border-green-300 rounded hover:bg-green-50 transition-colors"
-                            title="Approve comment"
-                          >
-                            <CheckCircle size={16} />
-                            {processingId === comment.id ? 'Approving...' : 'Approve'}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleReject(comment.id)}
-                            disabled={processingId === comment.id}
-                            className="text-orange-600 hover:text-orange-900 disabled:opacity-50 inline-flex items-center gap-1 px-2 py-1 border border-orange-300 rounded hover:bg-orange-50 transition-colors"
-                            title="Reject comment"
-                          >
-                            <XCircle size={16} />
-                            {processingId === comment.id ? 'Rejecting...' : 'Reject'}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(comment.id)}
-                          disabled={deletingId === comment.id}
-                          className="text-red-600 hover:text-red-900 disabled:opacity-50 inline-flex items-center gap-1 px-2 py-1 border border-red-300 rounded hover:bg-red-50 transition-colors"
-                          title="Delete comment"
-                        >
-                          <Trash2 size={16} />
-                          {deletingId === comment.id ? 'Deleting...' : 'Delete'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                    {comment.comment}
+                  </div>
+                  <div className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleString()}</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <button
+                      onClick={() => (comment.is_verified ? handleReject(comment.id) : handleApprove(comment.id))}
+                      disabled={processingId === comment.id}
+                      className={`px-3 py-2 border rounded text-sm flex items-center justify-center gap-2 ${
+                        comment.is_verified
+                          ? 'border-orange-300 text-orange-700'
+                          : 'border-green-300 text-green-700'
+                      } disabled:opacity-50`}
+                    >
+                      {comment.is_verified ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                      {processingId === comment.id ? 'Processing...' : comment.is_verified ? 'Reject' : 'Approve'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(comment.id)}
+                      disabled={deletingId === comment.id}
+                      className="px-3 py-2 border border-red-300 text-red-600 rounded text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                      {deletingId === comment.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

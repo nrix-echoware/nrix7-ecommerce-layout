@@ -119,17 +119,17 @@ export default function ContactUsManagement({ onAuthError }: ContactUsManagement
   };
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Contact Us Submissions</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             View and manage customer inquiries ({total} total)
           </p>
         </div>
         <button
           onClick={load}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           <RefreshCw size={18} />
           Refresh
@@ -144,9 +144,9 @@ export default function ContactUsManagement({ onAuthError }: ContactUsManagement
       )}
 
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+        <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold text-gray-900">All Submissions</h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <button
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
               disabled={page === 0}
@@ -154,7 +154,7 @@ export default function ContactUsManagement({ onAuthError }: ContactUsManagement
             >
               Previous
             </button>
-            <div className="text-sm text-gray-600 font-medium">
+            <div className="text-sm text-gray-600 font-medium text-center sm:text-left">
               Page {page + 1} of {totalPages || 1}
             </div>
             <button
@@ -172,95 +172,132 @@ export default function ContactUsManagement({ onAuthError }: ContactUsManagement
         ) : contacts.length === 0 ? (
           <div className="text-center py-12 text-gray-500">No submissions found</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      <Tag size={14} />
-                      Type
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      <Mail size={14} />
-                      Contact Info
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Message
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Extras
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} />
-                      Date
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {contacts.map((contact) => (
-                  <tr key={contact.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+          <div className="space-y-4">
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <Tag size={14} />
+                        Type
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <Mail size={14} />
+                        Contact Info
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Message
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Extras
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} />
+                        Date
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {contacts.map((contact) => (
+                    <tr key={contact.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(contact.type)}`}>
+                          {getTypeLabel(contact.type)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {contact.extras?.email && (
+                          <div className="mb-1">
+                            <span className="font-medium">Email:</span> {contact.extras.email}
+                          </div>
+                        )}
+                        {contact.extras?.phone && (
+                          <div className="mb-1">
+                            <span className="font-medium">Phone:</span> {contact.extras.phone}
+                          </div>
+                        )}
+                        {contact.extras?.name && (
+                          <div>
+                            <span className="font-medium">Name:</span> {contact.extras.name}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700 max-w-md">
+                        <div className="line-clamp-3">{contact.message}</div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                        {contact.extras?.orderId && (
+                          <div className="mb-1">
+                            <span className="font-medium">Order ID:</span> {contact.extras.orderId}
+                          </div>
+                        )}
+                        {contact.extras?.issue && (
+                          <div className="mb-1">
+                            <span className="font-medium">Issue:</span> {contact.extras.issue}
+                          </div>
+                        )}
+                        {contact.extras?.reason && (
+                          <div className="mb-1">
+                            <span className="font-medium">Reason:</span> {contact.extras.reason}
+                          </div>
+                        )}
+                        {contact.extras?.url && (
+                          <div className="mb-1">
+                            <span className="font-medium">URL:</span> <a href={contact.extras.url} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">{contact.extras.url}</a>
+                          </div>
+                        )}
+                        {contact.extras?.browser && (
+                          <div>
+                            <span className="font-medium">Browser:</span> {contact.extras.browser}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select
+                          value={contact.status || 'pending'}
+                          onChange={(e) => handleStatusUpdate(contact.id, e.target.value as any)}
+                          disabled={updatingId === contact.id}
+                          className={`text-xs font-semibold rounded-full px-3 py-1 border-0 cursor-pointer disabled:opacity-50 ${getStatusColor(contact.status || 'pending')}`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(contact.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden space-y-3 px-4 pb-4">
+              {contacts.map((contact) => (
+                <div key={contact.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(contact.type)}`}>
                         {getTypeLabel(contact.type)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {contact.extras?.email && (
-                        <div className="mb-1">
-                          <span className="font-medium">Email:</span> {contact.extras.email}
-                        </div>
-                      )}
-                      {contact.extras?.phone && (
-                        <div className="mb-1">
-                          <span className="font-medium">Phone:</span> {contact.extras.phone}
-                        </div>
-                      )}
-                      {contact.extras?.name && (
-                        <div>
-                          <span className="font-medium">Name:</span> {contact.extras.name}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 max-w-md">
-                      <div className="line-clamp-3">{contact.message}</div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                      {contact.extras?.orderId && (
-                        <div className="mb-1">
-                          <span className="font-medium">Order ID:</span> {contact.extras.orderId}
-                        </div>
-                      )}
-                      {contact.extras?.issue && (
-                        <div className="mb-1">
-                          <span className="font-medium">Issue:</span> {contact.extras.issue}
-                        </div>
-                      )}
-                      {contact.extras?.reason && (
-                        <div className="mb-1">
-                          <span className="font-medium">Reason:</span> {contact.extras.reason}
-                        </div>
-                      )}
-                      {contact.extras?.url && (
-                        <div className="mb-1">
-                          <span className="font-medium">URL:</span> <a href={contact.extras.url} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">{contact.extras.url}</a>
-                        </div>
-                      )}
-                      {contact.extras?.browser && (
-                        <div>
-                          <span className="font-medium">Browser:</span> {contact.extras.browser}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="mt-2 text-sm text-gray-700 space-y-1">
+                        {contact.extras?.name && <div><span className="font-medium">Name:</span> {contact.extras.name}</div>}
+                        {contact.extras?.email && <div><span className="font-medium">Email:</span> {contact.extras.email}</div>}
+                        {contact.extras?.phone && <div><span className="font-medium">Phone:</span> {contact.extras.phone}</div>}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
                       <select
                         value={contact.status || 'pending'}
                         onChange={(e) => handleStatusUpdate(contact.id, e.target.value as any)}
@@ -272,14 +309,32 @@ export default function ContactUsManagement({ onAuthError }: ContactUsManagement
                         <option value="resolved">Resolved</option>
                         <option value="closed">Closed</option>
                       </select>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(contact.created_at).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="text-xs text-gray-500 flex items-center gap-1">
+                        <Clock size={12} />
+                        {new Date(contact.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                    {contact.message}
+                  </div>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    {contact.extras?.orderId && <div><span className="font-medium">Order ID:</span> {contact.extras.orderId}</div>}
+                    {contact.extras?.issue && <div><span className="font-medium">Issue:</span> {contact.extras.issue}</div>}
+                    {contact.extras?.reason && <div><span className="font-medium">Reason:</span> {contact.extras.reason}</div>}
+                    {contact.extras?.url && (
+                      <div>
+                        <span className="font-medium">URL:</span>{' '}
+                        <a href={contact.extras.url} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">
+                          {contact.extras.url}
+                        </a>
+                      </div>
+                    )}
+                    {contact.extras?.browser && <div><span className="font-medium">Browser:</span> {contact.extras.browser}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

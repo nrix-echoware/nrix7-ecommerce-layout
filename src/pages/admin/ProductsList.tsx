@@ -57,13 +57,13 @@ export default function ProductsList({ onAuthError }: ProductsListProps) {
   }
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Products</h1>
-          <p className="text-gray-600 mt-1">Manage your product catalog</p>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage your product catalog</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <button
             onClick={load}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -73,7 +73,7 @@ export default function ProductsList({ onAuthError }: ProductsListProps) {
           </button>
           <button
             onClick={() => navigate('/admin/products/create')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus size={18} />
             New Product
@@ -91,10 +91,10 @@ export default function ProductsList({ onAuthError }: ProductsListProps) {
         <TopProductCards products={products} onEdit={handleEdit} />
       )}
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6 overflow-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">All Products</h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <button
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
               disabled={page === 0}
