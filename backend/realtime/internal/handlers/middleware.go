@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"ecommerce-realtime/internal/grpc/auth"
+	"ecommerce-realtime/internal/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -100,4 +100,3 @@ func ValidateUserID(ctx *gin.Context, userIDParam string) bool {
 
 	return userUUID.String() == userIDParam
 }
-

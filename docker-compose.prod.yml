@@ -8,18 +8,16 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - backend1
-      - backend2
+      - backend
     networks:
       - prodnet
     restart: unless-stopped
 
-  backend1:
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
     image: ecommerce-backend-prod
-    container_name: ecommerce-backend-1
     working_dir: /app
     environment:
       - DB_HOST=${DB_HOST:-postgres}
@@ -34,46 +32,9 @@ services:
       - DB_CONN_MAX_MINUTES=${DB_CONN_MAX_MINUTES:-5}
       - GIN_MODE=release
       - ADMIN_API_KEY=${ADMIN_API_KEY:-abcd123}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-super-secret-access}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-super-secret-refresh}
       - GRPC_PORT=10000
-      - REALTIME_SERVICE_ADDR=realtime:9999
-      - AUDIO_STORAGE_PATH=/app/data/audio_contacts
-      - AUDIO_STORAGE_BASE_URL=${AUDIO_STORAGE_BASE_URL:-http://nginx/api}
-    volumes:
-      - backend-data:/app/data
-      - backend-tmp:/tmp
-    networks:
-      - prodnet
-    restart: unless-stopped
-    depends_on:
-      - postgres
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9997/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  backend2:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.prod
-    image: ecommerce-backend-prod
-    container_name: ecommerce-backend-2
-    working_dir: /app
-    environment:
-      - DB_HOST=${DB_HOST:-postgres}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${POSTGRES_USER:-ecommerce}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:-ecommerce}
-      - DB_NAME=${POSTGRES_DB:-ecommerce}
-      - DB_SSLMODE=${DB_SSLMODE:-disable}
-      - DB_TIMEZONE=${DB_TIMEZONE:-UTC}
-      - DB_MAX_OPEN_CONNS=${DB_MAX_OPEN_CONNS:-50}
-      - DB_MAX_IDLE_CONNS=${DB_MAX_IDLE_CONNS:-10}
-      - DB_CONN_MAX_MINUTES=${DB_CONN_MAX_MINUTES:-5}
-      - GIN_MODE=release
-      - ADMIN_API_KEY=${ADMIN_API_KEY:-abcd123}
-      - GRPC_PORT=10001
       - REALTIME_SERVICE_ADDR=realtime:9999
       - AUDIO_STORAGE_PATH=/app/data/audio_contacts
       - AUDIO_STORAGE_BASE_URL=${AUDIO_STORAGE_BASE_URL:-http://nginx/api}
@@ -103,11 +64,10 @@ services:
     environment:
       - PORT=9998
       - GRPC_PORT=9999
-      - AUTH_SERVICE_ADDR=nginx:10000
       - ADMIN_API_KEY=${ADMIN_API_KEY:-abcd123}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-super-secret-access}
     depends_on:
-      - backend1
-      - backend2
+      - backend
     networks:
       - prodnet
     restart: unless-stopped

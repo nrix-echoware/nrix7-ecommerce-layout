@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"ecommerce-backend/internal/config"
 	"ecommerce-backend/proto/notifications"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type Client struct {
@@ -16,7 +18,41 @@ type Client struct {
 }
 
 func NewClient(addr string) (*Client, error) {
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cfg := config.Get()
+	adminKey := cfg.AdminAPIKey
+	if adminKey == "" {
+		return nil, fmt.Errorf("admin api key is required for notifications client")
+	}
+
+	unary := func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		md, ok := metadata.FromOutgoingContext(ctx)
+		if !ok {
+			md = metadata.New(nil)
+		} else {
+			md = md.Copy()
+		}
+		md.Set("x-admin-api-key", adminKey)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+		return invoker(ctx, method, req, reply, cc, opts...)
+	}
+
+	stream := func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+		md, ok := metadata.FromOutgoingContext(ctx)
+		if !ok {
+			md = metadata.New(nil)
+		} else {
+			md = md.Copy()
+		}
+		md.Set("x-admin-api-key", adminKey)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+		return streamer(ctx, desc, cc, method, opts...)
+	}
+
+	conn, err := grpc.NewClient(addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(unary),
+		grpc.WithStreamInterceptor(stream),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to notification service: %w", err)
 	}
@@ -167,4 +203,3 @@ func (c *Client) Ping(ctx context.Context, sequence int32) error {
 
 	return nil
 }
-

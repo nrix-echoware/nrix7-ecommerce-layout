@@ -138,17 +138,7 @@ func (j *JWTManager) GetRefreshTokenExpiry() time.Duration {
 func getJWTSecret(envKey string) string {
 	secret := os.Getenv(envKey)
 	if secret == "" {
-		// Generate a default secret based on admin key
-		adminKey := os.Getenv("ADMIN_API_KEY")
-		if adminKey == "" {
-			adminKey = "nrix7-ecommerce-default-key-2024"
-		}
-
-		if envKey == "JWT_ACCESS_SECRET" {
-			secret = adminKey + "-access-token-secret"
-		} else {
-			secret = adminKey + "-refresh-token-secret"
-		}
+		panic(fmt.Sprintf("%s environment variable is required", envKey))
 	}
 	return secret
 }

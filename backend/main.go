@@ -16,21 +16,18 @@ import (
 	"ecommerce-backend/core/users"
 	"ecommerce-backend/internal/config"
 	"ecommerce-backend/internal/db"
-	authGrpc "ecommerce-backend/internal/grpc/auth"
 	notificationsGrpc "ecommerce-backend/internal/grpc/notifications"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/unrolled/secure"
-	"google.golang.org/grpc"
-	"net"
 	"time"
 )
 
 func main() {
 	// Initialize logger
 	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
-	logrus.Info("Starting ContactUs microservice...")
+	logrus.Info("Starting nrix7 microservice...")
 
 	// Initialize DB
 	db.InitDB()
@@ -79,23 +76,7 @@ func main() {
 	// Create unified auth middleware
 	authMW := middleware.AuthMiddleware(userSvc)
 
-	// Initialize gRPC auth server
-	authGrpcServer := grpc.NewServer()
-	authGrpcService := authGrpc.NewServer(userSvc)
-	authGrpcService.Register(authGrpcServer)
-
 	cfg := config.Get()
-	grpcListener, err := net.Listen("tcp", ":"+cfg.GrpcPort)
-	if err != nil {
-		logrus.Fatalf("Failed to listen on gRPC port: %v", err)
-	}
-
-	go func() {
-		logrus.Infof("gRPC auth server running on :%s", cfg.GrpcPort)
-		if err := authGrpcServer.Serve(grpcListener); err != nil {
-			logrus.Fatalf("Failed to serve gRPC: %v", err)
-		}
-	}()
 
 	// Initialize gRPC notification client - required for stateless operation
 	notificationClient, err := notificationsGrpc.NewClient(cfg.RealtimeServiceAddr)

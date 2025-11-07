@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"net/http"
 
+	"ecommerce-realtime/internal/auth"
 	"ecommerce-realtime/internal/config"
-	"ecommerce-realtime/internal/grpc/auth"
 	notificationsGrpc "ecommerce-realtime/internal/grpc/notifications"
 	"ecommerce-realtime/internal/handlers"
 	"ecommerce-realtime/internal/hub"
@@ -14,6 +15,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -21,14 +25,14 @@ func main() {
 	logrus.Info("Starting Realtime microservice...")
 
 	cfg := config.Get()
-
-	authClient, err := auth.NewClient(cfg.AuthServiceAddr)
-	if err != nil {
-		logrus.Fatalf("Failed to connect to auth service: %v", err)
+	if cfg.AdminAPIKey == "" {
+		logrus.Fatal("ADMIN_API_KEY is required for realtime gRPC server")
 	}
-	defer authClient.Close()
 
-	authService := auth.NewService(authClient)
+	authService, err := auth.NewService(cfg.JWTAccessSecret)
+	if err != nil {
+		logrus.Fatalf("Failed to initialize auth service: %v", err)
+	}
 
 	sseHub := hub.NewSSEHub()
 	wsHub := hub.NewWSHub()
@@ -40,7 +44,10 @@ func main() {
 
 	notificationServer := notificationsGrpc.NewServer(sseHub, wsHub)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(requireAdminKeyUnary(cfg.AdminAPIKey)),
+		grpc.StreamInterceptor(requireAdminKeyStream(cfg.AdminAPIKey)),
+	)
 	notificationServer.Register(grpcServer)
 
 	grpcListener, err := net.Listen("tcp", ":"+cfg.GrpcPort)
@@ -82,4 +89,37 @@ func main() {
 	if err := r.Run(":" + cfg.Port); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func requireAdminKeyUnary(expected string) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		if !validateAdminKey(ctx, expected) {
+			return nil, status.Error(codes.Unauthenticated, "invalid admin key")
+		}
+		return handler(ctx, req)
+	}
+}
+
+func requireAdminKeyStream(expected string) grpc.StreamServerInterceptor {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		if !validateAdminKey(ss.Context(), expected) {
+			return status.Error(codes.Unauthenticated, "invalid admin key")
+		}
+		return handler(srv, ss)
+	}
+}
+
+func validateAdminKey(ctx context.Context, expected string) bool {
+	if expected == "" {
+		return false
+	}
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return false
+	}
+	values := md.Get("x-admin-api-key")
+	if len(values) == 0 {
+		return false
+	}
+	return values[0] == expected
 }

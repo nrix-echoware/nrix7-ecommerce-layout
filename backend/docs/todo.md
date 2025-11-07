@@ -18,6 +18,10 @@ make sure this frontend app is following all the best practice
 - [x] i dont want useless duplicate code, plugin manager isnt needed, it has to go away, no bogus or duplicate code allowed in my code base.
 - [x] check for core resources, specifically controllers, services and repository, so that things can be fixed.
 - [x] the more stateless the codebase is, the best things will be, the backend1 will start first, backend2 will start later, else it both will try to migrate the database, that will be an issue, that needs to be fixed.
+- [x] i dont need jwt auth verification to be with grpc, jwt secret can be shared, i can decode it, without depending on backend, i am talking inside realtime microservice, this way both will be independent. remove the jwt dependency current have, realtime microservice calls backend with token and get the details, dont use that, decode it in  realtime microservice itself, just share the keys from docker, that will do it.
+- [x] i dont want duplicate code, is this needed, cause realtime microservice can decode the jwt now, is this neeeded.
+- [x] the proto needs to be updated for whole microservices as well, i want consistency and totally clean code. i dont want anything dangling in my code.
+
 
 
 ## fixes later

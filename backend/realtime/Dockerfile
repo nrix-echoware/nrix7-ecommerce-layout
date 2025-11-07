@@ -14,7 +14,7 @@ COPY . .
 
 RUN protoc --go_out=. --go_opt=module=ecommerce-realtime \
     --go-grpc_out=. --go-grpc_opt=module=ecommerce-realtime \
-    proto/auth.proto proto/notifications.proto
+    proto/notifications.proto
 
 RUN go mod tidy
 
