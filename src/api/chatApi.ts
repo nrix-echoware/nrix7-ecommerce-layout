@@ -1,6 +1,7 @@
 import { TokenManager } from "./authApi";
+import { getApiBaseUrl } from '../config/api';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:9997';
+const API_BASE = getApiBaseUrl();
 
 export interface Thread {
   thread_id: string;

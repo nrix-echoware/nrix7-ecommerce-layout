@@ -21,10 +21,21 @@ var DB *gorm.DB
 
 func InitDB() {
 	var err error
-	DB, err = gorm.Open(sqlite.Open(config.Get().DBFile), &gorm.Config{})
+	sqliteDB, err := gorm.Open(sqlite.Open(config.Get().DBFile), &gorm.Config{})
 	if err != nil {
 		logrus.Fatalf("failed to connect database: %v", err)
 	}
+	
+	// Enable WAL mode for concurrent reads and better performance
+	sqlDB, err := sqliteDB.DB()
+	if err == nil {
+		_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+		if err != nil {
+			logrus.Warnf("failed to enable WAL mode: %v", err)
+		}
+	}
+	
+	DB = sqliteDB
 	if err := DB.AutoMigrate(&contactus.ContactUs{}, &contactus.FAQ{}); err != nil {
 		logrus.Fatalf("failed to migrate database: %v", err)
 	}

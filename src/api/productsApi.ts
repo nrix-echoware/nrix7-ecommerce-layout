@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { Product } from '../types/product';
+import { getApiBaseUrl } from '../config/api';
 
- const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:9997'; // Change if your Go API runs elsewhere
-//const API_BASE_URL = 'https://bfde-2402-e280-240b-1f-a274-cdd7-f79c-d9ba.ngrok-free.app'; // Change if your Go API runs elsewhere
+const API_BASE_URL = getApiBaseUrl();
 
 
 export const fetchProducts = async (): Promise<Product[]> => {

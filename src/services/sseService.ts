@@ -1,6 +1,7 @@
 import { TokenManager } from '../api/authApi';
+import { getRealtimeBaseUrl } from '../config/api';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:9997';
+const REALTIME_BASE = getRealtimeBaseUrl();
 
 export interface SSEMessage {
   resource: string;
@@ -31,6 +32,9 @@ class SSEService {
   private userListeners: Set<(event: SSEMessage) => void> = new Set();
   private notifications: Notification[] = [];
   private notificationListeners: Set<(notifications: Notification[]) => void> = new Set();
+  private userReconnectTimeout: number | null = null;
+  private adminReconnectTimeout: number | null = null;
+  private currentUserId: string | null = null;
 
   connectAdmin() {
     if (this.adminConnection) return;
@@ -41,7 +45,7 @@ class SSEService {
       return;
     }
 
-    const url = `${API_BASE}/admin/sse?admin_key=${encodeURIComponent(adminKey)}`;
+    const url = `${REALTIME_BASE}/api/admin/sse?admin_key=${encodeURIComponent(adminKey)}`;
     this.adminConnection = new EventSource(url);
 
     this.adminConnection.addEventListener('message', (e) => {
@@ -64,7 +68,17 @@ class SSEService {
 
     this.adminConnection.addEventListener('error', (err) => {
       console.error('Admin SSE error:', err);
-      this.disconnectAdmin();
+      const event = err as Event & { target?: EventSource };
+      if (event.target) {
+        const es = event.target as EventSource;
+        if (es.readyState === EventSource.CLOSED) {
+          this.disconnectAdmin();
+          this.scheduleAdminReconnect();
+        }
+      } else {
+        this.disconnectAdmin();
+        this.scheduleAdminReconnect();
+      }
     });
   }
 
@@ -73,6 +87,7 @@ class SSEService {
       this.disconnectUser();
     }
 
+    this.currentUserId = userId;
     const token = TokenManager.getAccessToken();
     if (!token) {
       console.warn('No token found for user SSE connection');
@@ -85,7 +100,7 @@ class SSEService {
       return;
     }
 
-    const url = `${API_BASE}/user/sse/notification/${userId}?token=${encodeURIComponent(token)}`;
+    const url = `${REALTIME_BASE}/api/user/sse/notification/${userId}?token=${encodeURIComponent(token)}`;
     console.log('Connecting to user SSE:', {
       userId,
       url: url.replace(/token=[^&]*/, 'token=***'),
@@ -127,6 +142,15 @@ class SSEService {
         console.error('EventSource URL:', es.url.replace(/token=[^&]*/, 'token=***'));
         if (es.readyState === EventSource.CLOSED) {
           console.warn('SSE connection closed, will attempt to reconnect...');
+          this.disconnectUser();
+          if (this.currentUserId) {
+            this.scheduleUserReconnect();
+          }
+        }
+      } else {
+        this.disconnectUser();
+        if (this.currentUserId) {
+          this.scheduleUserReconnect();
         }
       }
     });
@@ -136,18 +160,47 @@ class SSEService {
     });
   }
 
+  disconnectUser() {
+    if (this.userReconnectTimeout) {
+      clearTimeout(this.userReconnectTimeout);
+      this.userReconnectTimeout = null;
+    }
+    if (this.userConnection) {
+      this.userConnection.close();
+      this.userConnection = null;
+    }
+  }
+
   disconnectAdmin() {
+    if (this.adminReconnectTimeout) {
+      clearTimeout(this.adminReconnectTimeout);
+      this.adminReconnectTimeout = null;
+    }
     if (this.adminConnection) {
       this.adminConnection.close();
       this.adminConnection = null;
     }
   }
 
-  disconnectUser() {
-    if (this.userConnection) {
-      this.userConnection.close();
-      this.userConnection = null;
-    }
+  private scheduleUserReconnect() {
+    if (this.userReconnectTimeout) return;
+    if (!this.currentUserId) return;
+    
+    this.userReconnectTimeout = window.setTimeout(() => {
+      this.userReconnectTimeout = null;
+      console.log('Reconnecting user SSE...');
+      this.connectUser(this.currentUserId!);
+    }, 3000);
+  }
+
+  private scheduleAdminReconnect() {
+    if (this.adminReconnectTimeout) return;
+    
+    this.adminReconnectTimeout = window.setTimeout(() => {
+      this.adminReconnectTimeout = null;
+      console.log('Reconnecting admin SSE...');
+      this.connectAdmin();
+    }, 3000);
   }
 
   onAdminEvent(listener: (event: SSEMessage) => void) {

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { getRealtimeBaseUrl } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:9997';
+const REALTIME_BASE = getRealtimeBaseUrl();
 
 function getAdminKey(): string | null {
   const key = sessionStorage.getItem('admin_api_key');
@@ -52,7 +53,7 @@ export async function sendNotification(
   }
 
   const { data } = await axios.post<AdminNotificationResponse>(
-    `${API_BASE_URL}/admin/ws/notify`,
+    `${REALTIME_BASE}/api/admin/ws/notify`,
     notification,
     {
       headers: {
@@ -72,11 +73,11 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
     throw new Error('Admin key required to get connection stats');
   }
 
-  console.log('Making request to:', `${API_BASE_URL}/admin/ws/stats`);
+  console.log('Making request to:', `${REALTIME_BASE}/api/admin/ws/stats`);
   console.log('With headers:', { 'X-Admin-API-Key': adminKey });
 
   const { data } = await axios.get<ConnectionStats>(
-    `${API_BASE_URL}/admin/ws/stats`,
+    `${REALTIME_BASE}/api/admin/ws/stats`,
     {
       headers: {
         'X-Admin-API-Key': adminKey,

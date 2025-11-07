@@ -24,10 +24,12 @@ type AudioStorageConfig struct {
 }
 
 type Config struct {
-	DBFile        string
-	RateLimit     RateLimitConfig
-	AdminAPIKey   string            `mapstructure:"admin_api_key"`
-	AudioStorage  AudioStorageConfig `mapstructure:"audio_storage"`
+	DBFile              string
+	RateLimit           RateLimitConfig
+	AdminAPIKey         string             `mapstructure:"admin_api_key"`
+	AudioStorage        AudioStorageConfig `mapstructure:"audio_storage"`
+	GrpcPort            string             `mapstructure:"grpc_port"`
+	RealtimeServiceAddr string             `mapstructure:"realtime_service_addr"`
 }
 
 var (
@@ -42,6 +44,8 @@ func loadConfig() *Config {
 	v.AddConfigPath(".")
 	_ = v.BindEnv("DB_FILE")
 	_ = v.BindEnv("ADMIN_API_KEY")
+	_ = v.BindEnv("grpc_port")
+	_ = v.BindEnv("realtime_service_addr")
 	v.SetDefault("dbfile", os.Getenv("DB_FILE"))
 	v.SetDefault("admin_api_key", os.Getenv("ADMIN_API_KEY"))
 	v.SetDefault("ratelimit.default.post", 300)
@@ -49,6 +53,8 @@ func loadConfig() *Config {
 	v.SetDefault("audio_storage.path", "/tmp/audio_contacts")
 	v.SetDefault("audio_storage.base_url", "http://localhost:8080/api")
 	v.SetDefault("audio_storage.max_payload_size_mb", 10)
+	v.SetDefault("grpc_port", "10000")
+	v.SetDefault("realtime_service_addr", "localhost:9999")
 	if err := v.ReadInConfig(); err != nil {
 		// fallback to env/defaults
 	}
