@@ -1,0 +1,7 @@
+port: "9998"
+grpc_port: "9999"
+auth_service_addr: "localhost:10000"
+admin_api_key: ""
+jwt_access_secret: ""
+jwt_refresh_secret: ""
+

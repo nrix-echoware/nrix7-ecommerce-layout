@@ -1,33 +1,33 @@
 package main
 
 import (
+	"context"
 	"ecommerce-backend/common/middleware"
 	"ecommerce-backend/common/security"
+	"ecommerce-backend/core/admin"
 	"ecommerce-backend/core/analytics"
 	"ecommerce-backend/core/audiocontact"
-	"ecommerce-backend/core/orders"
 	chat "ecommerce-backend/core/chat"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
 	"ecommerce-backend/core/newsletter"
+	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/products"
 	"ecommerce-backend/core/users"
-	"ecommerce-backend/core/websocket"
 	"ecommerce-backend/internal/config"
 	"ecommerce-backend/internal/db"
-	// "ecommerce-backend/internal/plugin_manager"
-	// orderHandlers "ecommerce-backend/internal/plugin_manager/handlers/orders"
-	// productHandlers "ecommerce-backend/internal/plugin_manager/handlers/products"
+	notificationsGrpc "ecommerce-backend/internal/grpc/notifications"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/unrolled/secure"
+	"time"
 )
 
 func main() {
 	// Initialize logger
 	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
-	logrus.Info("Starting ContactUs microservice...")
+	logrus.Info("Starting nrix7 microservice...")
 
 	// Initialize DB
 	db.InitDB()
@@ -68,40 +68,48 @@ func main() {
 	productSvc := products.NewProductService(productRepo, cartInvalidationRepo)
 	productCtrl := products.NewProductController(productSvc)
 
-    // Initialize Users module (before orders to inject auth)
-    userRepo := users.NewUserRepository(db.DB)
-    userSvc := users.NewUserService(userRepo)
-    userCtrl := users.NewUserController(userSvc)
-    
-    // Create unified auth middleware
-    authMW := middleware.AuthMiddleware(userSvc)
+	// Initialize Users module (before orders to inject auth)
+	userRepo := users.NewUserRepository(db.DB)
+	userSvc := users.NewUserService(userRepo)
+	userCtrl := users.NewUserController(userSvc)
 
-	// Initialize Plugin Manager (disabled for now)
-	// pm := plugin_manager.NewManager(100)
-	// plugin_manager.AutoRegister(pm, []plugin_manager.Plugin{
-	// 	orderHandlers.NewDiscordPlugin(""),
-	// 	orderHandlers.NewTelegramPlugin("", ""),
-	// 	productHandlers.NewDiscordPlugin(""),
-	// })
-	// pm.SetHooks(plugin_manager.Hooks{
-	// 	BeforeEmit: func(event plugin_manager.Event) {
-	// 		logrus.Infof("[PluginManager] Emitting event: %s -> %s", event.Name, event.Target)
-	// 	},
-	// })
-	// ctx, cancel := context.WithCancel(context.Background())
-	// defer cancel()
-	// go pm.RunForever(ctx)
+	// Create unified auth middleware
+	authMW := middleware.AuthMiddleware(userSvc)
 
-	// eventAdapter := plugin_manager.NewEventEmitterAdapter(pm)
-	var eventAdapter orders.EventEmitter = nil
+	cfg := config.Get()
 
-    // Initialize Orders module (needed for chat)
-    orderRepo := orders.NewOrderRepository(db.DB)
-    orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
+	// Initialize gRPC notification client - required for stateless operation
+	notificationClient, err := notificationsGrpc.NewClient(cfg.RealtimeServiceAddr)
+	if err != nil {
+		logrus.Fatalf("Failed to connect to realtime service: %v. Backend requires realtime service to be stateless.", err)
+	}
+	defer notificationClient.Close()
+	logrus.Info("Connected to realtime service")
 
-	// Initialize Chat module
-	sseHub := chat.NewSSEHub()
-	sseEmitter := chat.NewSSEEventEmitter(sseHub)
+	// Ping/Pong test - send 10 pings to test gRPC connection and nginx round-robin
+	go func() {
+		ctx := context.Background()
+		logrus.Info("Starting ping/pong test (10 requests)...")
+		for i := int32(1); i <= 10; i++ {
+			if err := notificationClient.Ping(ctx, i); err != nil {
+				logrus.Errorf("[Ping #%d] Failed: %v", i, err)
+			} else {
+				logrus.Infof("[Ping #%d] Success - pong received", i)
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		logrus.Info("Ping/pong test completed")
+	}()
+
+	var eventAdapter orders.EventEmitter
+
+	// Initialize Orders module (needed for chat)
+	orderRepo := orders.NewOrderRepository(db.DB)
+	orderStatusRepo := orders.NewOrderStatusRepository(db.DB)
+
+	// Initialize Chat module - stateless, uses gRPC for notifications
+	sseEmitter := chat.NewGRPCEventEmitter(notificationClient)
+
 	threadRepo := chat.NewThreadRepository(db.DB)
 	messageRepo := chat.NewMessageRepository(db.DB)
 	threadSvc := chat.NewThreadService(threadRepo, sseEmitter)
@@ -109,9 +117,11 @@ func main() {
 	threadCreatorAdapter := chat.NewThreadCreatorAdapter(threadSvc)
 
 	orderSvc := orders.NewOrderServiceWithChat(orderRepo, orderStatusRepo, productRepo, eventAdapter, sseEmitter, threadCreatorAdapter)
-    orderCtrl := orders.NewController(orderSvc, authMW, productRepo, userRepo)
-	
-	chatCtrl := chat.NewChatController(threadSvc, messageSvc, orderRepo, userRepo, authMW, sseHub)
+	orderCtrl := orders.NewController(orderSvc, authMW, productRepo, userRepo)
+
+	// Chat controller - only handles business logic, no SSE routes
+	chatCtrl := chat.NewChatController(threadSvc, messageSvc, orderRepo, userRepo, authMW)
+	chatCtrl.RegisterRoutes(r)
 
 	// Initialize Comment Rate Limiter (3 comments per 5 hours per IP)
 	commentRateLimiter := security.NewCommentRateLimiter(db.DB)
@@ -125,22 +135,14 @@ func main() {
 	analyticsSvc := analytics.NewService(analyticsRepo)
 	analyticsCtrl := analytics.NewController(analyticsSvc)
 
-    // Users already initialized above
+	// Users already initialized above
 
 	// Initialize Newsletter module
 	newsletterRepo := newsletter.NewNewsletterRepository(db.DB)
 	newsletterSvc := newsletter.NewNewsletterService(newsletterRepo)
 	newsletterCtrl := newsletter.NewNewsletterController(newsletterSvc)
 
-	// Initialize WebSocket module
-	wsHub := websocket.NewHub()
-	wsCtrl := websocket.NewWebSocketController(wsHub)
-	
-	// Start WebSocket hub in a goroutine
-	go wsHub.Run()
-
 	// Initialize Audio Contact module
-	cfg := config.Get()
 	audioContactRepo := audiocontact.NewAudioContactRepository(db.DB)
 	audioConfig := &audiocontact.AudioConfig{
 		StoragePath: cfg.AudioStorage.Path,
@@ -153,6 +155,10 @@ func main() {
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	// Admin routes
+	adminCtrl := admin.NewController(db.DB)
+	r.POST("/admin/cleanup-tokens", adminCtrl.CleanupTokens)
 
 	// Rate limiting middleware for contactus
 	r.Use(contactus.RateLimitMiddleware(ctrl.Name()))
@@ -170,9 +176,7 @@ func main() {
 	analyticsCtrl.RegisterRoutes(r)
 	userCtrl.RegisterRoutes(r)
 	newsletterCtrl.RegisterRoutes(r)
-	wsCtrl.RegisterRoutes(r)
-	chatCtrl.RegisterRoutes(r)
-	
+
 	// Register audio contact routes
 	audioContactCtrl.RegisterRoutes(r)
 

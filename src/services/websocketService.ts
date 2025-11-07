@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { getRealtimeBaseUrl } from '../config/api';
 
 export interface WebSocketMessage {
   type: string;
@@ -52,17 +53,18 @@ class WebSocketService {
     this.isConnecting = true;
 
     try {
-      // Get WebSocket URL based on environment
-      // For development, always use wss:// since backend runs with TLS
-      // const protocol = process.env.NODE_ENV === 'production' 
-      //   ? (window.location.protocol === 'https:' ? 'wss:' : 'ws:')
-      //   : 'wss:';
-      // const host = window.location.hostname;
-      // const port = process.env.NODE_ENV === 'production' ? '' : ':6660';
-      // const wsUrl = `${protocol}//${host}${port}/ws`;
-      const wsUrl = import.meta.env.VITE_WEB_SOCK_URL + "/ws";
-      if(!wsUrl) {
-        throw new Error('VITE_WEB_SOCK_URL is not set');
+      let wsUrl: string;
+      const realtimeBase = getRealtimeBaseUrl();
+
+      if (realtimeBase && realtimeBase.trim()) {
+        const socketBase = realtimeBase.replace(/^http/, 'ws');
+        wsUrl = `${socketBase}/api/ws`;
+      } else if (typeof window !== 'undefined') {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        wsUrl = `${protocol}//${host}/api/ws`;
+      } else {
+        wsUrl = 'ws://localhost:9998/api/ws';
       }
 
       this.ws = new WebSocket(wsUrl);

@@ -19,17 +19,15 @@ type ChatController struct {
 	orderRepo     orders.OrderRepository
 	userRepo      users.UserRepository
 	authMW        gin.HandlerFunc
-	sseHub        *SSEHub
 }
 
-func NewChatController(ts ThreadService, ms MessageService, or orders.OrderRepository, ur users.UserRepository, authMW gin.HandlerFunc, sseHub *SSEHub) *ChatController {
+func NewChatController(ts ThreadService, ms MessageService, or orders.OrderRepository, ur users.UserRepository, authMW gin.HandlerFunc) *ChatController {
 	return &ChatController{
 		threadService: ts,
 		messageService: ms,
 		orderRepo:     or,
 		userRepo:      ur,
 		authMW:        authMW,
-		sseHub:        sseHub,
 	}
 }
 
@@ -37,7 +35,6 @@ func (ctrl *ChatController) RegisterRoutes(r *gin.Engine) {
 	adminRoutes := r.Group("/admin")
 	adminRoutes.Use(middleware.AdminKeyMiddleware())
 	{
-		adminRoutes.GET("/sse", ctrl.AdminSSE)
 		adminRoutes.GET("/threads/:order_id", ctrl.GetThreadByOrderID)
 		adminRoutes.POST("/threads/:thread_id/close", ctrl.CloseThread)
 		adminRoutes.GET("/messages/:thread_id", ctrl.GetMessages)
@@ -49,69 +46,10 @@ func (ctrl *ChatController) RegisterRoutes(r *gin.Engine) {
 		userRoutes.Use(ctrl.authMW)
 	}
 	{
-		userRoutes.GET("/sse/notification/:user_id", ctrl.UserSSE)
 		userRoutes.GET("/threads/:order_id", ctrl.GetThreadByOrderIDUser)
 		userRoutes.GET("/messages/:thread_id", ctrl.GetMessages)
 		userRoutes.POST("/messages", ctrl.CreateMessage)
 	}
-}
-
-func (ctrl *ChatController) AdminSSE(c *gin.Context) {
-	c.Header("Content-Type", "text/event-stream")
-	c.Header("Cache-Control", "no-cache")
-	c.Header("Connection", "keep-alive")
-
-	clientChan := make(chan []byte, 256)
-	ctrl.sseHub.RegisterAdmin(clientChan)
-	defer ctrl.sseHub.UnregisterAdmin(clientChan)
-
-	c.Stream(func(w io.Writer) bool {
-		select {
-		case msg := <-clientChan:
-			c.SSEvent("message", string(msg))
-			return true
-		case <-c.Request.Context().Done():
-			return false
-		}
-	})
-}
-
-func (ctrl *ChatController) UserSSE(c *gin.Context) {
-	userIDParam := c.Param("user_id")
-	userIDVal, ok := c.Get("user_id")
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-	
-	userUUID, ok := userIDVal.(uuid.UUID)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user"})
-		return
-	}
-	
-	if userUUID.String() != userIDParam {
-		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
-		return
-	}
-
-	c.Header("Content-Type", "text/event-stream")
-	c.Header("Cache-Control", "no-cache")
-	c.Header("Connection", "keep-alive")
-
-	clientChan := make(chan []byte, 256)
-	ctrl.sseHub.RegisterUser(userIDParam, clientChan)
-	defer ctrl.sseHub.UnregisterUser(userIDParam, clientChan)
-
-	c.Stream(func(w io.Writer) bool {
-		select {
-		case msg := <-clientChan:
-			c.SSEvent("message", string(msg))
-			return true
-		case <-c.Request.Context().Done():
-			return false
-		}
-	})
 }
 
 func (ctrl *ChatController) GetThreadByOrderID(c *gin.Context) {

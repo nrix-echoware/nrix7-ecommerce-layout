@@ -1,23 +1,51 @@
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: ecommerce-nginx
+    ports:
+      - "${NGINX_HOST_PORT:-8080}:80"
+      - "${NGINX_GRPC_PORT:-10000}:10000"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - prodnet
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
     image: ecommerce-backend-prod
-    container_name: ecommerce-backend-prod
     working_dir: /app
-    ports:
-      - "${BACKEND_HOST_PORT:-6660}:9997"  # host port configurable, default 6660
     environment:
-      - DB_FILE=/app/data/contactus.db
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${POSTGRES_USER:-ecommerce}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-ecommerce}
+      - DB_NAME=${POSTGRES_DB:-ecommerce}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - DB_TIMEZONE=${DB_TIMEZONE:-UTC}
+      - DB_MAX_OPEN_CONNS=${DB_MAX_OPEN_CONNS:-50}
+      - DB_MAX_IDLE_CONNS=${DB_MAX_IDLE_CONNS:-10}
+      - DB_CONN_MAX_MINUTES=${DB_CONN_MAX_MINUTES:-5}
       - GIN_MODE=release
-      - ADMIN_API_KEY=abcd123
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-abcd123}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-super-secret-access}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-super-secret-refresh}
+      - GRPC_PORT=10000
+      - REALTIME_SERVICE_ADDR=realtime:9999
+      - AUDIO_STORAGE_PATH=/app/data/audio_contacts
+      - AUDIO_STORAGE_BASE_URL=${AUDIO_STORAGE_BASE_URL:-http://nginx/api}
     volumes:
-      - ./backend-data:/app/data  # host folder bind mount for writable SQLite
-      - ./backend-data:/tmp  # Mount system temp folder for audio storage
+      - backend-data:/app/data
+      - backend-tmp:/tmp
     networks:
       - prodnet
     restart: unless-stopped
+    depends_on:
+      - postgres
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9997/healthz"]
       interval: 30s
@@ -25,20 +53,57 @@ services:
       retries: 3
       start_period: 40s
 
-  sqlite-web:
-    image: coleifer/sqlite-web
-    container_name: sqlite-web
-    environment:
-      - SQLITE_WEB_PASSWORD=abcd123
-      - SQLITE_WEB_PORT=8080
-    command: ["sqlite_web", "-H", "0.0.0.0", "-p", "8080", "-P", "/data/contactus.db"]
+  realtime:
+    build:
+      context: ./backend/realtime
+      dockerfile: Dockerfile
+    image: ecommerce-realtime-prod
+    container_name: ecommerce-realtime
     ports:
-      - "${SQLITE_HOST_PORT:-6661}:8080"  # host port configurable, default 6661
-    volumes:
-      - ./backend-data:/data  # same folder as backend
+      - "${REALTIME_HOST_PORT:-9998}:9998"
+    environment:
+      - PORT=9998
+      - GRPC_PORT=9999
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-abcd123}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-super-secret-access}
+    depends_on:
+      - backend
     networks:
       - prodnet
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9998/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecommerce-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-ecommerce}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ecommerce}
+      - POSTGRES_DB=${POSTGRES_DB:-ecommerce}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - prodnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ecommerce} -d ${POSTGRES_DB:-ecommerce}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  backend-data:
+    driver: local
+  backend-tmp:
+    driver: local
+  postgres-data:
+    driver: local
 
 networks:
   prodnet:

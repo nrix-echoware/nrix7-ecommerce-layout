@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package notifications;
+
+option go_package = "ecommerce-backend/proto/notifications";
+
+service NotificationService {
+  rpc SendSSEToAdmin(SSEAdminEvent) returns (SSEResponse);
+  rpc SendSSEToUser(SSEUserEvent) returns (SSEResponse);
+  rpc SendWebSocketToAdmin(WSAdminEvent) returns (WSResponse);
+  rpc SendWebSocketToUser(WSUserEvent) returns (WSResponse);
+  rpc BroadcastWebSocket(WSBroadcastEvent) returns (WSResponse);
+  rpc Ping(PingRequest) returns (PongResponse);
+}
+
+message SSEAdminEvent {
+  string resource = 1;
+  string resource_type = 2;
+  string data_json = 3;
+}
+
+message SSEUserEvent {
+  string user_id = 1;
+  string resource = 2;
+  string resource_type = 3;
+  string data_json = 4;
+}
+
+message SSEResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message WSAdminEvent {
+  string type = 1;
+  string data_json = 2;
+}
+
+message WSUserEvent {
+  string user_id = 1;
+  string type = 2;
+  string data_json = 3;
+}
+
+message WSBroadcastEvent {
+  string type = 1;
+  string data_json = 2;
+}
+
+message WSResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message PingRequest {
+  string message = 1;
+  int32 sequence = 2;
+}
+
+message PongResponse {
+  string message = 1;
+  int32 sequence = 2;
+  bool success = 3;
+}
+

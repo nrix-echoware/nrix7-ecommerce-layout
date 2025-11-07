@@ -1,4 +1,4 @@
-package chat
+package hub
 
 import (
 	"encoding/json"

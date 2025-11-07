@@ -46,21 +46,21 @@ export default function PasswordResetManagement({ onAuthError }: PasswordResetMa
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Password Reset Management</h1>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mb-2">Password Reset Management</h1>
         <p className="text-neutral-600 text-sm">
           Generate password reset tokens for users. Users will receive a link they can use to reset their password.
         </p>
       </div>
 
-      <div className="bg-white rounded-lg border border-neutral-200 p-6">
+      <div className="bg-white rounded-lg border border-neutral-200 p-4 sm:p-6">
         <form onSubmit={handleGenerateToken} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
               User Email
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                 <input
@@ -105,7 +105,7 @@ export default function PasswordResetManagement({ onAuthError }: PasswordResetMa
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-neutral-700">Reset Link</label>
-              <div className="flex gap-2">
+              <div className="flex flex-col md:flex-row gap-2">
                 <input
                   type="text"
                   value={success.resetLink}

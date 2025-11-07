@@ -246,7 +246,7 @@ const ProductDetail = () => {
             <div className="space-y-6 pt-8 border-t border-neutral-200">
               <div>
                 <h3 className="font-medium mb-2 text-neutral-900">Need More Support?</h3>
-                <p className="text-sm text-neutral-600">
+                <div className="text-sm text-neutral-600">
                   {storeOwner && (storeOwner.email || storeOwner.phone) && (
                     <p className="text-sm text-neutral-600 mb-6">For urgent queries contact {storeOwner.name ? storeOwner.name + ' at ' : ''}
                       {storeOwner.email && (<a className="underline" href={`mailto:${storeOwner.email}`}>{storeOwner.email}</a>)}
@@ -264,7 +264,7 @@ const ProductDetail = () => {
                     onClose={() => setContactOpen(false)} 
                     message={`I have a question about the product ${product.name}`}
                   />
-                </p> 
+                </div> 
               </div>
             </div>
 
