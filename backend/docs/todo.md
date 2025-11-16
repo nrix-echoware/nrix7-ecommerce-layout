@@ -21,7 +21,13 @@ make sure this frontend app is following all the best practice
 - [x] i dont need jwt auth verification to be with grpc, jwt secret can be shared, i can decode it, without depending on backend, i am talking inside realtime microservice, this way both will be independent. remove the jwt dependency current have, realtime microservice calls backend with token and get the details, dont use that, decode it in  realtime microservice itself, just share the keys from docker, that will do it.
 - [x] i dont want duplicate code, is this needed, cause realtime microservice can decode the jwt now, is this neeeded.
 - [x] the proto needs to be updated for whole microservices as well, i want consistency and totally clean code. i dont want anything dangling in my code.
-
+- [x] i want a plugin, that will be used to generate top quality pictures with genai, like wan2 or veo3, i havent thought about it. but the flow is like, admin will upload multiple images, a dropdown that can add `category` and a prompt, both category and prompt will come from frontend, so some generics prompt will be there in frontend code. there will be a modal, multiple images will be uploaded or videos. data will be like this that will be recieved by backend.
+{ category: '', prompt: '', medias: [{data, mimetype}, {}, ......] }
+- [x] backend wont immediately process it, rather it will store it in database, with proper references. of medias and mime and category and prompt, in docker tehre is a volume mentioned backend-data
+- processing will happen in pipelines, basically pipelines are functions stage1 -> func(initial_data): output1 -> function(output1): output2 -> .... make this dynamic so that there is a manager.
+- [x] for now setup this pipeline in a folder under core/genai/tryons/processors stage1.go ... stageN.go
+- [x] folder strcutures core/genai/tryons/ -> <tryons>/resources/controller.go,models.go,repository.go,service.go to store medias and view medias and state, is it processed or pending or error, retry too, incase the output is bad.
+- [x] after uploading a media, the processor pipeline will get trigger, it will take data dn pass to stage1, that will call some 3rd party apis, for now just fmt.Println it, later i will do the actual api calls. i want proper db models to store and track states.
 
 
 ## fixes later

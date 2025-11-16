@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Package, MessageSquare, LogOut, Mail, Bell, Volume2, ShoppingCart, KeyRound, Menu, X } from 'lucide-react';
+import { Package, MessageSquare, LogOut, Mail, Bell, Volume2, ShoppingCart, KeyRound, Menu, X, Wand2 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 
 interface AdminLayoutProps {
@@ -20,6 +20,7 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
     { path: '/admin/audio-contacts', label: 'Audio Contacts', icon: Volume2 },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
     { path: '/admin/password-reset', label: 'Password Reset', icon: KeyRound },
+    { path: '/admin/tryons', label: 'GenAI Tryons', icon: Wand2 },
   ];
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
               <NotificationBell isAdmin={true} />
             </div>
           </header>
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 [&_[data-radix-dialog-content]]:bg-white [&_[data-radix-dialog-content]]:border-gray-200 [&_[data-radix-dialog-content]]:text-gray-900 [&_[data-radix-select-content]]:bg-white [&_[data-radix-select-content]]:border-gray-200 [&_[data-radix-popover-content]]:bg-white [&_[data-radix-popover-content]]:border-gray-200">
             {children}
           </main>
         </div>

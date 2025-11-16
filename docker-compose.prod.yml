@@ -38,6 +38,8 @@ services:
       - REALTIME_SERVICE_ADDR=realtime:9999
       - AUDIO_STORAGE_PATH=/app/data/audio_contacts
       - AUDIO_STORAGE_BASE_URL=${AUDIO_STORAGE_BASE_URL:-http://nginx/api}
+      - GENAI_STORAGE_PATH=/app/data/genai_tryons
+      - GENAI_STORAGE_BASE_URL=${GENAI_STORAGE_BASE_URL:-http://nginx/api}
     volumes:
       - backend-data:/app/data
       - backend-tmp:/tmp
