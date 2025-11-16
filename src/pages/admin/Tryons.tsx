@@ -68,9 +68,23 @@ export default function TryonsAdmin() {
       return createTryonJob({ category, prompt, medias });
     },
     onSuccess: () => {
-      setOpen(false);
-      setFiles([]);
+      const trimmedCategory = category.trim();
+      const trimmedPrompt = prompt.trim();
+      if (trimmedCategory && !savedCategories.includes(trimmedCategory)) {
+        setSavedCategories((prev) =>
+          prev.includes(trimmedCategory) ? prev : [...prev, trimmedCategory]
+        );
+      }
+      if (trimmedPrompt && !savedPrompts.includes(trimmedPrompt)) {
+        setSavedPrompts((prev) =>
+          prev.includes(trimmedPrompt) ? prev : [...prev, trimmedPrompt]
+        );
+      }
+      setCategory(CATEGORIES[0]);
       setPrompt('');
+      setFiles([]);
+      setStep(1);
+      setOpen(false);
       qc.invalidateQueries({ queryKey: ['tryons', 'jobs'] });
     },
   });
@@ -303,130 +317,157 @@ export default function TryonsAdmin() {
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* Desktop table */}
         <div className="hidden md:block">
-          <div className="grid grid-cols-12 px-4 py-2 text-sm font-medium bg-muted" style={{ backgroundColor: '#f0f0f0' }}>
-            <div className="col-span-2">Category</div>
-            <div className="col-span-6">Prompt</div>
-            <div className="col-span-2">Status</div>
-            <div className="col-span-1">Error</div>
-            <div className="col-span-1 text-right pr-2">Actions</div>
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Tryon Jobs</h2>
           </div>
-          <div className="divide-y">
-            {isLoading ? (
-              <div className="p-4 text-sm text-muted-foreground">Loading...</div>
-            ) : !jobs?.length ? (
-              <div className="p-4 text-sm text-muted-foreground">No jobs yet.</div>
-            ) : (
-              jobs.map((j) => (
-                <div key={j.id} className="grid grid-cols-12 px-4 py-2 text-sm items-center">
-                  <div className="col-span-2">{j.category}</div>
-                  <div
-                    className={cn(
-                      'col-span-6 max-w-xl text-sm leading-snug text-gray-900',
-                      j.prompt ? 'line-clamp-2' : 'text-muted-foreground'
-                    )}
-                  >
-                    {j.prompt || '-'}
-                  </div>
-                  <div className="col-span-2">{j.status}</div>
-                  <div className="col-span-1">
-                    {j.errorMsg ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => {
-                          setErrorText(j.errorMsg || null);
-                          setErrorViewerOpen(true);
-                        }}
-                        title="View error"
-                      >
-                        <AlertTriangle className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">-</span>
-                    )}
-                  </div>
-                  <div className="col-span-1 flex justify-end gap-2 pr-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        setSelectedJobId(j.id);
-                        setViewerOpen(true);
-                      }}
-                      disabled={!j.medias || j.medias.length === 0}
-                      title="View medias"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          {isLoading ? (
+            <div className="text-center py-12 text-gray-500">Loading jobs...</div>
+          ) : !jobs?.length ? (
+            <div className="text-center py-12 text-gray-500">No jobs yet.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Prompt
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Error
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {jobs.map((j) => (
+                    <tr key={j.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {j.category}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700 max-w-xl">
+                        <div
+                          className={cn(
+                            'leading-snug',
+                            j.prompt ? 'line-clamp-2' : 'text-gray-400'
+                          )}
+                        >
+                          {j.prompt || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {j.status}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {j.errorMsg ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setErrorText(j.errorMsg || null);
+                              setErrorViewerOpen(true);
+                            }}
+                            title="View error"
+                          >
+                            <AlertTriangle className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedJobId(j.id);
+                            setViewerOpen(true);
+                          }}
+                          disabled={!j.medias || j.medias.length === 0}
+                          title="View medias"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Mobile cards */}
         <div className="md:hidden divide-y">
           {isLoading ? (
-            <div className="p-4 text-sm text-muted-foreground">Loading...</div>
+            <div className="p-4 text-sm text-muted-foreground">Loading jobs...</div>
           ) : !jobs?.length ? (
             <div className="p-4 text-sm text-muted-foreground">No jobs yet.</div>
           ) : (
-            jobs.map((j) => (
-              <div key={j.id} className="p-4 text-sm space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-medium">{j.category}</div>
-                  <div className="text-xs px-2 py-1 rounded-full bg-muted text-gray-900">
-                    {j.status}
+            <div className="space-y-3 px-4 pb-4 pt-2">
+              {jobs.map((j) => (
+                <div key={j.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-medium text-gray-900">{j.category}</div>
+                    <div className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                      {j.status}
+                    </div>
                   </div>
-                </div>
-                <div
-                  className={cn(
-                    'text-sm leading-snug text-gray-900',
-                    j.prompt ? 'line-clamp-2' : 'text-muted-foreground'
-                  )}
-                >
-                  {j.prompt || '-'}
-                </div>
-                <div className="flex items-center justify-between gap-3 pt-1">
-                  <div>
-                    {j.errorMsg ? (
-                      <button
-                        className="inline-flex items-center gap-1 text-xs text-destructive"
-                        onClick={() => {
-                          setErrorText(j.errorMsg || null);
-                          setErrorViewerOpen(true);
-                        }}
-                      >
-                        <AlertTriangle className="h-3 w-3" />
-                        <span>Error</span>
-                      </button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">No error</span>
+                  <div
+                    className={cn(
+                      'text-sm leading-snug text-gray-900',
+                      j.prompt ? 'line-clamp-3' : 'text-gray-400'
                     )}
+                  >
+                    {j.prompt || '-'}
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => {
-                        setSelectedJobId(j.id);
-                        setViewerOpen(true);
-                      }}
-                      disabled={!j.medias || j.medias.length === 0}
-                      title="View medias"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <div>
+                      {j.errorMsg ? (
+                        <button
+                          className="inline-flex items-center gap-1 text-xs text-destructive"
+                          onClick={() => {
+                            setErrorText(j.errorMsg || null);
+                            setErrorViewerOpen(true);
+                          }}
+                        >
+                          <AlertTriangle className="h-3 w-3" />
+                          <span>Error</span>
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-500">No error</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          setSelectedJobId(j.id);
+                          setViewerOpen(true);
+                        }}
+                        disabled={!j.medias || j.medias.length === 0}
+                        title="View medias"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>
