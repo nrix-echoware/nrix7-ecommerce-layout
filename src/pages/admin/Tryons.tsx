@@ -1,0 +1,365 @@
+import React, { useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createTryonJob, listTryonJobs } from '@/api/genaiApi';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { AlertTriangle, Eye, Film, ImageIcon } from 'lucide-react';
+import { getApiBaseUrl } from '@/config/api';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+
+const CATEGORIES = ['product', 'model-tryon', 'lifestyle', 'banner'];
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const b64 = result.split(',')[1] || '';
+      resolve(b64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+export default function TryonsAdmin() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [errorViewerOpen, setErrorViewerOpen] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [prompt, setPrompt] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  
+  // Override dialog overlay to be darker for admin panel
+  React.useEffect(() => {
+    if (open) {
+      const overlay = document.querySelector('[data-radix-dialog-overlay]');
+      if (overlay) {
+        (overlay as HTMLElement).style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+      }
+    }
+  }, [open]);
+
+  const { data: jobs, isLoading } = useQuery({
+    queryKey: ['tryons', 'jobs'],
+    queryFn: () => listTryonJobs(50),
+  });
+
+  const createMut = useMutation({
+    mutationFn: async () => {
+      const medias = await Promise.all(
+        files.map(async (f) => {
+          const data = await fileToBase64(f);
+          return { data, mimetype: f.type || 'application/octet-stream' };
+        })
+      );
+      return createTryonJob({ category, prompt, medias });
+    },
+    onSuccess: () => {
+      setOpen(false);
+      setFiles([]);
+      setPrompt('');
+      qc.invalidateQueries({ queryKey: ['tryons', 'jobs'] });
+    },
+  });
+
+  const disabled = useMemo(() => createMut.isPending || files.length === 0, [createMut.isPending, files.length]);
+
+  const selectedJob = useMemo(
+    () => jobs?.find((j) => j.id === selectedJobId) ?? null,
+    [jobs, selectedJobId]
+  );
+
+  const mediaBaseUrl = useMemo(() => `${getApiBaseUrl()}/genai/media`, []);
+
+  return (
+    <div className="p-6 space-y-6 [&_[data-radix-dialog-content]]:bg-white [&_[data-radix-dialog-content]]:border-gray-200 [&_[data-radix-select-content]]:bg-white [&_[data-radix-select-content]]:border-gray-200">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">GenAI Tryons</h2>
+        <div className="flex items-center gap-2">
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>Create Job</Button>
+            </DialogTrigger>
+            <DialogContent className="w-[98vw] max-w-lg sm:w-auto bg-white border-gray-200">
+              <DialogHeader>
+                <DialogTitle className="text-gray-900">New Tryon Job</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-2">
+                <div className="grid gap-2">
+                  <Label>Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Prompt</Label>
+                  <Textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Describe the output you want"
+                    rows={4}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Medias</Label>
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,video/mp4"
+                    onChange={(e) => setFiles(e.target.files ? Array.from(e.target.files) : [])}
+                  />
+                  <div className="text-sm text-muted-foreground">{files.length} file(s) selected</div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => createMut.mutate()} disabled={disabled}>
+                  {createMut.isPending ? 'Submitting...' : 'Start Processing'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      <div className="border rounded-lg">
+        {/* Desktop table */}
+        <div className="hidden md:block">
+          <div className="grid grid-cols-12 px-4 py-2 text-sm font-medium bg-muted" style={{ backgroundColor: '#f0f0f0' }}>
+            <div className="col-span-2">Category</div>
+            <div className="col-span-6">Prompt</div>
+            <div className="col-span-2">Status</div>
+            <div className="col-span-1">Error</div>
+            <div className="col-span-1 text-right pr-2">Actions</div>
+          </div>
+          <div className="divide-y">
+            {isLoading ? (
+              <div className="p-4 text-sm text-muted-foreground">Loading...</div>
+            ) : !jobs?.length ? (
+              <div className="p-4 text-sm text-muted-foreground">No jobs yet.</div>
+            ) : (
+              jobs.map((j) => (
+                <div key={j.id} className="grid grid-cols-12 px-4 py-2 text-sm items-center">
+                  <div className="col-span-2">{j.category}</div>
+                  <div
+                    className={cn(
+                      'col-span-6 max-w-xl text-sm leading-snug text-gray-900',
+                      j.prompt ? 'line-clamp-2' : 'text-muted-foreground'
+                    )}
+                  >
+                    {j.prompt || '-'}
+                  </div>
+                  <div className="col-span-2">{j.status}</div>
+                  <div className="col-span-1">
+                    {j.errorMsg ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive"
+                        onClick={() => {
+                          setErrorText(j.errorMsg || null);
+                          setErrorViewerOpen(true);
+                        }}
+                        title="View error"
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
+                  </div>
+                  <div className="col-span-1 flex justify-end gap-2 pr-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedJobId(j.id);
+                        setViewerOpen(true);
+                      }}
+                      disabled={!j.medias || j.medias.length === 0}
+                      title="View medias"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden divide-y">
+          {isLoading ? (
+            <div className="p-4 text-sm text-muted-foreground">Loading...</div>
+          ) : !jobs?.length ? (
+            <div className="p-4 text-sm text-muted-foreground">No jobs yet.</div>
+          ) : (
+            jobs.map((j) => (
+              <div key={j.id} className="p-4 text-sm space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-medium">{j.category}</div>
+                  <div className="text-xs px-2 py-1 rounded-full bg-muted text-gray-900">
+                    {j.status}
+                  </div>
+                </div>
+                <div
+                  className={cn(
+                    'text-sm leading-snug text-gray-900',
+                    j.prompt ? 'line-clamp-2' : 'text-muted-foreground'
+                  )}
+                >
+                  {j.prompt || '-'}
+                </div>
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <div>
+                    {j.errorMsg ? (
+                      <button
+                        className="inline-flex items-center gap-1 text-xs text-destructive"
+                        onClick={() => {
+                          setErrorText(j.errorMsg || null);
+                          setErrorViewerOpen(true);
+                        }}
+                      >
+                        <AlertTriangle className="h-3 w-3" />
+                        <span>Error</span>
+                      </button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No error</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setSelectedJobId(j.id);
+                        setViewerOpen(true);
+                      }}
+                      disabled={!j.medias || j.medias.length === 0}
+                      title="View medias"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <Dialog open={errorViewerOpen} onOpenChange={setErrorViewerOpen}>
+        <DialogContent className="w-[98vw] max-w-xl sm:w-auto bg-white border-gray-200">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              Job Error
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 max-h-80 overflow-auto rounded-md border bg-muted/40 p-3 text-xs leading-relaxed whitespace-pre-wrap break-words">
+            {errorText || 'No error information.'}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
+        <DialogContent className="w-[95vw] max-w-3xl sm:w-auto bg-white border-gray-200">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900">
+              Job #{selectedJob?.id} · {selectedJob?.category || '-'}
+            </DialogTitle>
+          </DialogHeader>
+          {!selectedJob || !selectedJob.medias || selectedJob.medias.length === 0 ? (
+            <div className="p-4 text-sm text-muted-foreground">No medias for this job.</div>
+          ) : (
+            <div className="relative">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {selectedJob.medias.map((m) => {
+                    const isImage = m.mimeType.startsWith('image/');
+                    const isVideo = m.mimeType.startsWith('video/');
+                    const sizeMb = m.sizeBytes ? (m.sizeBytes / (1024 * 1024)).toFixed(2) : '0';
+                    let filePath = m.filePath || '';
+                    const absPrefix = '/app/data/genai_tryons/';
+                    if (filePath.startsWith(absPrefix)) {
+                      filePath = filePath.slice(absPrefix.length);
+                    } else if (filePath.startsWith('/')) {
+                      filePath = filePath.replace(/^\/+/, '');
+                    }
+                    const fileName = filePath.split('/').pop();
+                    const srcUrl = `${mediaBaseUrl}/${filePath}`;
+                    return (
+                      <CarouselItem key={m.id}>
+                        <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-black">
+                          {isImage && (
+                            <img
+                              src={srcUrl}
+                              alt={fileName}
+                              className="h-full w-full object-contain"
+                            />
+                          )}
+                          {isVideo && (
+                            <video
+                              className="h-full w-full object-contain"
+                              controls
+                              src={srcUrl}
+                            />
+                          )}
+                          {!isImage && !isVideo && (
+                            <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+                              Unsupported media type
+                            </div>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 text-xs text-white">
+                            <div className="flex items-center gap-2">
+                              {isImage && <ImageIcon className="h-4 w-4" />}
+                              {isVideo && <Film className="h-4 w-4" />}
+                              <span className="font-semibold truncate">{fileName}</span>
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-3 opacity-90">
+                              <span>JobID: {m.jobID}</span>
+                              <span>MIME: {m.mimeType}</span>
+                              <span>Size: {sizeMb} MB</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    );
+                  })}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+

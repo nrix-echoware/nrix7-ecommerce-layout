@@ -11,6 +11,7 @@ import AudioContactManagement from './admin/AudioContactManagement';
 import OrdersAdmin from './admin/OrdersAdmin';
 import OrderDetailAdmin from './admin/OrderDetail';
 import PasswordResetManagement from './admin/PasswordResetManagement';
+import TryonsAdmin from './admin/Tryons';
 
 const ADMIN_KEY_STORAGE = 'admin_api_key';
 
@@ -61,6 +62,7 @@ export default function AdminPanel() {
         <Route path="/contacts" element={<ContactUsManagement onAuthError={clear} />} />
         <Route path="/audio-contacts" element={<AudioContactManagement onAuthError={clear} />} />
         <Route path="/notifications" element={<NotificationManagement onAuthError={clear} />} />
+        <Route path="/tryons" element={<TryonsAdmin />} />
         <Route path="/orders" element={<OrdersAdmin />} />
         <Route path="/orders/:id" element={<OrderDetailAdmin />} />
         <Route path="/password-reset" element={<PasswordResetManagement onAuthError={clear} />} />

@@ -23,6 +23,11 @@ type AudioStorageConfig struct {
 	MaxPayloadSizeMB int    `mapstructure:"max_payload_size_mb"`
 }
 
+type GenAIStorageConfig struct {
+	Path    string `mapstructure:"path"`
+	BaseURL string `mapstructure:"base_url"`
+}
+
 type DatabaseConfig struct {
 	Host           string `mapstructure:"host"`
 	Port           int    `mapstructure:"port"`
@@ -41,6 +46,7 @@ type Config struct {
 	RateLimit           RateLimitConfig    `mapstructure:"ratelimit"`
 	AdminAPIKey         string             `mapstructure:"admin_api_key"`
 	AudioStorage        AudioStorageConfig `mapstructure:"audio_storage"`
+	GenAIStorage        GenAIStorageConfig `mapstructure:"genai_storage"`
 	GrpcPort            string             `mapstructure:"grpc_port"`
 	RealtimeServiceAddr string             `mapstructure:"realtime_service_addr"`
 	JWTAccessSecret     string             `mapstructure:"jwt_access_secret"`
@@ -71,6 +77,8 @@ func loadConfig() *Config {
 	_ = v.BindEnv("audio_storage.path", "AUDIO_STORAGE_PATH")
 	_ = v.BindEnv("audio_storage.base_url", "AUDIO_STORAGE_BASE_URL")
 	_ = v.BindEnv("audio_storage.max_payload_size_mb", "AUDIO_STORAGE_MAX_PAYLOAD_SIZE_MB")
+	_ = v.BindEnv("genai_storage.path", "GENAI_STORAGE_PATH")
+	_ = v.BindEnv("genai_storage.base_url", "GENAI_STORAGE_BASE_URL")
 	_ = v.BindEnv("grpc_port")
 	_ = v.BindEnv("realtime_service_addr")
 	_ = v.BindEnv("jwt_access_secret", "JWT_ACCESS_SECRET")
@@ -91,6 +99,8 @@ func loadConfig() *Config {
 	v.SetDefault("audio_storage.path", "/app/data/audio_contacts")
 	v.SetDefault("audio_storage.base_url", "http://localhost:8080/api")
 	v.SetDefault("audio_storage.max_payload_size_mb", 10)
+	v.SetDefault("genai_storage.path", "/app/data/genai_tryons")
+	v.SetDefault("genai_storage.base_url", "http://localhost:8080/api")
 	v.SetDefault("grpc_port", "10000")
 	v.SetDefault("realtime_service_addr", "localhost:9999")
 	v.SetDefault("jwt_access_secret", "")

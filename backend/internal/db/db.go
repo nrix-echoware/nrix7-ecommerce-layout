@@ -14,6 +14,7 @@ import (
 	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/products"
 	"ecommerce-backend/core/users"
+	"ecommerce-backend/core/genai/tryons"
 	"ecommerce-backend/internal/config"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -94,6 +95,9 @@ func InitDB() {
 	}
 	if err := DB.AutoMigrate(&chat.Thread{}, &chat.Message{}); err != nil {
 		logrus.Fatalf("failed to migrate chat tables: %v", err)
+	}
+	if err := DB.AutoMigrate(&tryons.TryonJob{}, &tryons.TryonMedia{}); err != nil {
+		logrus.Fatalf("failed to migrate tryons tables: %v", err)
 	}
 
 	// Initialize cart invalidation hash if not exists

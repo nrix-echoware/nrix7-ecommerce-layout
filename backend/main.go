@@ -10,6 +10,7 @@ import (
 	chat "ecommerce-backend/core/chat"
 	"ecommerce-backend/core/comments"
 	"ecommerce-backend/core/contactus"
+	"ecommerce-backend/core/genai/tryons"
 	"ecommerce-backend/core/newsletter"
 	"ecommerce-backend/core/orders"
 	"ecommerce-backend/core/products"
@@ -77,6 +78,9 @@ func main() {
 	authMW := middleware.AuthMiddleware(userSvc)
 
 	cfg := config.Get()
+
+	// Serve GenAI media as static files
+	r.Static("/genai/media", cfg.GenAIStorage.Path)
 
 	// Initialize gRPC notification client - required for stateless operation
 	notificationClient, err := notificationsGrpc.NewClient(cfg.RealtimeServiceAddr)
@@ -179,6 +183,12 @@ func main() {
 
 	// Register audio contact routes
 	audioContactCtrl.RegisterRoutes(r)
+
+	// GenAI Tryons
+	tryonRepo := tryons.NewRepository(db.DB)
+	tryonSvc := tryons.NewService(tryonRepo)
+	tryonCtrl := tryons.NewController(tryonSvc)
+	tryonCtrl.RegisterRoutes(r)
 
 	// Start server
 	logrus.Info("Server running on :9997")
