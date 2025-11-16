@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Eye, Film, ImageIcon } from 'lucide-react';
 import { getApiBaseUrl } from '@/config/api';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select as AntSelect, Input as AntInput } from 'antd';
 
 const CATEGORIES = ['product', 'model-tryon', 'lifestyle', 'banner'];
 
@@ -36,6 +36,9 @@ export default function TryonsAdmin() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [prompt, setPrompt] = useState('');
+  const [savedCategories, setSavedCategories] = useState<string[]>([]);
+  const [savedPrompts, setSavedPrompts] = useState<string[]>([]);
+  const [step, setStep] = useState<1 | 2>(1);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   
@@ -81,64 +84,220 @@ export default function TryonsAdmin() {
 
   const mediaBaseUrl = useMemo(() => `${getApiBaseUrl()}/genai/media`, []);
 
+  React.useEffect(() => {
+    try {
+      const c = JSON.parse(localStorage.getItem('genai_tryons_categories') || '[]');
+      if (Array.isArray(c)) {
+        setSavedCategories(c);
+      }
+      const p = JSON.parse(localStorage.getItem('genai_tryons_prompts') || '[]');
+      if (Array.isArray(p)) {
+        setSavedPrompts(p);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('genai_tryons_categories', JSON.stringify(savedCategories));
+    } catch {
+      // ignore
+    }
+  }, [savedCategories]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('genai_tryons_prompts', JSON.stringify(savedPrompts));
+    } catch {
+      // ignore
+    }
+  }, [savedPrompts]);
+
   return (
     <div className="p-6 space-y-6 [&_[data-radix-dialog-content]]:bg-white [&_[data-radix-dialog-content]]:border-gray-200 [&_[data-radix-select-content]]:bg-white [&_[data-radix-select-content]]:border-gray-200">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">GenAI Tryons</h2>
         <div className="flex items-center gap-2">
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog
+            open={open}
+            onOpenChange={(v) => {
+              setOpen(v);
+              if (!v) {
+                setStep(1);
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button>Create Job</Button>
             </DialogTrigger>
-            <DialogContent className="w-[98vw] max-w-lg sm:w-auto bg-white border-gray-200">
+            <DialogContent className="w-[98vw] sm:w-[90vw] md:w-[80vw] lg:w-[70vw] max-w-4xl bg-white border-gray-200">
               <DialogHeader>
                 <DialogTitle className="text-gray-900">New Tryon Job</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-4 py-2">
-                <div className="grid gap-2">
-                  <Label>Category</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {step === 1 && (
+                <div className="space-y-4 py-2 bg-white text-black">
+                  <Card className="bg-white border border-gray-200 shadow-none">
+                    <CardContent className="pt-4 space-y-3">
+                      <Label className="text-xs font-semibold uppercase tracking-wide text-gray-900">
+                        Category
+                      </Label>
+                      <AntSelect
+                        mode="tags"
+                        style={{ width: '100%' }}
+                        placeholder="Category (e.g. model-tryon)"
+                        value={category ? [category] : []}
+                        onChange={(values) => {
+                          const last = values[values.length - 1] || '';
+                          setCategory(last);
+                          setSavedCategories(values);
+                        }}
+                        options={[...new Set([...CATEGORIES, ...savedCategories, category])]
+                          .filter(Boolean)
+                          .map((c) => ({ label: c, value: c }))}
+                        size="middle"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white border border-gray-200 shadow-none">
+                    <CardContent className="pt-4 space-y-3">
+                      <Label className="text-xs font-semibold uppercase tracking-wide text-gray-900">
+                        Prompt
+                      </Label>
+                      <AntSelect
+                        mode="tags"
+                        style={{ width: '100%' }}
+                        placeholder="Select or create a prompt"
+                        value={prompt ? [prompt] : []}
+                        onChange={(values) => {
+                          const last = values[values.length - 1] || '';
+                          setPrompt(last);
+                          setSavedPrompts(values);
+                        }}
+                        options={[...new Set([...savedPrompts, prompt])]
+                          .filter(Boolean)
+                          .map((p) => ({ label: p.length > 80 ? `${p.slice(0, 80)}…` : p, value: p }))}
+                        size="middle"
+                      />
+                      <AntInput.TextArea
+                        className="text-sm mt-3"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="Describe the output you want"
+                        rows={8}
+                      />
+                    </CardContent>
+                  </Card>
+                  <div className="flex justify-between pt-2">
+                    <Button variant="ghost" onClick={() => setOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => setStep(2)}
+                      disabled={!category.trim() || !prompt.trim()}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Prompt</Label>
-                  <Textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Describe the output you want"
-                    rows={4}
-                  />
+              )}
+              {step === 2 && (
+                <div className="grid gap-4 py-2">
+                  <div className="grid gap-1 text-sm">
+                    <span className="font-medium text-gray-900">Category</span>
+                    <span className="text-black italic break-words">{category}</span>
+                  </div>
+                  <div className="grid gap-1 text-sm">
+                    <span className="font-medium text-gray-900">Prompt</span>
+                    <span className="text-black italic whitespace-pre-wrap break-words max-h-24 overflow-auto">
+                      {prompt}
+                    </span>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Medias</Label>
+                    <Input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*,video/mp4"
+                      onChange={(e) => {
+                        const list = e.target.files ? Array.from(e.target.files) : [];
+                        if (!list.length) return;
+                        setFiles((prev) => [...prev, ...list]);
+                      }}
+                    />
+                    <div className="text-sm text-muted-foreground">
+                      {files.length} file(s) selected
+                    </div>
+                    {files.length > 0 && (
+                      <div className="mt-2 grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-64 overflow-auto">
+                        {files.map((f, idx) => {
+                          const isImage = f.type.startsWith('image/');
+                          const isVideo = f.type.startsWith('video/');
+                          const url = URL.createObjectURL(f);
+                          return (
+                            <div key={idx} className="relative group rounded-md border bg-black/5 overflow-hidden">
+                              <div className="aspect-video w-full bg-black/80 flex items-center justify-center">
+                                {isImage && (
+                                  <img
+                                    src={url}
+                                    alt={f.name}
+                                    className="h-full w-full object-cover"
+                                    onLoad={() => URL.revokeObjectURL(url)}
+                                  />
+                                )}
+                                {isVideo && (
+                                  <video
+                                    src={url}
+                                    className="h-full w-full object-cover"
+                                    onLoadedMetadata={() => URL.revokeObjectURL(url)}
+                                    muted
+                                  />
+                                )}
+                                {!isImage && !isVideo && (
+                                  <span className="text-[10px] text-white px-2 text-center">
+                                    {f.type || 'file'}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="absolute inset-x-0 bottom-0 bg-black/70 px-2 py-1 text-[10px] text-white truncate">
+                                {f.name}
+                              </div>
+                              <button
+                                type="button"
+                                className="absolute right-1 top-1 rounded-full bg-black/70 px-1.5 py-0.5 text-[10px] text-white opacity-90 hover:bg-black"
+                                onClick={() =>
+                                  setFiles((prev) => prev.filter((_, i) => i !== idx))
+                                }
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-between gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep(1)}
+                    >
+                      Back
+                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" onClick={() => setOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={() => createMut.mutate()} disabled={disabled}>
+                        {createMut.isPending ? 'Submitting...' : 'Start Processing'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Medias</Label>
-                  <Input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*,video/mp4"
-                    onChange={(e) => setFiles(e.target.files ? Array.from(e.target.files) : [])}
-                  />
-                  <div className="text-sm text-muted-foreground">{files.length} file(s) selected</div>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => createMut.mutate()} disabled={disabled}>
-                  {createMut.isPending ? 'Submitting...' : 'Start Processing'}
-                </Button>
-              </div>
+              )}
             </DialogContent>
           </Dialog>
         </div>
